@@ -1,0 +1,326 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ─── Enums ────────────────────────────────────────────────────────────────────
+
+enum Role {
+  ADMIN
+  PROJECT_MANAGER
+  QA_ANALYST
+  QA_ENGINEER
+  DEVELOPER
+  CLIENT_VIEWER
+}
+
+enum ProjectStatus {
+  ACTIVE
+  PAUSED
+  COMPLETED
+  ARCHIVED
+  CANCELLED
+}
+
+enum Priority {
+  LOW
+  MEDIUM
+  HIGH
+  CRITICAL
+}
+
+enum TaskStatus {
+  BACKLOG
+  TODO
+  IN_PROGRESS
+  QA_TESTING
+  REVIEW
+  DONE
+}
+
+enum BugSeverity {
+  LOW
+  MEDIUM
+  HIGH
+  CRITICAL
+}
+
+enum BugStatus {
+  OPEN
+  IN_PROGRESS
+  IN_REVIEW
+  RESOLVED
+  CLOSED
+  WONT_FIX
+}
+
+enum SprintStatus {
+  PLANNING
+  ACTIVE
+  COMPLETED
+  CANCELLED
+}
+
+enum NotificationType {
+  MENTION
+  COMMENT
+  STATUS_CHANGE
+  ASSIGNMENT
+  DEADLINE
+  BUG_CREATED
+  SPRINT_START
+}
+
+// ─── Models ───────────────────────────────────────────────────────────────────
+
+model User {
+  id             String    @id @default(cuid())
+  email          String    @unique
+  username       String    @unique
+  name           String
+  avatar         String?
+  role           Role      @default(DEVELOPER)
+  passwordHash   String
+  refreshToken   String?
+  isActive       Boolean   @default(true)
+  lastSeen       DateTime?
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+
+  ownedProjects    Project[]           @relation("ProjectOwner")
+  projectMembers   ProjectMember[]
+  assignedTasks    Task[]              @relation("TaskAssignee")
+  createdTasks     Task[]              @relation("TaskCreator")
+  assignedBugs     Bug[]               @relation("BugAssignee")
+  reportedBugs     Bug[]               @relation("BugReporter")
+  comments         Comment[]
+  notifications    Notification[]
+  activityLogs     ActivityLog[]
+  sprintMembers    SprintMember[]
+
+  @@map("users")
+}
+
+model Project {
+  id          String        @id @default(cuid())
+  name        String
+  description String?
+  status      ProjectStatus @default(ACTIVE)
+  priority    Priority      @default(MEDIUM)
+  startDate   DateTime?
+  endDate     DateTime?
+  progress    Int           @default(0)
+  tags        String[]
+  clientName  String?
+  coverColor  String        @default("#6366f1")
+
+  ownerId   String
+  owner     User   @relation("ProjectOwner", fields: [ownerId], references: [id])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  members  ProjectMember[]
+  tasks    Task[]
+  bugs     Bug[]
+  sprints  Sprint[]
+  comments Comment[]       @relation("ProjectComments")
+
+  @@map("projects")
+}
+
+model ProjectMember {
+  id        String   @id @default(cuid())
+  projectId String
+  userId    String
+  role      Role     @default(DEVELOPER)
+  joinedAt  DateTime @default(now())
+
+  project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([projectId, userId])
+  @@map("project_members")
+}
+
+model Task {
+  id          String     @id @default(cuid())
+  title       String
+  description String?
+  status      TaskStatus @default(BACKLOG)
+  priority    Priority   @default(MEDIUM)
+  storyPoints Int?
+  dueDate     DateTime?
+  order       Int        @default(0)
+  tags        String[]
+
+  projectId  String
+  sprintId   String?
+  assigneeId String?
+  creatorId  String
+  parentId   String?
+
+  project  Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  sprint   Sprint?  @relation(fields: [sprintId], references: [id])
+  assignee User?    @relation("TaskAssignee", fields: [assigneeId], references: [id])
+  creator  User     @relation("TaskCreator", fields: [creatorId], references: [id])
+  parent   Task?    @relation("Subtasks", fields: [parentId], references: [id])
+  subtasks Task[]   @relation("Subtasks")
+
+  comments     Comment[]
+  attachments  Attachment[]
+  activityLogs ActivityLog[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("tasks")
+}
+
+model Bug {
+  id              String      @id @default(cuid())
+  bugId           String      @unique
+  title           String
+  description     String
+  severity        BugSeverity @default(MEDIUM)
+  priority        Priority    @default(MEDIUM)
+  status          BugStatus   @default(OPEN)
+  environment     String?
+  stepsToReproduce String?
+  expectedBehavior String?
+  actualBehavior   String?
+  browserInfo     String?
+  osInfo          String?
+  buildVersion    String?
+  tags            String[]
+
+  projectId  String
+  assigneeId String?
+  reporterId String
+  sprintId   String?
+
+  project  Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  assignee User?    @relation("BugAssignee", fields: [assigneeId], references: [id])
+  reporter User     @relation("BugReporter", fields: [reporterId], references: [id])
+  sprint   Sprint?  @relation(fields: [sprintId], references: [id])
+
+  comments     Comment[]
+  attachments  Attachment[]
+  activityLogs ActivityLog[]
+
+  resolvedAt DateTime?
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+
+  @@map("bugs")
+}
+
+model Sprint {
+  id          String       @id @default(cuid())
+  name        String
+  goal        String?
+  status      SprintStatus @default(PLANNING)
+  startDate   DateTime
+  endDate     DateTime
+  velocity    Int?
+  capacity    Int?
+  projectId   String
+
+  project  Project        @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  tasks    Task[]
+  bugs     Bug[]
+  members  SprintMember[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("sprints")
+}
+
+model SprintMember {
+  id       String @id @default(cuid())
+  sprintId String
+  userId   String
+
+  sprint Sprint @relation(fields: [sprintId], references: [id], onDelete: Cascade)
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([sprintId, userId])
+  @@map("sprint_members")
+}
+
+model Comment {
+  id        String  @id @default(cuid())
+  content   String
+  authorId  String
+  taskId    String?
+  bugId     String?
+  projectId String?
+
+  author  User     @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  task    Task?    @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  bug     Bug?     @relation(fields: [bugId], references: [id], onDelete: Cascade)
+  project Project? @relation("ProjectComments", fields: [projectId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("comments")
+}
+
+model Attachment {
+  id       String  @id @default(cuid())
+  filename String
+  url      String
+  mimeType String
+  size     Int
+  taskId   String?
+  bugId    String?
+
+  task Task? @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  bug  Bug?  @relation(fields: [bugId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+
+  @@map("attachments")
+}
+
+model Notification {
+  id      String           @id @default(cuid())
+  type    NotificationType
+  title   String
+  message String
+  isRead  Boolean          @default(false)
+  link    String?
+  userId  String
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+
+  @@map("notifications")
+}
+
+model ActivityLog {
+  id          String  @id @default(cuid())
+  action      String
+  entityType  String
+  entityId    String
+  description String
+  metadata    Json?
+  userId      String
+  taskId      String?
+  bugId       String?
+
+  user User  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  task Task? @relation(fields: [taskId], references: [id], onDelete: SetNull)
+  bug  Bug?  @relation(fields: [bugId], references: [id], onDelete: SetNull)
+
+  createdAt DateTime @default(now())
+
+  @@map("activity_logs")
+}
