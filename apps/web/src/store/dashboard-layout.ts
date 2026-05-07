@@ -39,9 +39,8 @@ export const useDashboardLayoutStore = create<DashboardLayoutState>()(
 
       getLayout: (userId) => {
         const saved = get().layouts[userId]
-        if (!saved) return DEFAULT_WIDGETS
+        if (!Array.isArray(saved)) return DEFAULT_WIDGETS
 
-        // Merge: add any new widgets not yet in saved layout
         const savedIds = new Set(saved.map(w => w.id))
         const newWidgets = DEFAULT_WIDGETS.filter(w => !savedIds.has(w.id))
         return [...saved, ...newWidgets]
@@ -49,7 +48,8 @@ export const useDashboardLayoutStore = create<DashboardLayoutState>()(
 
       toggleWidget: (userId, id) =>
         set(s => {
-          const current = s.layouts[userId] ?? DEFAULT_WIDGETS
+          const raw = s.layouts[userId]
+          const current = Array.isArray(raw) ? raw : DEFAULT_WIDGETS
           return {
             layouts: {
               ...s.layouts,
@@ -60,7 +60,8 @@ export const useDashboardLayoutStore = create<DashboardLayoutState>()(
 
       reorderWidgets: (userId, from, to) =>
         set(s => {
-          const current = [...(s.layouts[userId] ?? DEFAULT_WIDGETS)]
+          const raw = s.layouts[userId]
+          const current = [...(Array.isArray(raw) ? raw : DEFAULT_WIDGETS)]
           const [moved] = current.splice(from, 1)
           current.splice(to, 0, moved)
           return { layouts: { ...s.layouts, [userId]: current } }

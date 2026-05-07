@@ -36,24 +36,40 @@ const fadeUp = {
   show:   { opacity: 1, y: 0, transition: { duration: 0.45, ease: [0.25, 0.46, 0.45, 0.94] as const } },
 }
 
-// Maps widget id → the component that renders it (with its grid col-span)
-const WIDGET_COMPONENTS: Record<string, { node: React.ReactNode; colSpan: string }> = {
-  'daily':           { node: <TodayDailyWidget />,  colSpan: 'col-span-12' },
-  'metrics':         { node: <DashboardMetrics />,   colSpan: 'col-span-12' },
-  'sentinel-ai':     { node: <SentinelAI />,         colSpan: 'col-span-12' },
-  'bug-trend':       { node: <BugTrendChart />,      colSpan: 'col-span-12 lg:col-span-8' },
-  'sprint':          { node: <SprintProgress />,     colSpan: 'col-span-12 lg:col-span-4' },
-  'active-projects': { node: <ActiveProjects />,     colSpan: 'col-span-12 lg:col-span-7' },
-  'team-presence':   { node: <TeamPresence />,       colSpan: 'col-span-12 lg:col-span-5' },
-  'critical-bugs':   { node: <CriticalBugs />,       colSpan: 'col-span-12 lg:col-span-3' },
-  'recent-activity': { node: <RecentActivity />,     colSpan: 'col-span-12 lg:col-span-3' },
-  'calendar':        { node: <CalendarWidget />,     colSpan: 'col-span-12 lg:col-span-3' },
-  'qa-today':        { node: <QATodayWidget />,      colSpan: 'col-span-12 lg:col-span-3' },
-  'qa-quick-action': { node: <QAQuickAction />,      colSpan: 'col-span-12 lg:col-span-4' },
+const FULL_WIDTH = new Set(['daily', 'metrics', 'sentinel-ai'])
+
+const WIDGET_COL: Record<string, string> = {
+  'daily':           'col-span-12',
+  'metrics':         'col-span-12',
+  'sentinel-ai':     'col-span-12',
+  'bug-trend':       'col-span-12 lg:col-span-8',
+  'sprint':          'col-span-12 lg:col-span-4',
+  'active-projects': 'col-span-12 lg:col-span-7',
+  'team-presence':   'col-span-12 lg:col-span-5',
+  'critical-bugs':   'col-span-12 lg:col-span-3',
+  'recent-activity': 'col-span-12 lg:col-span-3',
+  'calendar':        'col-span-12 lg:col-span-3',
+  'qa-today':        'col-span-12 lg:col-span-3',
+  'qa-quick-action': 'col-span-12 lg:col-span-4',
 }
 
-// Full-width widgets are rendered outside the grid; grid widgets share rows
-const FULL_WIDTH = new Set(['daily', 'metrics', 'sentinel-ai'])
+function WidgetNode({ id }: { id: string }) {
+  switch (id) {
+    case 'daily':           return <TodayDailyWidget />
+    case 'metrics':         return <DashboardMetrics />
+    case 'sentinel-ai':     return <SentinelAI />
+    case 'bug-trend':       return <BugTrendChart />
+    case 'sprint':          return <SprintProgress />
+    case 'active-projects': return <ActiveProjects />
+    case 'team-presence':   return <TeamPresence />
+    case 'critical-bugs':   return <CriticalBugs />
+    case 'recent-activity': return <RecentActivity />
+    case 'calendar':        return <CalendarWidget />
+    case 'qa-today':        return <QATodayWidget />
+    case 'qa-quick-action': return <QAQuickAction />
+    default:                return null
+  }
+}
 
 export default function DashboardPage() {
   const user      = useAuthStore(s => s.user)
@@ -107,7 +123,7 @@ export default function DashboardPage() {
         {/* Full-width widgets (daily, metrics, sentinel-ai) in user-defined order */}
         {fullWidthList.map(w => (
           <motion.div key={w.id} variants={fadeUp}>
-            {WIDGET_COMPONENTS[w.id]?.node}
+            <WidgetNode id={w.id} />
           </motion.div>
         ))}
 
@@ -115,11 +131,11 @@ export default function DashboardPage() {
         {gridList.length > 0 && (
           <motion.div variants={fadeUp} className="grid grid-cols-12 gap-5">
             {gridList.map(w => {
-              const cfg = WIDGET_COMPONENTS[w.id]
-              if (!cfg) return null
+              const colSpan = WIDGET_COL[w.id]
+              if (!colSpan) return null
               return (
-                <div key={w.id} className={cfg.colSpan}>
-                  {cfg.node}
+                <div key={w.id} className={colSpan}>
+                  <WidgetNode id={w.id} />
                 </div>
               )
             })}
