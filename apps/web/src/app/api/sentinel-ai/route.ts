@@ -54,6 +54,18 @@ export async function POST(req: NextRequest) {
 
   const { messages, context = {} } = body
 
+  // ── Input validation ───────────────────────────────────────────
+  if (!Array.isArray(messages) || messages.length === 0) {
+    return new Response(JSON.stringify({ error: 'messages must be a non-empty array' }), { status: 400 })
+  }
+  if (messages.length > 20) {
+    return new Response(JSON.stringify({ error: 'Too many messages in context' }), { status: 400 })
+  }
+  const totalChars = messages.reduce((sum, m) => sum + (m.content?.length ?? 0), 0)
+  if (totalChars > 40_000) {
+    return new Response(JSON.stringify({ error: 'Message payload too large' }), { status: 400 })
+  }
+
   const anthropicRes = await fetch('https://api.anthropic.com/v1/messages', {
     method: 'POST',
     headers: {
@@ -63,7 +75,7 @@ export async function POST(req: NextRequest) {
     },
     body: JSON.stringify({
       model:      'claude-sonnet-4-6',
-      max_tokens: 2048,
+      max_tokens: 1024,
       stream:     true,
       system:     buildSystemPrompt(context),
       messages:   messages.map(m => ({ role: m.role, content: m.content })),
