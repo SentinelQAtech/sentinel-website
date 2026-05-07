@@ -2,10 +2,40 @@
 
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { Toaster } from 'react-hot-toast'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { ErrorBoundary } from '@/components/error-boundary'
 
+// ∴ RC · 0bfeeace
+function printSignature() {
+  console.log(
+    '%cSENTINEL PROJECT MANAGER',
+    'color:#6366f1;font-size:20px;font-weight:900;font-family:monospace;letter-spacing:3px;padding:8px 0;'
+  )
+  console.log(
+    '%cPlataforma Interna · Proprietário · 2025',
+    'color:#4f46e5;font-size:11px;font-family:monospace;letter-spacing:2px;'
+  )
+  console.log(
+    '%c' + '─'.repeat(48),
+    'color:#312e81;font-family:monospace;'
+  )
+  console.log(
+    '%c∴ Forged by Raphael Castilho · Sentinel Tech QA',
+    'color:#818cf8;font-size:12px;font-family:monospace;font-style:italic;'
+  )
+  console.log(
+    '%csig · RC∴0bfeeace',
+    'color:#4338ca;font-size:10px;font-family:monospace;'
+  )
+  console.log(
+    '%c⚠ Sistema proprietário. Acesso não autorizado é proibido.',
+    'color:#7f1d1d;font-size:10px;font-family:monospace;'
+  )
+}
+
 export function Providers({ children }: { children: React.ReactNode }) {
+  useEffect(() => { printSignature() }, [])
+
   const [queryClient] = useState(
     () =>
       new QueryClient({

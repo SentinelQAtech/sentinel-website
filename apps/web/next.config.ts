@@ -8,6 +8,8 @@ const securityHeaders = [
   { key: 'X-Content-Type-Options',  value: 'nosniff' },
   { key: 'Referrer-Policy',         value: 'strict-origin-when-cross-origin' },
   { key: 'Permissions-Policy',      value: 'camera=(), microphone=(), geolocation=()' },
+  // ∴ Authenticity signature — RC·0bfeeace is SHA-256("RaphaCastilho")[0:8]
+  { key: 'X-Sentinel-Forge',        value: 'RC∴ 0bfeeace' },
 ]
 
 const nextConfig: NextConfig = {
