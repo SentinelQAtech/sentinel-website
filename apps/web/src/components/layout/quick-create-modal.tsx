@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { X, FolderKanban, Bug, Zap, CheckSquare, ChevronDown } from 'lucide-react'
 import { cn } from '@/lib/utils'
@@ -8,15 +8,85 @@ import { Button } from '@/components/ui/button'
 
 type EntityType = 'task' | 'bug' | 'project' | 'sprint'
 
-const ENTITY_TYPES: { id: EntityType; label: string; icon: React.ReactNode; color: string; description: string }[] = [
-  { id: 'task',    label: 'Tarefa',   icon: <CheckSquare className="w-4 h-4" />,   color: '#6366f1', description: 'Item de trabalho no Kanban' },
-  { id: 'bug',     label: 'Bug',      icon: <Bug className="w-4 h-4" />,            color: '#ef4444', description: 'Defeito ou problema reportado' },
-  { id: 'project', label: 'Projeto',  icon: <FolderKanban className="w-4 h-4" />,  color: '#3b82f6', description: 'Novo projeto ou iniciativa' },
-  { id: 'sprint',  label: 'Sprint',   icon: <Zap className="w-4 h-4" />,           color: '#8b5cf6', description: 'Ciclo ágil de desenvolvimento' },
+const ENTITY_TYPES: { id: EntityType; label: string; icon: React.ReactNode; color: string }[] = [
+  { id: 'task',    label: 'Tarefa',   icon: <CheckSquare className="w-4 h-4" />,  color: '#6366f1' },
+  { id: 'bug',     label: 'Bug',      icon: <Bug className="w-4 h-4" />,           color: '#ef4444' },
+  { id: 'project', label: 'Projeto',  icon: <FolderKanban className="w-4 h-4" />, color: '#3b82f6' },
+  { id: 'sprint',  label: 'Sprint',   icon: <Zap className="w-4 h-4" />,          color: '#8b5cf6' },
 ]
 
 const PRIORITIES = ['Crítico', 'Alto', 'Médio', 'Baixo']
 const COMPANIES  = ['Concept-USA 🇺🇸', 'ABinBev-IND 🇮🇳', 'ScrumLaunch-UKR 🇺🇦']
+
+// Custom dark-themed select to avoid browser native white dropdown
+function SelectField({
+  label,
+  value,
+  options,
+  onChange,
+}: {
+  label: string
+  value: string
+  options: string[]
+  onChange: (v: string) => void
+}) {
+  const [open, setOpen] = useState(false)
+  const ref = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    function onOutside(e: MouseEvent) {
+      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false)
+    }
+    if (open) document.addEventListener('mousedown', onOutside)
+    return () => document.removeEventListener('mousedown', onOutside)
+  }, [open])
+
+  return (
+    <div className="flex-1" ref={ref}>
+      <label className="text-[10px] font-semibold uppercase tracking-wider text-white/30 mb-1 block">
+        {label}
+      </label>
+      <div className="relative">
+        <button
+          type="button"
+          onClick={() => setOpen(o => !o)}
+          className="w-full flex items-center justify-between bg-white/[0.04] border border-white/[0.08] rounded-lg px-3 py-2 text-xs text-white/70 outline-none hover:border-white/[0.16] hover:bg-white/[0.06] transition-all duration-150"
+        >
+          <span>{value}</span>
+          <ChevronDown className={cn('w-3 h-3 text-white/30 transition-transform duration-150', open && 'rotate-180')} />
+        </button>
+
+        <AnimatePresence>
+          {open && (
+            <motion.div
+              initial={{ opacity: 0, y: -4, scale: 0.97 }}
+              animate={{ opacity: 1, y: 0,  scale: 1    }}
+              exit={{   opacity: 0, y: -4, scale: 0.97  }}
+              transition={{ duration: 0.1 }}
+              className="absolute top-full left-0 right-0 mt-1 z-50 rounded-lg border border-white/[0.1] bg-surface-900 shadow-2xl overflow-hidden"
+            >
+              {options.map(opt => (
+                <button
+                  key={opt}
+                  type="button"
+                  onClick={() => { onChange(opt); setOpen(false) }}
+                  className={cn(
+                    'w-full text-left px-3 py-2 text-xs transition-colors',
+                    value === opt
+                      ? 'bg-primary/10 text-primary'
+                      : 'text-white/60 hover:bg-white/[0.06] hover:text-white/85'
+                  )}
+                >
+                  {opt}
+                </button>
+              ))}
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </div>
+    </div>
+  )
+}
 
 interface QuickCreateModalProps {
   open: boolean
@@ -113,16 +183,14 @@ export function QuickCreateModal({ open, onClose }: QuickCreateModalProps) {
               {/* Form */}
               <form onSubmit={handleSubmit} className="px-5 py-4 space-y-4">
                 {/* Title */}
-                <div>
-                  <input
-                    autoFocus
-                    value={title}
-                    onChange={e => setTitle(e.target.value)}
-                    placeholder={`Título ${type === 'bug' ? 'do bug' : type === 'project' ? 'do projeto' : type === 'sprint' ? 'do sprint' : 'da tarefa'}...`}
-                    className="w-full bg-white/[0.04] border border-white/[0.08] rounded-lg px-3.5 py-2.5 text-sm text-white placeholder:text-white/25 outline-none focus:border-white/20 focus:bg-white/[0.06] transition-all duration-150"
-                    required
-                  />
-                </div>
+                <input
+                  autoFocus
+                  value={title}
+                  onChange={e => setTitle(e.target.value)}
+                  placeholder={`Título ${type === 'bug' ? 'do bug' : type === 'project' ? 'do projeto' : type === 'sprint' ? 'do sprint' : 'da tarefa'}...`}
+                  className="w-full bg-white/[0.04] border border-white/[0.08] rounded-lg px-3.5 py-2.5 text-sm text-white placeholder:text-white/25 outline-none focus:border-white/20 focus:bg-white/[0.06] transition-all duration-150"
+                  required
+                />
 
                 {/* Description */}
                 <textarea
@@ -135,39 +203,18 @@ export function QuickCreateModal({ open, onClose }: QuickCreateModalProps) {
 
                 {/* Priority + Company row */}
                 <div className="flex gap-3">
-                  {/* Priority */}
-                  <div className="flex-1 relative">
-                    <label className="text-[10px] font-semibold uppercase tracking-wider text-white/30 mb-1 block">
-                      Prioridade
-                    </label>
-                    <div className="relative">
-                      <select
-                        value={priority}
-                        onChange={e => setPriority(e.target.value)}
-                        className="w-full appearance-none bg-white/[0.04] border border-white/[0.08] rounded-lg px-3 py-2 text-xs text-white/70 outline-none focus:border-white/20 transition-all duration-150 pr-7"
-                      >
-                        {PRIORITIES.map(p => <option key={p} value={p}>{p}</option>)}
-                      </select>
-                      <ChevronDown className="absolute right-2 top-1/2 -translate-y-1/2 w-3 h-3 text-white/30 pointer-events-none" />
-                    </div>
-                  </div>
-
-                  {/* Company */}
-                  <div className="flex-1 relative">
-                    <label className="text-[10px] font-semibold uppercase tracking-wider text-white/30 mb-1 block">
-                      Empresa
-                    </label>
-                    <div className="relative">
-                      <select
-                        value={company}
-                        onChange={e => setCompany(e.target.value)}
-                        className="w-full appearance-none bg-white/[0.04] border border-white/[0.08] rounded-lg px-3 py-2 text-xs text-white/70 outline-none focus:border-white/20 transition-all duration-150 pr-7"
-                      >
-                        {COMPANIES.map(c => <option key={c} value={c}>{c}</option>)}
-                      </select>
-                      <ChevronDown className="absolute right-2 top-1/2 -translate-y-1/2 w-3 h-3 text-white/30 pointer-events-none" />
-                    </div>
-                  </div>
+                  <SelectField
+                    label="Prioridade"
+                    value={priority}
+                    options={PRIORITIES}
+                    onChange={setPriority}
+                  />
+                  <SelectField
+                    label="Empresa"
+                    value={company}
+                    options={COMPANIES}
+                    onChange={setCompany}
+                  />
                 </div>
 
                 {/* Actions */}
@@ -179,12 +226,7 @@ export function QuickCreateModal({ open, onClose }: QuickCreateModalProps) {
                   >
                     Cancelar
                   </button>
-                  <Button
-                    type="submit"
-                    size="sm"
-                    variant="glow"
-                    loading={submitted}
-                  >
+                  <Button type="submit" size="sm" variant="glow" loading={submitted}>
                     {submitted ? 'Criando...' : `Criar ${selected.label}`}
                   </Button>
                 </div>

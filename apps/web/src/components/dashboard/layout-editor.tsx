@@ -24,7 +24,7 @@ import {
   FolderOpen, Users, AlertTriangle, Activity,
   CalendarDays, FlaskConical, ClipboardCheck,
   Flame, GitBranch, PieChart,
-  Download, Upload, Check,
+  Download, Upload, Check, Save,
   Sun, ListTodo, Video,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
@@ -304,8 +304,26 @@ export function LayoutEditor({ userId, open, onClose }: LayoutEditorProps) {
             </button>
           </div>
 
+          {/* Save button — topo, fácil visualização */}
+          <div className="px-3 pt-2.5 pb-2 border-b border-white/[0.06] shrink-0">
+            <button
+              onClick={flash}
+              className={cn(
+                'w-full flex items-center justify-center gap-1.5 rounded-xl py-2 text-xs font-semibold transition-all duration-200',
+                saved
+                  ? 'bg-emerald-500/15 text-emerald-400 border border-emerald-500/25'
+                  : 'bg-primary/10 text-primary border border-primary/20 hover:bg-primary/20 hover:border-primary/35'
+              )}
+            >
+              {saved
+                ? <><Check className="h-3 w-3" /> Salvo</>
+                : <><Save className="h-3 w-3" /> Salvar Layout</>
+              }
+            </button>
+          </div>
+
           {/* Hint */}
-          <p className="px-4 py-2 text-[10px] text-white/25 border-b border-white/[0.04] shrink-0">
+          <p className="px-4 py-1.5 text-[10px] text-white/20 border-b border-white/[0.04] shrink-0">
             Arraste · Olho para ocultar · Largura e Altura para grid
           </p>
 

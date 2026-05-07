@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useRef } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Bell, Bug, Zap, FolderKanban, CheckCheck, X, AlertCircle, MessageSquare } from 'lucide-react'
 import { cn } from '@/lib/utils'
@@ -16,7 +16,7 @@ interface Notification {
   color: string
 }
 
-const MOCK_NOTIFICATIONS: Notification[] = [
+const INITIAL_NOTIFICATIONS: Notification[] = [
   {
     id: 'n1', type: 'bug', read: false,
     title: 'Novo bug crítico reportado',
@@ -62,7 +62,9 @@ interface NotificationsPanelProps {
 
 export function NotificationsPanel({ open, onClose, anchorRef }: NotificationsPanelProps) {
   const panelRef = useRef<HTMLDivElement>(null)
-  const unread = MOCK_NOTIFICATIONS.filter(n => !n.read).length
+  const [notifications, setNotifications] = useState<Notification[]>(INITIAL_NOTIFICATIONS)
+
+  const unread = notifications.filter(n => !n.read).length
 
   useEffect(() => {
     function handleClickOutside(e: MouseEvent) {
@@ -78,6 +80,14 @@ export function NotificationsPanel({ open, onClose, anchorRef }: NotificationsPa
     if (open) document.addEventListener('mousedown', handleClickOutside)
     return () => document.removeEventListener('mousedown', handleClickOutside)
   }, [open, onClose, anchorRef])
+
+  function markAsRead(id: string) {
+    setNotifications(prev => prev.map(n => n.id === id ? { ...n, read: true } : n))
+  }
+
+  function markAllAsRead() {
+    setNotifications(prev => prev.map(n => ({ ...n, read: true })))
+  }
 
   return (
     <AnimatePresence>
@@ -103,8 +113,15 @@ export function NotificationsPanel({ open, onClose, anchorRef }: NotificationsPa
             </div>
             <div className="flex items-center gap-1">
               <button
+                onClick={markAllAsRead}
                 title="Marcar todas como lidas"
-                className="p-1.5 rounded-lg text-white/30 hover:text-white/60 hover:bg-white/[0.06] transition-all duration-150"
+                disabled={unread === 0}
+                className={cn(
+                  'p-1.5 rounded-lg transition-all duration-150',
+                  unread > 0
+                    ? 'text-white/40 hover:text-white/70 hover:bg-white/[0.06]'
+                    : 'text-white/15 cursor-default'
+                )}
               >
                 <CheckCheck className="w-3.5 h-3.5" />
               </button>
@@ -119,9 +136,10 @@ export function NotificationsPanel({ open, onClose, anchorRef }: NotificationsPa
 
           {/* List */}
           <div className="max-h-96 overflow-y-auto scrollbar-hide">
-            {MOCK_NOTIFICATIONS.map((n) => (
+            {notifications.map(n => (
               <button
                 key={n.id}
+                onClick={() => markAsRead(n.id)}
                 className={cn(
                   'w-full flex items-start gap-3 px-4 py-3 text-left transition-colors duration-100',
                   'hover:bg-white/[0.04] border-b border-white/[0.04] last:border-none',
