@@ -32,24 +32,27 @@ interface DashboardLayoutState {
   resetLayout:    (userId: string) => void
 }
 
+function sanitize(raw: unknown): WidgetConfig[] {
+  if (!Array.isArray(raw)) return [...DEFAULT_WIDGETS]
+  const valid = (raw as unknown[]).filter(
+    (w): w is WidgetConfig => w != null && typeof (w as WidgetConfig).id === 'string'
+  )
+  if (valid.length === 0) return [...DEFAULT_WIDGETS]
+  const savedIds = new Set(valid.map(w => w.id))
+  const merged = DEFAULT_WIDGETS.filter(w => !savedIds.has(w.id))
+  return [...valid, ...merged]
+}
+
 export const useDashboardLayoutStore = create<DashboardLayoutState>()(
   persist(
     (set, get) => ({
       layouts: {},
 
-      getLayout: (userId) => {
-        const saved = get().layouts[userId]
-        if (!Array.isArray(saved)) return DEFAULT_WIDGETS
-
-        const savedIds = new Set(saved.map(w => w.id))
-        const newWidgets = DEFAULT_WIDGETS.filter(w => !savedIds.has(w.id))
-        return [...saved, ...newWidgets]
-      },
+      getLayout: (userId) => sanitize(get().layouts[userId]),
 
       toggleWidget: (userId, id) =>
         set(s => {
-          const raw = s.layouts[userId]
-          const current = Array.isArray(raw) ? raw : DEFAULT_WIDGETS
+          const current = sanitize(s.layouts[userId])
           return {
             layouts: {
               ...s.layouts,
@@ -60,20 +63,21 @@ export const useDashboardLayoutStore = create<DashboardLayoutState>()(
 
       reorderWidgets: (userId, from, to) =>
         set(s => {
-          const raw = s.layouts[userId]
-          const current = [...(Array.isArray(raw) ? raw : DEFAULT_WIDGETS)]
-          const [moved] = current.splice(from, 1)
-          current.splice(to, 0, moved)
-          return { layouts: { ...s.layouts, [userId]: current } }
+          const current = sanitize(s.layouts[userId])
+          const arr = [...current]
+          const [moved] = arr.splice(from, 1)
+          if (moved) arr.splice(to, 0, moved)
+          return { layouts: { ...s.layouts, [userId]: arr } }
         }),
 
       resetLayout: (userId) =>
         set(s => ({
-          layouts: { ...s.layouts, [userId]: DEFAULT_WIDGETS },
+          layouts: { ...s.layouts, [userId]: [...DEFAULT_WIDGETS] },
         })),
     }),
     {
       name: 'spm-dashboard-layout',
+      version: 2,
     }
   )
 )
