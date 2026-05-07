@@ -12,9 +12,14 @@ export interface WidgetConfig {
 }
 
 const DEFAULT_WIDGETS: WidgetConfig[] = [
-  { id: 'daily',            visible: true  },
+  // Full-width
   { id: 'metrics',          visible: true  },
   { id: 'sentinel-ai',      visible: true  },
+  // Daily — 3 independent cards
+  { id: 'daily-progress',   visible: true  },
+  { id: 'daily-tasks',      visible: true  },
+  { id: 'daily-meetings',   visible: true  },
+  // Grid
   { id: 'bug-trend',        visible: true  },
   { id: 'sprint',           visible: true  },
   { id: 'active-projects',  visible: true  },
@@ -24,6 +29,8 @@ const DEFAULT_WIDGETS: WidgetConfig[] = [
   { id: 'calendar',         visible: true  },
   { id: 'qa-today',          visible: true  },
   { id: 'qa-quick-action',   visible: true  },
+  // Optional / hidden by default
+  { id: 'daily',             visible: false },
   { id: 'activity-heatmap',  visible: false },
   { id: 'burndown',          visible: false },
   { id: 'qa-donut',          visible: false },
@@ -113,7 +120,7 @@ export const useDashboardLayoutStore = create<DashboardLayoutState>()(
     }),
     {
       name: 'spm-dashboard-layout',
-      version: 3,
+      version: 4,
     }
   )
 )

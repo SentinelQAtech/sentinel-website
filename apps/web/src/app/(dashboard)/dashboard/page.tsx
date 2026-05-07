@@ -11,7 +11,10 @@ import { ActiveProjects }     from '@/components/dashboard/active-projects'
 import { TeamPresence }       from '@/components/dashboard/team-presence'
 import { CriticalBugs }       from '@/components/dashboard/critical-bugs'
 import { SentinelAI }         from '@/components/dashboard/sentinel-ai'
-import { TodayDailyWidget }   from '@/components/dashboard/today-daily-widget'
+import { TodayDailyWidget }      from '@/components/dashboard/today-daily-widget'
+import { DailyProgressWidget }   from '@/components/dashboard/daily-progress-widget'
+import { DailyTasksWidget }      from '@/components/dashboard/daily-tasks-widget'
+import { DailyMeetingsWidget }   from '@/components/dashboard/daily-meetings-widget'
 import { CalendarWidget }     from '@/components/dashboard/calendar-widget'
 import { QATodayWidget }      from '@/components/dashboard/qa-today-widget'
 import { QAQuickAction }      from '@/components/dashboard/qa-quick-action'
@@ -42,6 +45,9 @@ const fadeUp = {
 const FULL_WIDTH = new Set(['daily', 'metrics', 'sentinel-ai'])
 
 const WIDGET_COL: Record<string, string> = {
+  'daily-progress':   'col-span-12 lg:col-span-3',
+  'daily-tasks':      'col-span-12 lg:col-span-5',
+  'daily-meetings':   'col-span-12 lg:col-span-4',
   'bug-trend':        'col-span-12 lg:col-span-8',
   'sprint':           'col-span-12 lg:col-span-4',
   'active-projects':  'col-span-12 lg:col-span-7',
@@ -74,6 +80,9 @@ const HEIGHT_CLASS: Record<string, string> = {
 function WidgetNode({ id }: { id: string }) {
   switch (id) {
     case 'daily':           return <TodayDailyWidget />
+    case 'daily-progress':  return <DailyProgressWidget />
+    case 'daily-tasks':     return <DailyTasksWidget />
+    case 'daily-meetings':  return <DailyMeetingsWidget />
     case 'metrics':         return <DashboardMetrics />
     case 'sentinel-ai':     return <SentinelAI />
     case 'bug-trend':       return <BugTrendChart />

@@ -25,6 +25,7 @@ import {
   CalendarDays, FlaskConical, ClipboardCheck,
   Flame, GitBranch, PieChart,
   Download, Upload, Check,
+  Sun, ListTodo, Video,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import {
@@ -38,6 +39,9 @@ const FULL_WIDTH_IDS = new Set(['daily', 'metrics', 'sentinel-ai'])
 
 const WIDGET_META: Record<string, { label: string; icon: React.ElementType }> = {
   'daily':            { label: 'Daily de Hoje',    icon: Target         },
+  'daily-progress':   { label: 'Daily — Progresso', icon: Sun           },
+  'daily-tasks':      { label: 'Daily — Tarefas',   icon: ListTodo      },
+  'daily-meetings':   { label: 'Daily — Reuniões',  icon: Video         },
   'metrics':          { label: 'Métricas',          icon: TrendingUp     },
   'sentinel-ai':      { label: 'Sentinel AI',       icon: Cpu            },
   'bug-trend':        { label: 'Bug Trend',         icon: Bug            },
