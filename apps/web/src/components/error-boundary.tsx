@@ -3,16 +3,20 @@
 import { Component, ReactNode } from 'react'
 
 interface Props  { children: ReactNode }
-interface State  { hasError: boolean }
+interface State  { hasError: boolean; errorMessage: string }
 
 export class ErrorBoundary extends Component<Props, State> {
-  state: State = { hasError: false }
+  state: State = { hasError: false, errorMessage: '' }
 
-  static getDerivedStateFromError(): State {
-    return { hasError: true }
+  static getDerivedStateFromError(error: Error): State {
+    return { hasError: true, errorMessage: error?.message ?? String(error) }
   }
 
-  reset = () => this.setState({ hasError: false })
+  componentDidCatch(error: Error, info: React.ErrorInfo) {
+    console.error('[ErrorBoundary] Component crash:', error, info.componentStack)
+  }
+
+  reset = () => this.setState({ hasError: false, errorMessage: '' })
 
   render() {
     if (!this.state.hasError) return this.props.children
@@ -22,6 +26,11 @@ export class ErrorBoundary extends Component<Props, State> {
         <div className="text-4xl">⚠</div>
         <p className="text-lg font-medium text-white">Algo deu errado</p>
         <p className="text-sm">Um erro inesperado ocorreu. Tente recarregar a página.</p>
+        {this.state.errorMessage && (
+          <p className="text-xs text-red-400/70 font-mono max-w-sm text-center px-4">
+            {this.state.errorMessage}
+          </p>
+        )}
         <div className="flex gap-3 mt-2">
           <button
             onClick={this.reset}
