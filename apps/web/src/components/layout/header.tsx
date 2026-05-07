@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
 import { useState, useRef, useEffect } from 'react'
 import { useAuthStore } from '@/store/auth'
+import { useNotificationsStore } from '@/store/notifications'
 import { useRouter } from 'next/navigation'
 import { SearchModal } from './search-modal'
 import { NotificationsPanel } from './notifications-panel'
@@ -22,7 +23,7 @@ export function Header() {
 
   const menuRef  = useRef<HTMLDivElement>(null)
   const bellRef  = useRef<HTMLButtonElement>(null)
-  const unreadCount = 3
+  const unreadCount = useNotificationsStore(s => s.notifications.filter(n => !n.read).length)
 
   // Close user menu on outside click
   useEffect(() => {
@@ -138,10 +139,16 @@ export function Header() {
 
                 {/* Menu items */}
                 <div className="p-1.5 space-y-0.5">
-                  <button className="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-white/70 hover:text-white hover:bg-white/[0.08] transition-all duration-150">
+                  <button
+                    onClick={() => { setMenuOpen(false); router.push('/profile') }}
+                    className="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-white/70 hover:text-white hover:bg-white/[0.08] transition-all duration-150"
+                  >
                     <User className="w-4 h-4 text-white/40" /> Meu perfil
                   </button>
-                  <button className="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-white/70 hover:text-white hover:bg-white/[0.08] transition-all duration-150">
+                  <button
+                    onClick={() => { setMenuOpen(false); router.push('/settings') }}
+                    className="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-white/70 hover:text-white hover:bg-white/[0.08] transition-all duration-150"
+                  >
                     <Settings className="w-4 h-4 text-white/40" /> Configurações
                   </button>
                 </div>

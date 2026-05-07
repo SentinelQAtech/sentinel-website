@@ -139,7 +139,7 @@ export function QuickCreateModal({ open, onClose }: QuickCreateModalProps) {
             transition={{ duration: 0.15, ease: 'easeOut' }}
             className="fixed top-[18vh] left-1/2 -translate-x-1/2 w-full max-w-lg z-50"
           >
-            <div className="glass-card border border-white/[0.12] shadow-2xl overflow-hidden">
+            <div className="glass-card border border-white/[0.12] shadow-2xl">
               {/* Header */}
               <div className="flex items-center justify-between px-5 py-4 border-b border-white/[0.07]">
                 <div className="flex items-center gap-2.5">

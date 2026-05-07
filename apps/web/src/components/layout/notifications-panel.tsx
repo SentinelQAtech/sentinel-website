@@ -1,69 +1,29 @@
 'use client'
 
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useRef } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Bell, Bug, Zap, FolderKanban, CheckCheck, X, AlertCircle, MessageSquare } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import { useNotificationsStore } from '@/store/notifications'
+import type { NotificationItem } from '@/store/notifications'
 
-interface Notification {
-  id: string
-  type: 'bug' | 'sprint' | 'project' | 'mention' | 'alert'
-  title: string
-  body: string
-  time: string
-  read: boolean
-  icon: React.ReactNode
-  color: string
+const TYPE_ICON: Record<NotificationItem['type'], React.ReactNode> = {
+  bug:     <Bug         className="w-3.5 h-3.5" />,
+  sprint:  <Zap         className="w-3.5 h-3.5" />,
+  project: <FolderKanban className="w-3.5 h-3.5" />,
+  mention: <MessageSquare className="w-3.5 h-3.5" />,
+  alert:   <AlertCircle className="w-3.5 h-3.5" />,
 }
 
-const INITIAL_NOTIFICATIONS: Notification[] = [
-  {
-    id: 'n1', type: 'bug', read: false,
-    title: 'Novo bug crítico reportado',
-    body: 'BUG-042 · Auth token not refreshing — atribuído a você',
-    time: '2 min atrás',
-    icon: <Bug className="w-3.5 h-3.5" />, color: '#ef4444',
-  },
-  {
-    id: 'n2', type: 'sprint', read: false,
-    title: 'Sprint 14 iniciado',
-    body: 'SPM Frontend · 12 tarefas planejadas · termina em 14 dias',
-    time: '1h atrás',
-    icon: <Zap className="w-3.5 h-3.5" />, color: '#8b5cf6',
-  },
-  {
-    id: 'n3', type: 'mention', read: false,
-    title: 'Menção em comentário',
-    body: 'Antonio mencionou você em E-Commerce Platform · "revisar PR"',
-    time: '3h atrás',
-    icon: <MessageSquare className="w-3.5 h-3.5" />, color: '#06b6d4',
-  },
-  {
-    id: 'n4', type: 'project', read: true,
-    title: 'Projeto atualizado',
-    body: 'Brewery QA Automation movido para "Em Andamento"',
-    time: 'Ontem',
-    icon: <FolderKanban className="w-3.5 h-3.5" />, color: '#f59e0b',
-  },
-  {
-    id: 'n5', type: 'alert', read: true,
-    title: 'Prazo se aproximando',
-    body: 'Sprint Tracker App · entrega em 3 dias',
-    time: 'Ontem',
-    icon: <AlertCircle className="w-3.5 h-3.5" />, color: '#f97316',
-  },
-]
-
 interface NotificationsPanelProps {
-  open: boolean
-  onClose: () => void
+  open:      boolean
+  onClose:   () => void
   anchorRef: React.RefObject<HTMLElement | null>
 }
 
 export function NotificationsPanel({ open, onClose, anchorRef }: NotificationsPanelProps) {
   const panelRef = useRef<HTMLDivElement>(null)
-  const [notifications, setNotifications] = useState<Notification[]>(INITIAL_NOTIFICATIONS)
-
+  const { notifications, markAsRead, markAllAsRead } = useNotificationsStore()
   const unread = notifications.filter(n => !n.read).length
 
   useEffect(() => {
@@ -80,14 +40,6 @@ export function NotificationsPanel({ open, onClose, anchorRef }: NotificationsPa
     if (open) document.addEventListener('mousedown', handleClickOutside)
     return () => document.removeEventListener('mousedown', handleClickOutside)
   }, [open, onClose, anchorRef])
-
-  function markAsRead(id: string) {
-    setNotifications(prev => prev.map(n => n.id === id ? { ...n, read: true } : n))
-  }
-
-  function markAllAsRead() {
-    setNotifications(prev => prev.map(n => ({ ...n, read: true })))
-  }
 
   return (
     <AnimatePresence>
@@ -114,8 +66,8 @@ export function NotificationsPanel({ open, onClose, anchorRef }: NotificationsPa
             <div className="flex items-center gap-1">
               <button
                 onClick={markAllAsRead}
-                title="Marcar todas como lidas"
                 disabled={unread === 0}
+                title="Marcar todas como lidas"
                 className={cn(
                   'p-1.5 rounded-lg transition-all duration-150',
                   unread > 0
@@ -146,15 +98,13 @@ export function NotificationsPanel({ open, onClose, anchorRef }: NotificationsPa
                   !n.read && 'bg-white/[0.02]'
                 )}
               >
-                {/* Icon */}
                 <div
                   className="mt-0.5 w-7 h-7 rounded-lg flex items-center justify-center shrink-0"
                   style={{ backgroundColor: n.color + '20', color: n.color }}
                 >
-                  {n.icon}
+                  {TYPE_ICON[n.type]}
                 </div>
 
-                {/* Content */}
                 <div className="flex-1 min-w-0">
                   <p className={cn('text-xs font-medium leading-snug truncate', n.read ? 'text-white/50' : 'text-white/85')}>
                     {n.title}
@@ -163,7 +113,6 @@ export function NotificationsPanel({ open, onClose, anchorRef }: NotificationsPa
                   <p className="text-[10px] text-white/25 mt-1">{n.time}</p>
                 </div>
 
-                {/* Unread dot */}
                 {!n.read && (
                   <div className="mt-2 w-1.5 h-1.5 rounded-full bg-primary shrink-0" />
                 )}
