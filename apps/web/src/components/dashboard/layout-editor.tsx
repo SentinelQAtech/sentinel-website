@@ -36,6 +36,7 @@ import {
   Activity,
   CalendarDays,
   FlaskConical,
+  ClipboardCheck,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { useDashboardLayoutStore, type WidgetConfig } from '@/store/dashboard-layout'
@@ -52,6 +53,7 @@ const WIDGET_META: Record<string, { label: string; description: string; icon: Re
   'recent-activity': { label: 'Atividade Recente',  description: 'Últimas ações no sistema',            icon: Activity },
   'calendar':        { label: 'Calendário',          description: 'Próximos eventos e reuniões',         icon: CalendarDays },
   'qa-today':        { label: 'QA de Hoje',          description: 'Items de QA pendentes para hoje',    icon: FlaskConical },
+  'qa-quick-action': { label: 'QA Quick Action',     description: 'Card de sync rápido do QA Importer', icon: ClipboardCheck },
 }
 
 interface SortableItemProps {

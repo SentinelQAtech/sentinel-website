@@ -14,6 +14,7 @@ import { SentinelAI }         from '@/components/dashboard/sentinel-ai'
 import { TodayDailyWidget }   from '@/components/dashboard/today-daily-widget'
 import { CalendarWidget }     from '@/components/dashboard/calendar-widget'
 import { QATodayWidget }      from '@/components/dashboard/qa-today-widget'
+import { QAQuickAction }      from '@/components/dashboard/qa-quick-action'
 import { LayoutEditor }       from '@/components/dashboard/layout-editor'
 import { useAuthStore }           from '@/store/auth'
 import { useDashboardLayoutStore } from '@/store/dashboard-layout'
@@ -48,6 +49,7 @@ const WIDGET_COMPONENTS: Record<string, { node: React.ReactNode; colSpan: string
   'recent-activity': { node: <RecentActivity />,     colSpan: 'col-span-12 lg:col-span-3' },
   'calendar':        { node: <CalendarWidget />,     colSpan: 'col-span-12 lg:col-span-3' },
   'qa-today':        { node: <QATodayWidget />,      colSpan: 'col-span-12 lg:col-span-3' },
+  'qa-quick-action': { node: <QAQuickAction />,      colSpan: 'col-span-12 lg:col-span-4' },
 }
 
 // Full-width widgets are rendered outside the grid; grid widgets share rows

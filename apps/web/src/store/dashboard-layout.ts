@@ -18,7 +18,8 @@ const DEFAULT_WIDGETS: WidgetConfig[] = [
   { id: 'critical-bugs',  visible: true },
   { id: 'recent-activity',visible: true },
   { id: 'calendar',       visible: true },
-  { id: 'qa-today',       visible: true },
+  { id: 'qa-today',        visible: true },
+  { id: 'qa-quick-action', visible: true },
 ]
 
 interface DashboardLayoutState {
