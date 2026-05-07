@@ -1,4 +1,13 @@
 import { NextRequest } from 'next/server'
+import { env } from '@/lib/env'
+
+function sanitize(text: string): string {
+  return text
+    .replace(/<script[\s\S]*?<\/script>/gi, '')
+    .replace(/<[^>]+>/g, '')
+    .trim()
+    .slice(0, 8_000)
+}
 
 // ─── System prompt ────────────────────────────────────────────
 
@@ -37,7 +46,7 @@ ${JSON.stringify(context, null, 2)}
 // ─── POST /api/sentinel-ai ────────────────────────────────────
 
 export async function POST(req: NextRequest) {
-  const apiKey = process.env.ANTHROPIC_API_KEY
+  const apiKey = env.anthropicApiKey
   if (!apiKey) {
     return new Response(
       JSON.stringify({ error: 'ANTHROPIC_API_KEY not configured. Add it to .env.local.' }),
@@ -78,7 +87,7 @@ export async function POST(req: NextRequest) {
       max_tokens: 1024,
       stream:     true,
       system:     buildSystemPrompt(context),
-      messages:   messages.map(m => ({ role: m.role, content: m.content })),
+      messages:   messages.map(m => ({ role: m.role, content: sanitize(m.content) })),
     }),
   })
 
