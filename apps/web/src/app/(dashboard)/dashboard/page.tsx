@@ -115,8 +115,7 @@ export default function DashboardPage() {
           <div>
             <h1 className="text-2xl font-bold text-white">
               {greeting()},{' '}
-              <span className="gradient-text">{firstName}</span>{' '}
-              <span>👋</span>
+              <span className="gradient-text">{firstName}</span>
             </h1>
             <p className="text-sm text-white/40 mt-0.5">
               Veja o que está acontecendo nos seus projetos hoje.
@@ -131,11 +130,10 @@ export default function DashboardPage() {
             </div>
             <button
               onClick={() => setEditorOpen(true)}
-              className="flex items-center gap-1.5 rounded-xl border border-white/[0.08] bg-white/[0.03] px-3 py-2 text-xs text-white/50 hover:text-white/80 hover:border-white/[0.14] hover:bg-white/[0.06] transition-all"
+              className="flex items-center justify-center rounded-xl border border-white/[0.08] bg-white/[0.03] p-2 text-white/50 hover:text-white/80 hover:border-white/[0.14] hover:bg-white/[0.06] transition-all"
               title="Personalizar layout"
             >
               <SlidersHorizontal className="h-3.5 w-3.5" />
-              <span className="hidden sm:inline">Personalizar</span>
             </button>
           </div>
         </motion.div>

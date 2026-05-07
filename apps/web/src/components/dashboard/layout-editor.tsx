@@ -1,6 +1,6 @@
 'use client'
 
-import { useCallback, useRef } from 'react'
+import { useCallback, useRef, useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
   DndContext,
@@ -24,7 +24,7 @@ import {
   FolderOpen, Users, AlertTriangle, Activity,
   CalendarDays, FlaskConical, ClipboardCheck,
   Flame, GitBranch, PieChart,
-  Download, Upload,
+  Download, Upload, Check,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import {
@@ -193,9 +193,18 @@ export function LayoutEditor({ userId, open, onClose }: LayoutEditorProps) {
     reorderWidgets, resetLayout, importLayout,
   } = useDashboardLayoutStore()
 
-  const importRef = useRef<HTMLInputElement>(null)
-  const widgets   = getLayout(userId)
-  const visible   = widgets.filter(w => w.visible).length
+  const importRef   = useRef<HTMLInputElement>(null)
+  const savedTimer  = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const [saved, setSaved] = useState(false)
+
+  function flash() {
+    setSaved(true)
+    if (savedTimer.current) clearTimeout(savedTimer.current)
+    savedTimer.current = setTimeout(() => setSaved(false), 1800)
+  }
+
+  const widgets = getLayout(userId)
+  const visible = widgets.filter(w => w.visible).length
 
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 4 } }),
@@ -207,7 +216,7 @@ export function LayoutEditor({ userId, open, onClose }: LayoutEditorProps) {
     if (!over || active.id === over.id) return
     const from = widgets.findIndex(w => w.id === active.id)
     const to   = widgets.findIndex(w => w.id === over.id)
-    if (from !== -1 && to !== -1) reorderWidgets(userId, from, to)
+    if (from !== -1 && to !== -1) { reorderWidgets(userId, from, to); flash() }
   }, [widgets, userId, reorderWidgets])
 
   function handleExport() {
@@ -229,7 +238,7 @@ export function LayoutEditor({ userId, open, onClose }: LayoutEditorProps) {
       try {
         const parsed = JSON.parse(ev.target?.result as string)
         const layout = Array.isArray(parsed) ? parsed : parsed?.layout
-        if (Array.isArray(layout)) importLayout(userId, layout)
+        if (Array.isArray(layout)) { importLayout(userId, layout); flash() }
       } catch {
         // invalid file — silently ignore
       }
@@ -263,7 +272,24 @@ export function LayoutEditor({ userId, open, onClose }: LayoutEditorProps) {
               </div>
               <div>
                 <p className="text-xs font-semibold text-white">Personalizar Layout</p>
-                <p className="text-[10px] text-white/30">{visible}/{widgets.length} visíveis</p>
+                <div className="flex items-center gap-1.5">
+                  <p className="text-[10px] text-white/30">{visible}/{widgets.length} visíveis</p>
+                  <AnimatePresence>
+                    {saved && (
+                      <motion.span
+                        key="saved"
+                        initial={{ opacity: 0, scale: 0.8 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        exit={{ opacity: 0, scale: 0.8 }}
+                        transition={{ duration: 0.2 }}
+                        className="flex items-center gap-0.5 text-[10px] text-emerald-400"
+                      >
+                        <Check className="h-2.5 w-2.5" />
+                        Salvo
+                      </motion.span>
+                    )}
+                  </AnimatePresence>
+                </div>
               </div>
             </div>
             <button
@@ -288,9 +314,9 @@ export function LayoutEditor({ userId, open, onClose }: LayoutEditorProps) {
                     <SortableItem
                       key={widget.id}
                       widget={widget}
-                      onToggle={() => toggleWidget(userId, widget.id)}
-                      onSizeChange={(size) => setWidgetSize(userId, widget.id, size)}
-                      onHeightChange={(height) => setWidgetHeight(userId, widget.id, height)}
+                      onToggle={() => { toggleWidget(userId, widget.id); flash() }}
+                      onSizeChange={(size) => { setWidgetSize(userId, widget.id, size); flash() }}
+                      onHeightChange={(height) => { setWidgetHeight(userId, widget.id, height); flash() }}
                     />
                   ))}
                 </div>
