@@ -1,38 +1,44 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
 
-export type WidgetSize = 'sm' | 'md' | 'lg' | 'xl' | 'full'
+export type WidgetSize   = 'sm' | 'md' | 'lg' | 'xl' | 'full'
+export type WidgetHeight = '1' | '2' | '3' | '4'
 
 export interface WidgetConfig {
   id:      string
   visible: boolean
   size?:   WidgetSize
+  height?: WidgetHeight
 }
 
-// Default order and visibility — applied per user (keyed by userId)
 const DEFAULT_WIDGETS: WidgetConfig[] = [
-  { id: 'daily',          visible: true },
-  { id: 'metrics',        visible: true },
-  { id: 'sentinel-ai',    visible: true },
-  { id: 'bug-trend',      visible: true },
-  { id: 'sprint',         visible: true },
-  { id: 'active-projects',visible: true },
-  { id: 'team-presence',  visible: true },
-  { id: 'critical-bugs',  visible: true },
-  { id: 'recent-activity',visible: true },
-  { id: 'calendar',       visible: true },
-  { id: 'qa-today',        visible: true },
-  { id: 'qa-quick-action', visible: true },
+  { id: 'daily',            visible: true  },
+  { id: 'metrics',          visible: true  },
+  { id: 'sentinel-ai',      visible: true  },
+  { id: 'bug-trend',        visible: true  },
+  { id: 'sprint',           visible: true  },
+  { id: 'active-projects',  visible: true  },
+  { id: 'team-presence',    visible: true  },
+  { id: 'critical-bugs',    visible: true  },
+  { id: 'recent-activity',  visible: true  },
+  { id: 'calendar',         visible: true  },
+  { id: 'qa-today',          visible: true  },
+  { id: 'qa-quick-action',   visible: true  },
+  { id: 'activity-heatmap',  visible: false },
+  { id: 'burndown',          visible: false },
+  { id: 'qa-donut',          visible: false },
 ]
 
 interface DashboardLayoutState {
   layouts: Record<string, WidgetConfig[]>
 
-  getLayout:      (userId: string) => WidgetConfig[]
-  toggleWidget:   (userId: string, id: string) => void
-  setWidgetSize:  (userId: string, id: string, size: WidgetSize | undefined) => void
-  reorderWidgets: (userId: string, from: number, to: number) => void
-  resetLayout:    (userId: string) => void
+  getLayout:       (userId: string) => WidgetConfig[]
+  toggleWidget:    (userId: string, id: string) => void
+  setWidgetSize:   (userId: string, id: string, size: WidgetSize | undefined) => void
+  setWidgetHeight: (userId: string, id: string, height: WidgetHeight | undefined) => void
+  reorderWidgets:  (userId: string, from: number, to: number) => void
+  resetLayout:     (userId: string) => void
+  importLayout:    (userId: string, layout: WidgetConfig[]) => void
 }
 
 function sanitize(raw: unknown): WidgetConfig[] {
@@ -75,6 +81,17 @@ export const useDashboardLayoutStore = create<DashboardLayoutState>()(
           }
         }),
 
+      setWidgetHeight: (userId, id, height) =>
+        set(s => {
+          const current = sanitize(s.layouts[userId])
+          return {
+            layouts: {
+              ...s.layouts,
+              [userId]: current.map(w => w.id === id ? { ...w, height } : w),
+            },
+          }
+        }),
+
       reorderWidgets: (userId, from, to) =>
         set(s => {
           const current = sanitize(s.layouts[userId])
@@ -88,10 +105,15 @@ export const useDashboardLayoutStore = create<DashboardLayoutState>()(
         set(s => ({
           layouts: { ...s.layouts, [userId]: [...DEFAULT_WIDGETS] },
         })),
+
+      importLayout: (userId, layout) =>
+        set(s => ({
+          layouts: { ...s.layouts, [userId]: sanitize(layout) },
+        })),
     }),
     {
       name: 'spm-dashboard-layout',
-      version: 2,
+      version: 3,
     }
   )
 )

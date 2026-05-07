@@ -15,10 +15,13 @@ import { TodayDailyWidget }   from '@/components/dashboard/today-daily-widget'
 import { CalendarWidget }     from '@/components/dashboard/calendar-widget'
 import { QATodayWidget }      from '@/components/dashboard/qa-today-widget'
 import { QAQuickAction }      from '@/components/dashboard/qa-quick-action'
+import { ActivityHeatmap }    from '@/components/dashboard/activity-heatmap'
+import { BurndownChart }      from '@/components/dashboard/burndown-chart'
+import { QACoverageDonut }    from '@/components/dashboard/qa-coverage-donut'
 import { LayoutEditor }       from '@/components/dashboard/layout-editor'
 import { useAuthStore }           from '@/store/auth'
 import { useDashboardLayoutStore } from '@/store/dashboard-layout'
-import { formatDate } from '@/lib/utils'
+import { cn, formatDate } from '@/lib/utils'
 
 function greeting() {
   const h = new Date().getHours()
@@ -38,26 +41,34 @@ const fadeUp = {
 
 const FULL_WIDTH = new Set(['daily', 'metrics', 'sentinel-ai'])
 
-// Default col-spans per widget
 const WIDGET_COL: Record<string, string> = {
-  'bug-trend':       'col-span-12 lg:col-span-8',
-  'sprint':          'col-span-12 lg:col-span-4',
-  'active-projects': 'col-span-12 lg:col-span-7',
-  'team-presence':   'col-span-12 lg:col-span-5',
-  'critical-bugs':   'col-span-12 lg:col-span-3',
-  'recent-activity': 'col-span-12 lg:col-span-3',
-  'calendar':        'col-span-12 lg:col-span-3',
-  'qa-today':        'col-span-12 lg:col-span-3',
-  'qa-quick-action': 'col-span-12 lg:col-span-4',
+  'bug-trend':        'col-span-12 lg:col-span-8',
+  'sprint':           'col-span-12 lg:col-span-4',
+  'active-projects':  'col-span-12 lg:col-span-7',
+  'team-presence':    'col-span-12 lg:col-span-5',
+  'critical-bugs':    'col-span-12 lg:col-span-3',
+  'recent-activity':  'col-span-12 lg:col-span-3',
+  'calendar':         'col-span-12 lg:col-span-3',
+  'qa-today':          'col-span-12 lg:col-span-3',
+  'qa-quick-action':   'col-span-12 lg:col-span-4',
+  'activity-heatmap':  'col-span-12 lg:col-span-8',
+  'burndown':          'col-span-12 lg:col-span-6',
+  'qa-donut':          'col-span-12 lg:col-span-4',
 }
 
-// User-selectable size → col-span
 const SIZE_COL: Record<string, string> = {
   'sm':   'col-span-12 lg:col-span-3',
   'md':   'col-span-12 lg:col-span-4',
   'lg':   'col-span-12 lg:col-span-6',
   'xl':   'col-span-12 lg:col-span-8',
   'full': 'col-span-12',
+}
+
+const HEIGHT_CLASS: Record<string, string> = {
+  '1': 'h-40',
+  '2': 'h-64',
+  '3': 'h-[26rem]',
+  '4': 'h-[36rem]',
 }
 
 function WidgetNode({ id }: { id: string }) {
@@ -74,6 +85,9 @@ function WidgetNode({ id }: { id: string }) {
     case 'calendar':        return <CalendarWidget />
     case 'qa-today':        return <QATodayWidget />
     case 'qa-quick-action': return <QAQuickAction />
+    case 'activity-heatmap':return <ActivityHeatmap />
+    case 'burndown':        return <BurndownChart />
+    case 'qa-donut':        return <QACoverageDonut />
     default:                return null
   }
 }
@@ -88,7 +102,6 @@ export default function DashboardPage() {
 
   const [editorOpen, setEditorOpen] = useState(false)
 
-  // Split visible widgets into full-width and grid groups
   const visible       = layout.filter(w => w.visible)
   const fullWidthList = visible.filter(w => FULL_WIDTH.has(w.id))
   const gridList      = visible.filter(w => !FULL_WIDTH.has(w.id))
@@ -97,7 +110,7 @@ export default function DashboardPage() {
     <>
       <motion.div variants={container} initial="hidden" animate="show" className="space-y-6">
 
-        {/* Welcome header — always fixed */}
+        {/* Welcome header */}
         <motion.div variants={fadeUp} className="flex items-start justify-between gap-4">
           <div>
             <h1 className="text-2xl font-bold text-white">
@@ -127,7 +140,7 @@ export default function DashboardPage() {
           </div>
         </motion.div>
 
-        {/* Full-width widgets (daily, metrics, sentinel-ai) in user-defined order */}
+        {/* Full-width widgets */}
         {fullWidthList.map(w => (
           <motion.div key={w.id} variants={fadeUp}>
             <WidgetNode id={w.id} />
@@ -138,9 +151,17 @@ export default function DashboardPage() {
         {gridList.length > 0 && (
           <motion.div variants={fadeUp} className="grid grid-cols-12 gap-5">
             {gridList.map(w => {
-              const colSpan = (w.size ? SIZE_COL[w.size] : null) ?? WIDGET_COL[w.id] ?? 'col-span-12 lg:col-span-4'
+              const colSpan   = (w.size ? SIZE_COL[w.size] : null) ?? WIDGET_COL[w.id] ?? 'col-span-12 lg:col-span-4'
+              const heightCls = w.height ? HEIGHT_CLASS[w.height] : undefined
               return (
-                <div key={w.id} className={colSpan}>
+                <div
+                  key={w.id}
+                  className={cn(
+                    colSpan,
+                    heightCls,
+                    heightCls && 'flex flex-col [&>*]:flex-1 [&>*]:min-h-0',
+                  )}
+                >
                   <WidgetNode id={w.id} />
                 </div>
               )

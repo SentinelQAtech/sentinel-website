@@ -1,6 +1,6 @@
 'use client'
 
-import { useCallback } from 'react'
+import { useCallback, useRef } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
   DndContext,
@@ -23,53 +23,65 @@ import {
   LayoutDashboard, TrendingUp, Cpu, Bug, Target,
   FolderOpen, Users, AlertTriangle, Activity,
   CalendarDays, FlaskConical, ClipboardCheck,
+  Flame, GitBranch, PieChart,
+  Download, Upload,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import {
   useDashboardLayoutStore,
   type WidgetConfig,
   type WidgetSize,
+  type WidgetHeight,
 } from '@/store/dashboard-layout'
 
-// Full-width widgets — no size selector
 const FULL_WIDTH_IDS = new Set(['daily', 'metrics', 'sentinel-ai'])
 
 const WIDGET_META: Record<string, { label: string; icon: React.ElementType }> = {
-  'daily':           { label: 'Daily de Hoje',   icon: Target        },
-  'metrics':         { label: 'Métricas',         icon: TrendingUp    },
-  'sentinel-ai':     { label: 'Sentinel AI',      icon: Cpu           },
-  'bug-trend':       { label: 'Bug Trend',        icon: Bug           },
-  'sprint':          { label: 'Sprint Progress',  icon: Target        },
-  'active-projects': { label: 'Projetos Ativos',  icon: FolderOpen    },
-  'team-presence':   { label: 'Presença do Time', icon: Users         },
-  'critical-bugs':   { label: 'Bugs Críticos',    icon: AlertTriangle },
-  'recent-activity': { label: 'Atividade Recente',icon: Activity      },
-  'calendar':        { label: 'Calendário',        icon: CalendarDays  },
-  'qa-today':        { label: 'QA de Hoje',        icon: FlaskConical  },
-  'qa-quick-action': { label: 'QA Quick Action',   icon: ClipboardCheck},
+  'daily':            { label: 'Daily de Hoje',    icon: Target         },
+  'metrics':          { label: 'Métricas',          icon: TrendingUp     },
+  'sentinel-ai':      { label: 'Sentinel AI',       icon: Cpu            },
+  'bug-trend':        { label: 'Bug Trend',         icon: Bug            },
+  'sprint':           { label: 'Sprint Progress',   icon: Target         },
+  'active-projects':  { label: 'Projetos Ativos',   icon: FolderOpen     },
+  'team-presence':    { label: 'Presença do Time',  icon: Users          },
+  'critical-bugs':    { label: 'Bugs Críticos',     icon: AlertTriangle  },
+  'recent-activity':  { label: 'Atividade Recente', icon: Activity       },
+  'calendar':         { label: 'Calendário',         icon: CalendarDays   },
+  'qa-today':          { label: 'QA de Hoje',         icon: FlaskConical   },
+  'qa-quick-action':   { label: 'QA Quick Action',    icon: ClipboardCheck },
+  'activity-heatmap':  { label: 'Heatmap Atividade',  icon: Flame          },
+  'burndown':          { label: 'Burndown Chart',     icon: GitBranch      },
+  'qa-donut':          { label: 'QA Coverage',        icon: PieChart       },
 }
 
 const SIZES: { value: WidgetSize; label: string; tip: string }[] = [
-  { value: 'sm',   label: '¼',    tip: '3 colunas'  },
-  { value: 'md',   label: '⅓',    tip: '4 colunas'  },
-  { value: 'lg',   label: '½',    tip: '6 colunas'  },
-  { value: 'xl',   label: '⅔',    tip: '8 colunas'  },
-  { value: 'full', label: '■',    tip: 'Largura toda'},
+  { value: 'sm',   label: '¼', tip: '3 colunas'   },
+  { value: 'md',   label: '⅓', tip: '4 colunas'   },
+  { value: 'lg',   label: '½', tip: '6 colunas'   },
+  { value: 'xl',   label: '⅔', tip: '8 colunas'   },
+  { value: 'full', label: '■', tip: 'Largura toda' },
+]
+
+const HEIGHTS: { value: WidgetHeight; label: string; tip: string }[] = [
+  { value: '1', label: '1', tip: 'Altura compacta'  },
+  { value: '2', label: '2', tip: 'Altura média'     },
+  { value: '3', label: '3', tip: 'Altura grande'    },
+  { value: '4', label: '4', tip: 'Altura máxima'    },
 ]
 
 interface SortableItemProps {
-  widget:        WidgetConfig
-  onToggle:      () => void
-  onSizeChange:  (size: WidgetSize) => void
+  widget:         WidgetConfig
+  onToggle:       () => void
+  onSizeChange:   (size: WidgetSize) => void
+  onHeightChange: (height: WidgetHeight) => void
 }
 
-function SortableItem({ widget, onToggle, onSizeChange }: SortableItemProps) {
+function SortableItem({ widget, onToggle, onSizeChange, onHeightChange }: SortableItemProps) {
   const meta = WIDGET_META[widget.id]
   const Icon = meta?.icon ?? LayoutDashboard
   const isFullWidth = FULL_WIDTH_IDS.has(widget.id)
 
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: widget.id })
-
   const style = { transform: CSS.Transform.toString(transform), transition }
 
   return (
@@ -121,25 +133,48 @@ function SortableItem({ widget, onToggle, onSizeChange }: SortableItemProps) {
         </button>
       </div>
 
-      {/* Size selector — only for grid widgets */}
+      {/* Size + Height selectors — only for grid widgets */}
       {!isFullWidth && (
-        <div className="flex items-center gap-1 px-2.5 pb-2.5">
-          <span className="text-[10px] text-white/20 mr-1">Tamanho</span>
-          {SIZES.map(s => (
-            <button
-              key={s.value}
-              onClick={() => onSizeChange(s.value)}
-              title={s.tip}
-              className={cn(
-                'flex-1 py-0.5 rounded text-[11px] font-medium transition-all',
-                widget.size === s.value
-                  ? 'bg-primary/20 text-primary border border-primary/30'
-                  : 'bg-white/[0.04] text-white/25 border border-transparent hover:bg-white/[0.08] hover:text-white/50'
-              )}
-            >
-              {s.label}
-            </button>
-          ))}
+        <div className="px-2.5 pb-2.5 space-y-1.5">
+          {/* Width */}
+          <div className="flex items-center gap-1">
+            <span className="text-[10px] text-white/20 w-10 shrink-0">Largura</span>
+            {SIZES.map(s => (
+              <button
+                key={s.value}
+                onClick={() => onSizeChange(s.value)}
+                title={s.tip}
+                className={cn(
+                  'flex-1 py-0.5 rounded text-[11px] font-medium transition-all',
+                  widget.size === s.value
+                    ? 'bg-primary/20 text-primary border border-primary/30'
+                    : 'bg-white/[0.04] text-white/25 border border-transparent hover:bg-white/[0.08] hover:text-white/50'
+                )}
+              >
+                {s.label}
+              </button>
+            ))}
+          </div>
+
+          {/* Height */}
+          <div className="flex items-center gap-1">
+            <span className="text-[10px] text-white/20 w-10 shrink-0">Altura</span>
+            {HEIGHTS.map(h => (
+              <button
+                key={h.value}
+                onClick={() => onHeightChange(h.value)}
+                title={h.tip}
+                className={cn(
+                  'flex-1 py-0.5 rounded text-[11px] font-medium transition-all',
+                  widget.height === h.value
+                    ? 'bg-violet-500/20 text-violet-300 border border-violet-500/30'
+                    : 'bg-white/[0.04] text-white/25 border border-transparent hover:bg-white/[0.08] hover:text-white/50'
+                )}
+              >
+                {h.label}
+              </button>
+            ))}
+          </div>
         </div>
       )}
     </div>
@@ -153,10 +188,15 @@ interface LayoutEditorProps {
 }
 
 export function LayoutEditor({ userId, open, onClose }: LayoutEditorProps) {
-  const { getLayout, toggleWidget, setWidgetSize, reorderWidgets, resetLayout } = useDashboardLayoutStore()
+  const {
+    getLayout, toggleWidget, setWidgetSize, setWidgetHeight,
+    reorderWidgets, resetLayout, importLayout,
+  } = useDashboardLayoutStore()
 
-  const widgets = getLayout(userId)
-  const visible = widgets.filter(w => w.visible).length
+  const importRef = useRef<HTMLInputElement>(null)
+  const widgets   = getLayout(userId)
+  const visible   = widgets.filter(w => w.visible).length
+
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 4 } }),
     useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates })
@@ -169,6 +209,34 @@ export function LayoutEditor({ userId, open, onClose }: LayoutEditorProps) {
     const to   = widgets.findIndex(w => w.id === over.id)
     if (from !== -1 && to !== -1) reorderWidgets(userId, from, to)
   }, [widgets, userId, reorderWidgets])
+
+  function handleExport() {
+    const payload = JSON.stringify({ version: 1, userId, layout: widgets }, null, 2)
+    const blob    = new Blob([payload], { type: 'application/json' })
+    const url     = URL.createObjectURL(blob)
+    const a       = document.createElement('a')
+    a.href     = url
+    a.download = `spm-dashboard-${userId}.json`
+    a.click()
+    URL.revokeObjectURL(url)
+  }
+
+  function handleImport(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0]
+    if (!file) return
+    const reader = new FileReader()
+    reader.onload = ev => {
+      try {
+        const parsed = JSON.parse(ev.target?.result as string)
+        const layout = Array.isArray(parsed) ? parsed : parsed?.layout
+        if (Array.isArray(layout)) importLayout(userId, layout)
+      } catch {
+        // invalid file — silently ignore
+      }
+    }
+    reader.readAsText(file)
+    e.target.value = ''
+  }
 
   return (
     <AnimatePresence>
@@ -208,7 +276,7 @@ export function LayoutEditor({ userId, open, onClose }: LayoutEditorProps) {
 
           {/* Hint */}
           <p className="px-4 py-2 text-[10px] text-white/25 border-b border-white/[0.04] shrink-0">
-            Arraste · Olho para ocultar · Botões de tamanho para grid
+            Arraste · Olho para ocultar · Largura e Altura para grid
           </p>
 
           {/* List */}
@@ -222,6 +290,7 @@ export function LayoutEditor({ userId, open, onClose }: LayoutEditorProps) {
                       widget={widget}
                       onToggle={() => toggleWidget(userId, widget.id)}
                       onSizeChange={(size) => setWidgetSize(userId, widget.id, size)}
+                      onHeightChange={(height) => setWidgetHeight(userId, widget.id, height)}
                     />
                   ))}
                 </div>
@@ -230,7 +299,33 @@ export function LayoutEditor({ userId, open, onClose }: LayoutEditorProps) {
           </div>
 
           {/* Footer */}
-          <div className="border-t border-white/[0.06] px-3 py-3 shrink-0">
+          <div className="border-t border-white/[0.06] px-3 py-3 shrink-0 space-y-1.5">
+            {/* Export / Import */}
+            <div className="flex gap-1.5">
+              <button
+                onClick={handleExport}
+                className="flex-1 flex items-center justify-center gap-1.5 rounded-xl py-2 text-xs text-white/40 hover:text-white/70 hover:bg-white/5 border border-transparent hover:border-white/[0.08] transition-all"
+              >
+                <Download className="h-3 w-3" />
+                Exportar
+              </button>
+              <button
+                onClick={() => importRef.current?.click()}
+                className="flex-1 flex items-center justify-center gap-1.5 rounded-xl py-2 text-xs text-white/40 hover:text-white/70 hover:bg-white/5 border border-transparent hover:border-white/[0.08] transition-all"
+              >
+                <Upload className="h-3 w-3" />
+                Importar
+              </button>
+              <input
+                ref={importRef}
+                type="file"
+                accept=".json"
+                onChange={handleImport}
+                className="hidden"
+              />
+            </div>
+
+            {/* Reset */}
             <button
               onClick={() => resetLayout(userId)}
               className="w-full flex items-center justify-center gap-1.5 rounded-xl py-2 text-xs text-white/30 hover:text-white/60 hover:bg-white/5 transition-colors"

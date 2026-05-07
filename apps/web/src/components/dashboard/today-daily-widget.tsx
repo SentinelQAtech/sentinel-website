@@ -3,8 +3,8 @@
 import Link from 'next/link'
 import { motion } from 'framer-motion'
 import {
-  Sun, ArrowRight, CheckCircle2, Circle, Video,
-  AlertCircle, Minus, Clock,
+  Sun, ArrowRight, CheckCircle2, Circle,
+  AlertCircle, Minus, Video,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { useDailyStore, PRIORITY_CONFIG, CLIENT_CONFIG, REGION_CONFIG } from '@/store/daily'
@@ -42,23 +42,23 @@ export function TodayDailyWidget() {
       transition={{ duration: 0.4 }}
       className="glass-card border border-white/[0.07] overflow-hidden"
     >
-      {/* Accent */}
+      {/* Top accent */}
       <div className="h-px w-full bg-gradient-to-r from-primary/60 via-violet-500/40 to-transparent" />
 
-      {/* Header */}
-      <div className="flex items-center justify-between gap-4 px-5 py-3.5 border-b border-white/[0.06]">
+      {/* Strip 1 — Header + progress + action */}
+      <div className="flex items-center gap-4 px-5 py-3 border-b border-white/[0.06]">
         <div className="flex items-center gap-2.5 shrink-0">
           <div className="w-7 h-7 rounded-lg bg-primary/15 border border-primary/25 flex items-center justify-center">
             <Sun className="w-3.5 h-3.5 text-primary" />
           </div>
           <div>
-            <h3 className="text-sm font-semibold text-white/85">Daily de Hoje</h3>
-            <p className="text-[10px] text-white/35">{done} de {total} concluídas</p>
+            <h3 className="text-sm font-semibold text-white/85 leading-none">Daily de Hoje</h3>
+            <p className="text-[10px] text-white/35 mt-0.5">{done} de {total} concluídas</p>
           </div>
         </div>
 
         {/* Progress bar */}
-        <div className="flex-1 hidden sm:flex items-center gap-3 max-w-xs">
+        <div className="flex-1 flex items-center gap-2 min-w-0">
           <div className="flex-1 h-1.5 bg-white/[0.06] rounded-full overflow-hidden">
             <motion.div
               initial={{ width: 0 }}
@@ -72,8 +72,10 @@ export function TodayDailyWidget() {
               }}
             />
           </div>
-          <span className="text-xs font-bold tabular-nums shrink-0"
-            style={{ color: pct === 100 ? '#10b981' : '#6366f1' }}>
+          <span
+            className="text-xs font-bold tabular-nums shrink-0"
+            style={{ color: pct === 100 ? '#10b981' : '#6366f1' }}
+          >
             {pct}%
           </span>
         </div>
@@ -86,113 +88,93 @@ export function TodayDailyWidget() {
         </Link>
       </div>
 
-      {/* Body: Tasks + Meetings */}
-      <div className="grid grid-cols-1 lg:grid-cols-[1fr_200px] divide-white/[0.05] lg:divide-x">
+      {/* Strip 2 — Task list */}
+      <div className="overflow-y-auto max-h-48 px-3 py-2 border-b border-white/[0.06]">
+        {sorted.length === 0 ? (
+          <p className="text-xs text-white/25 italic px-2 py-1">Nenhuma tarefa para hoje</p>
+        ) : (
+          <div className="space-y-0.5">
+            {sorted.map(task => {
+              const pCfg  = PRIORITY_CONFIG[task.priority]
+              const cCfg  = CLIENT_CONFIG[task.client]
+              const sIcon = STATUS_ICON[task.status]
+              const Icon  = sIcon.icon
+              const isDone = task.status === 'done'
 
-        {/* Tasks list */}
-        <div className="overflow-y-auto max-h-56 px-3 py-3 space-y-0.5">
-          {sorted.length === 0 && (
-            <p className="text-xs text-white/25 italic px-2">Nenhuma tarefa para hoje</p>
-          )}
-          {sorted.map(task => {
-            const pCfg  = PRIORITY_CONFIG[task.priority]
-            const cCfg  = CLIENT_CONFIG[task.client]
-            const sIcon = STATUS_ICON[task.status]
-            const Icon  = sIcon.icon
-            const isDone = task.status === 'done'
-
-            return (
-              <button
-                key={task.id}
-                onClick={() => toggleTask(task.id)}
-                title={isDone ? 'Marcar como pendente' : 'Marcar como concluída'}
-                className="w-full flex items-center gap-2 px-2 py-1.5 rounded-lg text-left hover:bg-white/[0.04] group transition-colors"
-              >
-                <Icon className={cn('w-3.5 h-3.5 shrink-0', sIcon.cls)} />
-
-                <span
-                  className="w-1.5 h-1.5 rounded-full shrink-0"
-                  style={{ backgroundColor: pCfg.color }}
-                />
-
-                <span className={cn(
-                  'flex-1 text-[12px] truncate leading-none transition-colors',
-                  isDone
-                    ? 'line-through text-white/25'
-                    : 'text-white/65 group-hover:text-white/90'
-                )}>
-                  {task.title}
-                </span>
-
-                <span
-                  className="shrink-0 text-[10px] font-bold px-1.5 py-0.5 rounded"
-                  style={{
-                    color:           cCfg?.color ?? '#6366f1',
-                    backgroundColor: `${cCfg?.color ?? '#6366f1'}20`,
-                  }}
+              return (
+                <button
+                  key={task.id}
+                  onClick={() => toggleTask(task.id)}
+                  title={isDone ? 'Marcar como pendente' : 'Marcar como concluída'}
+                  className="w-full flex items-center gap-2 px-2 py-1.5 rounded-lg text-left hover:bg-white/[0.04] group transition-colors"
                 >
-                  {cCfg?.short ?? task.client}
-                </span>
-              </button>
-            )
-          })}
-        </div>
-
-        {/* Meetings */}
-        <div className="px-4 py-3 border-t lg:border-t-0 border-white/[0.05]">
-          <div className="flex items-center gap-1.5 mb-2">
-            <Video className="w-3 h-3 text-cyan-400/70" />
-            <span className="text-[10px] font-semibold uppercase tracking-wider text-white/25">
-              Reuniões
-            </span>
-          </div>
-
-          {allMeetings.length === 0 ? (
-            <p className="text-xs text-white/25 italic">Sem reuniões</p>
-          ) : (
-            <div className="space-y-1.5 overflow-y-auto max-h-48">
-              {allMeetings.map(m => {
-                const rCfg = REGION_CONFIG[m.region]
-                const [h, min] = m.time.split(':').map(Number)
-                const isPast = h * 60 + min < nowMin
-
-                return (
-                  <div
-                    key={m.id}
-                    className={cn(
-                      'flex items-center gap-2 transition-opacity',
-                      isPast ? 'opacity-30' : 'opacity-100'
-                    )}
+                  <Icon className={cn('w-3.5 h-3.5 shrink-0', sIcon.cls)} />
+                  <span
+                    className="w-1.5 h-1.5 rounded-full shrink-0"
+                    style={{ backgroundColor: pCfg.color }}
+                  />
+                  <span className={cn(
+                    'flex-1 text-[12px] truncate leading-none transition-colors',
+                    isDone ? 'line-through text-white/25' : 'text-white/65 group-hover:text-white/90'
+                  )}>
+                    {task.title}
+                  </span>
+                  <span
+                    className="shrink-0 text-[10px] font-bold px-1.5 py-0.5 rounded"
+                    style={{
+                      color:           cCfg?.color ?? '#6366f1',
+                      backgroundColor: `${cCfg?.color ?? '#6366f1'}20`,
+                    }}
                   >
-                    <span className="text-sm leading-none">{rCfg?.flag ?? '🌐'}</span>
-                    <span className="text-[11px] font-mono font-semibold text-white/70 tabular-nums">
-                      {m.time}
-                    </span>
-                    <span className="text-[11px] text-white/35 truncate">
-                      {m.title ?? m.region}
-                    </span>
-                  </div>
-                )
-              })}
-            </div>
-          )}
+                    {cCfg?.short ?? task.client}
+                  </span>
+                </button>
+              )
+            })}
+          </div>
+        )}
+      </div>
 
-          {/* Próxima reunião highlight */}
-          {(() => {
-            const next = allMeetings.find(m => {
-              const [h, min] = m.time.split(':').map(Number)
-              return h * 60 + min >= nowMin
-            })
-            if (!next) return null
-            return (
-              <div className="mt-3 flex items-center gap-1.5 text-white/40">
-                <Clock className="w-3 h-3" />
-                <span className="text-[10px]">Próxima: {next.time}</span>
-              </div>
-            )
-          })()}
+      {/* Strip 3 — Meetings horizontal row */}
+      <div className="px-4 py-2.5">
+        <div className="flex items-center gap-1.5 mb-2 shrink-0">
+          <Video className="w-3 h-3 text-cyan-400/70" />
+          <span className="text-[10px] font-semibold uppercase tracking-wider text-white/25">
+            Reuniões
+          </span>
         </div>
 
+        {allMeetings.length === 0 ? (
+          <p className="text-xs text-white/25 italic">Sem reuniões hoje</p>
+        ) : (
+          <div className="flex items-center gap-2 overflow-x-auto pb-0.5 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+            {allMeetings.map(m => {
+              const rCfg = REGION_CONFIG[m.region]
+              const [h, min] = m.time.split(':').map(Number)
+              const isPast = h * 60 + min < nowMin
+
+              return (
+                <div
+                  key={m.id}
+                  className={cn(
+                    'flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border shrink-0 transition-opacity',
+                    isPast
+                      ? 'border-white/[0.04] bg-transparent opacity-30'
+                      : 'border-cyan-400/15 bg-cyan-400/5'
+                  )}
+                >
+                  <span className="text-sm leading-none">{rCfg?.flag ?? '🌐'}</span>
+                  <span className="text-[11px] font-mono font-semibold text-white/70 tabular-nums">
+                    {m.time}
+                  </span>
+                  <span className="text-[11px] text-white/50 max-w-[96px] truncate">
+                    {m.title ?? m.region}
+                  </span>
+                </div>
+              )
+            })}
+          </div>
+        )}
       </div>
     </motion.div>
   )
