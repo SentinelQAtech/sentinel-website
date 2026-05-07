@@ -1,9 +1,12 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
 
+export type WidgetSize = 'sm' | 'md' | 'lg' | 'xl' | 'full'
+
 export interface WidgetConfig {
   id:      string
   visible: boolean
+  size?:   WidgetSize
 }
 
 // Default order and visibility — applied per user (keyed by userId)
@@ -23,11 +26,11 @@ const DEFAULT_WIDGETS: WidgetConfig[] = [
 ]
 
 interface DashboardLayoutState {
-  // layouts keyed by userId so each user has their own config
   layouts: Record<string, WidgetConfig[]>
 
   getLayout:      (userId: string) => WidgetConfig[]
   toggleWidget:   (userId: string, id: string) => void
+  setWidgetSize:  (userId: string, id: string, size: WidgetSize | undefined) => void
   reorderWidgets: (userId: string, from: number, to: number) => void
   resetLayout:    (userId: string) => void
 }
@@ -57,6 +60,17 @@ export const useDashboardLayoutStore = create<DashboardLayoutState>()(
             layouts: {
               ...s.layouts,
               [userId]: current.map(w => w.id === id ? { ...w, visible: !w.visible } : w),
+            },
+          }
+        }),
+
+      setWidgetSize: (userId, id, size) =>
+        set(s => {
+          const current = sanitize(s.layouts[userId])
+          return {
+            layouts: {
+              ...s.layouts,
+              [userId]: current.map(w => w.id === id ? { ...w, size } : w),
             },
           }
         }),

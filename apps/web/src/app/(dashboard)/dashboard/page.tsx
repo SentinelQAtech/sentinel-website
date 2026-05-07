@@ -38,10 +38,8 @@ const fadeUp = {
 
 const FULL_WIDTH = new Set(['daily', 'metrics', 'sentinel-ai'])
 
+// Default col-spans per widget
 const WIDGET_COL: Record<string, string> = {
-  'daily':           'col-span-12',
-  'metrics':         'col-span-12',
-  'sentinel-ai':     'col-span-12',
   'bug-trend':       'col-span-12 lg:col-span-8',
   'sprint':          'col-span-12 lg:col-span-4',
   'active-projects': 'col-span-12 lg:col-span-7',
@@ -51,6 +49,15 @@ const WIDGET_COL: Record<string, string> = {
   'calendar':        'col-span-12 lg:col-span-3',
   'qa-today':        'col-span-12 lg:col-span-3',
   'qa-quick-action': 'col-span-12 lg:col-span-4',
+}
+
+// User-selectable size → col-span
+const SIZE_COL: Record<string, string> = {
+  'sm':   'col-span-12 lg:col-span-3',
+  'md':   'col-span-12 lg:col-span-4',
+  'lg':   'col-span-12 lg:col-span-6',
+  'xl':   'col-span-12 lg:col-span-8',
+  'full': 'col-span-12',
 }
 
 function WidgetNode({ id }: { id: string }) {
@@ -131,8 +138,7 @@ export default function DashboardPage() {
         {gridList.length > 0 && (
           <motion.div variants={fadeUp} className="grid grid-cols-12 gap-5">
             {gridList.map(w => {
-              const colSpan = WIDGET_COL[w.id]
-              if (!colSpan) return null
+              const colSpan = (w.size ? SIZE_COL[w.size] : null) ?? WIDGET_COL[w.id] ?? 'col-span-12 lg:col-span-4'
               return (
                 <div key={w.id} className={colSpan}>
                   <WidgetNode id={w.id} />
