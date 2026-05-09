@@ -33,13 +33,21 @@ export function KanbanCard({ task, isDragging, onOpenTask }: KanbanCardProps) {
     5: 'text-yellow-400', 8: 'text-orange-400', 13: 'text-red-400',
   }
 
+  const handleClick = (e: React.MouseEvent<HTMLDivElement>) => {
+    const target = e.target as HTMLElement
+    if (target.closest('a, button, input, textarea, select')) return
+    if (!isDragging && !isSortableDragging) onOpenTask?.(task)
+  }
+
   return (
     <div
       ref={setNodeRef}
       style={style}
-      onClick={() => !isDragging && onOpenTask?.(task)}
+      {...attributes}
+      {...listeners}
+      onClick={handleClick}
       className={cn(
-        'group relative p-3.5 rounded-xl cursor-pointer',
+        'group relative p-3.5 rounded-xl cursor-grab active:cursor-grabbing',
         'bg-surface-800 border border-white/[0.07]',
         'transition-all duration-150',
         'hover:bg-surface-700 hover:border-white/[0.12] hover:shadow-card',
@@ -48,16 +56,9 @@ export function KanbanCard({ task, isDragging, onOpenTask }: KanbanCardProps) {
       )}
     >
       {/* Grip indicator — purely visual */}
-      <button
-        type="button"
-        aria-label={`Arrastar ${task.title}`}
-        className="absolute left-1 top-1/2 -translate-y-1/2 rounded-md p-1 text-white/25 opacity-0 transition-colors transition-opacity hover:bg-white/[0.06] hover:text-white/60 group-hover:opacity-100 cursor-grab active:cursor-grabbing"
-        onClick={e => e.stopPropagation()}
-        {...attributes}
-        {...listeners}
-      >
+      <div className="absolute left-1.5 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
         <GripVertical className="w-3 h-3" />
-      </button>
+      </div>
 
       {!isDragging && (
         <div className="absolute right-2 top-2 rounded-md p-1 text-white/20 opacity-0 transition-opacity group-hover:opacity-100">

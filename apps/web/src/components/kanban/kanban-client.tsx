@@ -18,7 +18,6 @@ import { KanbanCard } from './kanban-card'
 import { KanbanTaskDialog } from './kanban-task-dialog'
 import { KanbanSettingsDialog } from './kanban-settings-dialog'
 import { KanbanTaskPreviewDialog } from './kanban-task-preview-dialog'
-import { snapCenterToCursor } from '@dnd-kit/modifiers'
 import { Plus, Settings2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import type { Task, TaskStatus } from '@/types'
@@ -100,6 +99,34 @@ export function KanbanClient() {
 
   const handleRenameColumn = (columnId: string, label: string) => {
     setColumns(prev => prev.map(col => col.id === columnId ? { ...col, label } : col))
+  }
+
+  const handleDeleteColumn = (columnId: string) => {
+    const column = columns.find(col => col.id === columnId)
+    if (!column) return
+
+    if (columns.length <= 1) {
+      window.alert('O board precisa manter pelo menos uma coluna.')
+      return
+    }
+
+    const columnTasks = tasks.filter(t => t.status === columnId)
+    if (columnTasks.length > 0) {
+      const confirmed = window.confirm(
+        `A coluna "${column.label}" tem ${columnTasks.length} card(s). Ao excluir, eles serao movidos para a primeira coluna restante. Deseja continuar?`
+      )
+      if (!confirmed) return
+    }
+
+    const remainingColumns = columns.filter(col => col.id !== columnId)
+    const fallbackStatus = remainingColumns[0]?.id
+
+    setColumns(remainingColumns)
+    if (fallbackStatus) {
+      setTasks(prev => prev.map(t =>
+        t.status === columnId ? { ...t, status: fallbackStatus as TaskStatus } : t
+      ))
+    }
   }
 
   const handleAddTask = (data: NewKanbanTask) => {
@@ -248,13 +275,15 @@ export function KanbanClient() {
                     count={colTasks.length}
                     onAddTask={openAddTask}
                     onOpenTask={handleOpenTask}
+                    onRenameColumn={handleRenameColumn}
+                    onDeleteColumn={handleDeleteColumn}
                   />
                 </SortableContext>
               )
             })}
           </div>
 
-          <DragOverlay adjustScale={false} modifiers={[snapCenterToCursor]} dropAnimation={null}>
+          <DragOverlay adjustScale={false} dropAnimation={null}>
             {activeTask && (
               <div className="w-72">
                 <KanbanCard task={activeTask} isDragging />
