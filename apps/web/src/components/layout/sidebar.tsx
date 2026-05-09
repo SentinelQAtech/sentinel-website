@@ -7,7 +7,7 @@ import {
   LayoutDashboard, Bug, BarChart3,
   Bell, Settings, Users, ChevronLeft, ChevronRight,
   Search, Plus, Zap, CalendarDays, ClipboardCheck,
-  Activity, Columns, FolderOpen,
+  Activity, Columns, FolderOpen, Building2,
 } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 
@@ -37,7 +37,7 @@ const navGroups: NavGroup[] = [
     label: 'OVERVIEW',
     items: [
       { label: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
-      { label: 'Pulse',     href: '/daily',     icon: Activity        },
+      { label: 'Daily',     href: '/daily',     icon: Activity        },
       { label: 'Calendar',  href: '/calendar',  icon: CalendarDays    },
     ],
   },
@@ -57,6 +57,7 @@ const navGroups: NavGroup[] = [
     label: 'MANAGEMENT',
     items: [
       { label: 'Team',        href: '/team',        icon: Users          },
+      { label: 'Empresas',    href: '/companies',   icon: Building2      },
       { label: 'QA Importer', href: '/qa-importer', icon: ClipboardCheck },
     ],
   },
@@ -195,13 +196,12 @@ export function Sidebar({ collapsed = false, onToggle }: SidebarProps) {
         {/* Search */}
         <div className="px-3 py-3 border-b border-white/[0.06]">
           <button className={cn(
-            'w-full flex items-center gap-2.5 px-2.5 py-2 rounded-lg',
+            'flex items-center justify-center gap-2.5 px-2.5 py-2 rounded-lg',
             'bg-white/[0.04] border border-white/[0.08] text-white/40',
             'hover:bg-white/[0.07] hover:text-white/60 transition-all duration-200',
-            collapsed && 'justify-center'
+            collapsed ? 'w-full' : 'w-9'
           )}>
             <Search className="w-3.5 h-3.5 shrink-0" />
-            {!collapsed && <span className="text-xs">Search... ⌘K</span>}
           </button>
         </div>
 

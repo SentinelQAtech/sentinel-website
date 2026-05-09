@@ -9,6 +9,7 @@ import {
   DEFAULT_CLIENTS, TASK_TYPES, PRIORITIES, STATUSES,
   type DailyType, type DailyPriority, type DailyStatus,
 } from '@/store/daily'
+import { useActiveCompanies } from '@/store/companies'
 import { Button } from '@/components/ui/button'
 
 interface AddItemModalProps {
@@ -24,6 +25,8 @@ const inputCls = cn(
 
 export function AddItemModal({ open, onClose }: AddItemModalProps) {
   const addTask = useDailyStore(s => s.addTask)
+  const activeCompanies = useActiveCompanies()
+  const companyOptions = activeCompanies.length > 0 ? activeCompanies.map(c => c.name) : DEFAULT_CLIENTS
 
   const [client,  setClient]  = useState(DEFAULT_CLIENTS[0])
   const [custom,  setCustom]  = useState('')
@@ -91,7 +94,7 @@ export function AddItemModal({ open, onClose }: AddItemModalProps) {
                     <div className="relative">
                       <select value={client} onChange={e => setClient(e.target.value)}
                         className={cn(inputCls, 'appearance-none pr-7 py-2')}>
-                        {DEFAULT_CLIENTS.map(c => <option key={c} value={c}>{c}</option>)}
+                        {companyOptions.map(c => <option key={c} value={c}>{c}</option>)}
                         <option value="__custom">Outro...</option>
                       </select>
                       <ChevronDown className="absolute right-2 top-1/2 -translate-y-1/2 w-3 h-3 text-white/30 pointer-events-none" />

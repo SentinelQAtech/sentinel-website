@@ -66,14 +66,12 @@ export function Header() {
           <button
             onClick={() => setSearchOpen(true)}
             className={cn(
-              'flex items-center gap-2 h-8 px-3 rounded-lg text-xs',
+              'flex items-center justify-center h-8 w-8 rounded-lg text-xs',
               'bg-white/[0.04] border border-white/[0.08] text-white/40',
               'hover:bg-white/[0.07] hover:text-white/60 transition-all duration-200'
             )}
           >
             <Search className="w-3.5 h-3.5" />
-            <span className="hidden sm:block">Buscar</span>
-            <kbd className="hidden sm:block px-1 py-0.5 rounded text-[10px] bg-white/10 border border-white/10 text-white/30">⌘K</kbd>
           </button>
 
           {/* Quick create */}

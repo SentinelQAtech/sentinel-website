@@ -86,6 +86,16 @@
   * { scrollbar-width: thin; scrollbar-color: rgba(99,102,241,0.25) transparent; }
 
   ::selection { @apply bg-primary/30 text-white; }
+
+  select,
+  option {
+    color-scheme: dark;
+  }
+
+  option {
+    background: #111827;
+    color: rgba(255,255,255,0.86);
+  }
 }
 
 @layer components {

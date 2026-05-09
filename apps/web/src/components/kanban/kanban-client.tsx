@@ -5,8 +5,6 @@ import {
   DndContext,
   DragEndEvent,
   DragOverEvent,
-  DragOverlay,
-  DragStartEvent,
   PointerSensor,
   useSensor,
   useSensors,
@@ -55,7 +53,6 @@ const mockTasks: Task[] = [
 export function KanbanClient() {
   const [columns, setColumns]       = useState<KanbanColumnDefinition[]>(INITIAL_COLUMNS)
   const [tasks, setTasks]           = useState<Task[]>(mockTasks)
-  const [activeTask, setActiveTask] = useState<Task | null>(null)
   const [selectedTask, setSelectedTask] = useState<Task | null>(null)
 
   // Dialog state
@@ -150,10 +147,6 @@ export function KanbanClient() {
 
   // ── Drag & Drop handlers ────────────────────────────────────────
 
-  const handleDragStart = ({ active }: DragStartEvent) => {
-    setActiveTask(tasks.find(t => t.id === active.id) ?? null)
-  }
-
   const handleDragOver = ({ active, over }: DragOverEvent) => {
     if (!over || active.id === over.id) return
 
@@ -184,7 +177,6 @@ export function KanbanClient() {
   }
 
   const handleDragEnd = ({ active, over }: DragEndEvent) => {
-    setActiveTask(null)
     if (!over || active.id === over.id) return
 
     const activeId = active.id as string
@@ -256,7 +248,6 @@ export function KanbanClient() {
         <DndContext
           sensors={sensors}
           collisionDetection={closestCorners}
-          onDragStart={handleDragStart}
           onDragOver={handleDragOver}
           onDragEnd={handleDragEnd}
         >
@@ -283,13 +274,6 @@ export function KanbanClient() {
             })}
           </div>
 
-          <DragOverlay adjustScale={false} dropAnimation={null}>
-            {activeTask && (
-              <div className="w-72">
-                <KanbanCard task={activeTask} isDragging />
-              </div>
-            )}
-          </DragOverlay>
         </DndContext>
       </div>
 

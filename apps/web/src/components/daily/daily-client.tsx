@@ -81,7 +81,7 @@ export function DailyClient() {
             )}
           >
             <Video className="w-3.5 h-3.5" />
-            <span className="hidden sm:block">+ Reunião</span>
+            <span className="hidden sm:block">Reunião</span>
           </button>
           <button
             onClick={() => setAddItem(true)}
@@ -92,7 +92,7 @@ export function DailyClient() {
             )}
           >
             <Plus className="w-3.5 h-3.5" />
-            <span className="hidden sm:block">+ Tarefa</span>
+            <span className="hidden sm:block">Tarefa</span>
           </button>
         </div>
       </motion.div>
