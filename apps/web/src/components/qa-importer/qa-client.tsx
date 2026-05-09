@@ -335,13 +335,12 @@ export function QAImporterClient() {
             )}
           </div>
 
-          {/* Extension readiness notice */}
-          <div className="glass-card p-4 border border-dashed border-white/[0.07]">
-            <p className="text-[11px] font-semibold text-white/30 uppercase tracking-wider mb-1">Em breve</p>
+          {/* Extension status */}
+          <div className="glass-card p-4 border border-dashed border-primary/[0.15]">
+            <p className="text-[11px] font-semibold text-primary/50 uppercase tracking-wider mb-1">Sentinel QA Sync</p>
             <p className="text-xs text-white/40 leading-relaxed">
-              Chrome Extension para importação automática de boards Jira — sem necessidade de copiar e colar.
+              Extensão Chrome ativa — sincronize cards do board Jira e abra esta página para importá-los automaticamente.
             </p>
-            <p className="text-[10px] text-white/20 mt-2 font-mono">handleQaImportPayload() ready</p>
           </div>
         </div>
       </div>

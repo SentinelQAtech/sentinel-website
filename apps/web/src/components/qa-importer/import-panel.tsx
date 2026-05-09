@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useCallback } from 'react'
+import { useState, useCallback, useEffect } from 'react'
 import { FileText, Table2, Upload, Zap, Eye, EyeOff, RefreshCw, Puzzle, CheckCircle2, ChevronDown, ChevronUp, ExternalLink } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { parseTextInput, parseCsvInput, isQARelated, type ParsedQAItem } from '@/lib/qa-parser'
@@ -50,6 +50,30 @@ export function ImportPanel({ qaFilterEnabled, onQaFilterChange, onImport }: Pro
 
   const currentInput    = tab === 'text' ? textInput : csvInput
   const setCurrentInput = tab === 'text' ? setTextInput : setCsvInput
+
+  // Listen for cards delivered by the Chrome Extension bridge (qa-bridge.js).
+  // The background service worker injects the bridge into this page when pending
+  // cards exist in chrome.storage.local, bypassing the serverless memory limitation.
+  useEffect(() => {
+    const handler = (e: Event) => {
+      const { cards, count } = (e as CustomEvent<{ cards: ParsedQAItem[]; count: number }>).detail
+      setTab('extension')
+      setExtResult(null)
+      setExtItems([])
+      setExtListOpen(false)
+      if (count > 0) {
+        const filtered = qaFilterEnabled ? cards.filter(isQARelated) : cards
+        onImport(filtered, 'extension')
+        setExtItems(filtered)
+        setExtResult({ count: filtered.length })
+        setExtListOpen(true)
+      } else {
+        setExtResult({ count: 0 })
+      }
+    }
+    window.addEventListener('sentinel-qa-sync', handler)
+    return () => window.removeEventListener('sentinel-qa-sync', handler)
+  }, [qaFilterEnabled, onImport])
 
   const parse = useCallback((): ParsedQAItem[] => {
     if (tab === 'extension') return []
@@ -175,7 +199,7 @@ export function ImportPanel({ qaFilterEnabled, onQaFilterChange, onImport }: Pro
               { n: '1', text: 'Abra o board Jira com as colunas QA visíveis' },
               { n: '2', text: 'Clique no ícone da extensão Sentinel QA Sync' },
               { n: '3', text: 'Clique em "Sincronizar cards QA"' },
-              { n: '4', text: 'Clique em "Pull da Extensão" abaixo' },
+              { n: '4', text: 'Abra (ou recarregue) esta página — os cards chegam automaticamente' },
             ].map(s => (
               <div key={s.n} className="flex items-start gap-2.5">
                 <span className="w-4 h-4 rounded-full bg-primary/20 text-primary text-[10px] font-bold flex items-center justify-center shrink-0 mt-0.5">
@@ -205,7 +229,7 @@ export function ImportPanel({ qaFilterEnabled, onQaFilterChange, onImport }: Pro
                 </>
               )}
               {extResult.count === 0 && (
-                <span className="text-amber-400">Nenhum card pendente. Sincronize pela extensão primeiro.</span>
+                <span className="text-amber-400">Nenhum card pendente. Sincronize pelo board Jira e reabra esta página.</span>
               )}
               {extResult.count === -1 && (
                 <span className="text-red-400">Erro ao conectar com a API. Verifique a URL configurada.</span>
