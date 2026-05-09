@@ -1,7 +1,7 @@
 'use client'
 
 import { useMemo, useState } from 'react'
-import { Building2, Check, Edit3, Plus, Search, Trash2, XCircle } from 'lucide-react'
+import { Building2, Check, Edit3, Globe2, Map as MapIcon, Plus, Search, Trash2, X, XCircle } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { useCompaniesStore, type Company, type CompanyStatus } from '@/store/companies'
 
@@ -35,6 +35,7 @@ export default function CompaniesPage() {
   const [query, setQuery] = useState('')
   const [editingId, setEditingId] = useState<string | null>(null)
   const [form, setForm] = useState<Omit<Company, 'id'>>(EMPTY_FORM)
+  const [mapOpen, setMapOpen] = useState(false)
 
   const filtered = useMemo(() => {
     const q = query.toLowerCase()
@@ -84,14 +85,23 @@ export default function CompaniesPage() {
           </div>
         </div>
 
-        <div className="relative w-full lg:w-72">
-          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-white/25" />
-          <input
-            value={query}
-            onChange={e => setQuery(e.target.value)}
-            placeholder="Buscar empresa..."
-            className="h-10 w-full rounded-xl border border-white/[0.08] bg-white/[0.04] pl-9 pr-3 text-sm text-white outline-none placeholder:text-white/25 focus:border-primary/40"
-          />
+        <div className="flex w-full flex-col gap-2 sm:flex-row lg:w-auto">
+          <button
+            onClick={() => setMapOpen(true)}
+            className="flex h-10 items-center justify-center gap-2 rounded-xl border border-primary/30 bg-primary/15 px-4 text-sm font-semibold text-primary hover:bg-primary/25"
+          >
+            <MapIcon className="h-4 w-4" />
+            Mapa mundial
+          </button>
+          <div className="relative w-full lg:w-72">
+            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-white/25" />
+            <input
+              value={query}
+              onChange={e => setQuery(e.target.value)}
+              placeholder="Buscar empresa..."
+              className="h-10 w-full rounded-xl border border-white/[0.08] bg-white/[0.04] pl-9 pr-3 text-sm text-white outline-none placeholder:text-white/25 focus:border-primary/40"
+            />
+          </div>
         </div>
       </div>
 
@@ -200,8 +210,133 @@ export default function CompaniesPage() {
           </button>
         </form>
       </div>
+
+      {mapOpen && (
+        <WorldMapModal
+          companies={companies.filter(c => c.status !== 'finished')}
+          onClose={() => setMapOpen(false)}
+        />
+      )}
     </div>
   )
+}
+
+function WorldMapModal({ companies, onClose }: { companies: Company[]; onClose: () => void }) {
+  const regionIndexes = new Map<string, number>()
+  const offsetPattern = [
+    { x: 0, y: 0 },
+    { x: 38, y: -18 },
+    { x: -34, y: 20 },
+    { x: 30, y: 28 },
+    { x: -42, y: -22 },
+  ]
+
+  const plottedCompanies = companies.map(company => {
+    const basePoint = getMapPoint(company)
+    const regionIndex = regionIndexes.get(basePoint.region) ?? 0
+    const offset = offsetPattern[regionIndex % offsetPattern.length]
+    regionIndexes.set(basePoint.region, regionIndex + 1)
+
+    return {
+      company,
+      point: {
+        ...basePoint,
+        x: basePoint.x + offset.x,
+        y: basePoint.y + offset.y,
+      },
+    }
+  })
+
+  const regions = [...new Set(plottedCompanies.map(item => item.point.region))]
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4 backdrop-blur-sm">
+      <div className="relative w-full max-w-6xl overflow-hidden rounded-2xl border border-white/[0.10] bg-surface-950 shadow-2xl">
+        <div className="flex items-center justify-between border-b border-white/[0.08] px-5 py-4">
+          <div className="flex items-center gap-3">
+            <div className="flex h-9 w-9 items-center justify-center rounded-xl border border-primary/25 bg-primary/15">
+              <Globe2 className="h-4 w-4 text-primary" />
+            </div>
+            <div>
+              <h2 className="text-base font-semibold text-white">Mapa mundial de atuacao</h2>
+              <p className="text-xs text-white/35">{companies.length} empresas ativas em {regions.length} regioes</p>
+            </div>
+          </div>
+          <button onClick={onClose} className="rounded-lg p-2 text-white/35 hover:bg-white/[0.06] hover:text-white/70">
+            <X className="h-4 w-4" />
+          </button>
+        </div>
+
+        <div className="grid gap-0 lg:grid-cols-[1fr_280px]">
+          <div className="relative min-h-[460px] overflow-hidden bg-[radial-gradient(circle_at_50%_40%,rgba(99,102,241,0.16),transparent_55%)]">
+            <div className="absolute inset-0 dot-grid opacity-25" />
+            <svg viewBox="0 0 1000 520" className="relative z-10 h-full min-h-[460px] w-full">
+              <defs>
+                <filter id="continentGlow">
+                  <feGaussianBlur stdDeviation="4" result="blur" />
+                  <feMerge>
+                    <feMergeNode in="blur" />
+                    <feMergeNode in="SourceGraphic" />
+                  </feMerge>
+                </filter>
+              </defs>
+
+              <path d="M121 170 C170 111 257 104 312 147 C353 180 337 236 284 254 C216 276 150 248 121 170Z" fill="rgba(99,102,241,0.16)" stroke="rgba(99,102,241,0.35)" filter="url(#continentGlow)" />
+              <path d="M250 275 C315 286 350 346 325 417 C306 470 250 448 230 388 C213 337 205 293 250 275Z" fill="rgba(6,182,212,0.13)" stroke="rgba(6,182,212,0.32)" filter="url(#continentGlow)" />
+              <path d="M455 151 C532 95 670 98 765 151 C835 190 822 260 732 272 C635 286 582 229 492 246 C421 258 383 204 455 151Z" fill="rgba(139,92,246,0.18)" stroke="rgba(139,92,246,0.36)" filter="url(#continentGlow)" />
+              <path d="M500 255 C548 271 586 318 578 390 C570 457 500 451 474 389 C451 334 454 276 500 255Z" fill="rgba(245,158,11,0.14)" stroke="rgba(245,158,11,0.34)" filter="url(#continentGlow)" />
+              <path d="M731 294 C790 281 856 315 888 370 C911 410 872 439 821 424 C770 409 715 348 731 294Z" fill="rgba(16,185,129,0.13)" stroke="rgba(16,185,129,0.32)" filter="url(#continentGlow)" />
+
+              {plottedCompanies.map(({ company, point }, index) => (
+                <g key={company.id}>
+                  <circle cx={point.x} cy={point.y} r="18" fill={company.color} opacity="0.14">
+                    <animate attributeName="r" values="12;24;12" dur={`${2.4 + index * 0.2}s`} repeatCount="indefinite" />
+                  </circle>
+                  <circle cx={point.x} cy={point.y} r="6" fill={company.color} stroke="rgba(255,255,255,0.85)" strokeWidth="2" />
+                  <line x1={point.x} y1={point.y - 8} x2={point.x + 34} y2={point.y - 36} stroke={company.color} strokeWidth="1" opacity="0.8" />
+                  <rect x={point.x + 38} y={point.y - 55} width="150" height="42" rx="10" fill="rgba(15,23,42,0.88)" stroke="rgba(255,255,255,0.10)" />
+                  <text x={point.x + 48} y={point.y - 32} fill="rgba(255,255,255,0.88)" fontSize="12" fontWeight="700">
+                    {company.shortName || company.name.slice(0, 16)}
+                  </text>
+                  <text x={point.x + 48} y={point.y - 15} fill="rgba(255,255,255,0.42)" fontSize="11">
+                    {point.region}
+                  </text>
+                </g>
+              ))}
+            </svg>
+          </div>
+
+          <div className="border-t border-white/[0.08] bg-white/[0.02] p-5 lg:border-l lg:border-t-0">
+            <p className="text-xs font-semibold uppercase tracking-wider text-white/35">Areas em destaque</p>
+            <div className="mt-4 space-y-3">
+              {plottedCompanies.map(({ company, point }) => (
+                <div key={company.id} className="rounded-xl border border-white/[0.06] bg-white/[0.03] p-3">
+                  <div className="flex items-center gap-2">
+                    <span className="h-2.5 w-2.5 rounded-full" style={{ backgroundColor: company.color }} />
+                    <span className="text-sm font-semibold text-white/80">{company.name}</span>
+                  </div>
+                  <p className="mt-1 text-xs text-white/35">{company.country || point.region}</p>
+                </div>
+              ))}
+            </div>
+            <p className="mt-5 text-xs leading-relaxed text-white/30">
+              Visao operacional das regioes onde a Sentinel acompanha clientes, QA, boards e rotinas de entrega.
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+function getMapPoint(company: Company) {
+  const text = `${company.country ?? ''} ${company.name}`.toLowerCase()
+  if (text.includes('usa') || text.includes('eua') || text.includes('uol') || text.includes('brasil')) {
+    return { x: text.includes('usa') || text.includes('eua') ? 245 : 325, y: text.includes('usa') || text.includes('eua') ? 185 : 355, region: text.includes('usa') || text.includes('eua') ? 'America do Norte' : 'America do Sul' }
+  }
+  if (text.includes('india') || text.includes('ambev')) return { x: 690, y: 250, region: 'Asia' }
+  if (text.includes('ucrania') || text.includes('ukr') || text.includes('scrumlaunch')) return { x: 560, y: 175, region: 'Europa' }
+  return { x: 515, y: 305, region: 'Operacao global' }
 }
 
 function Info({ label, value }: { label: string; value: string }) {
