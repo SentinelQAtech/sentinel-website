@@ -23,6 +23,11 @@ export const metadata: Metadata = {
   description: 'Enterprise-grade project management platform focused on QA, Agile, and intelligent operations.',
   keywords: ['project management', 'QA', 'bug tracking', 'agile', 'sprints', 'sentinel tech'],
   authors: [{ name: 'Sentinel Tech' }],
+  icons: {
+    icon: '/brand/logo_icon.png',
+    shortcut: '/brand/logo_icon.png',
+    apple: '/brand/logo_icon.png',
+  },
   robots: 'noindex, nofollow',
 }
 

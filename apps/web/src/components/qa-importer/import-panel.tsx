@@ -295,7 +295,7 @@ export function ImportPanel({ qaFilterEnabled, onQaFilterChange, onImport }: Pro
             ) : (
               <>
                 <Puzzle className="w-4 h-4" />
-                Pull da Extensão
+                Buscar cards da extensao
               </>
             )}
           </button>
@@ -413,7 +413,7 @@ export function ImportPanel({ qaFilterEnabled, onQaFilterChange, onImport }: Pro
               'disabled:opacity-30 disabled:cursor-not-allowed disabled:hover:shadow-none',
             )}
           >
-            {loading ? 'Importando...' : `Importar ${filteredCount > 0 ? filteredCount + ' itens' : ''}`}
+            {loading ? 'Importando...' : `Importar para QA ${filteredCount > 0 ? `(${filteredCount})` : ''}`}
           </button>
         </>
       )}

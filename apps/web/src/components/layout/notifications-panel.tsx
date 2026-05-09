@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useRef } from 'react'
+import { useRouter } from 'next/navigation'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Bell, Bug, Zap, FolderKanban, CheckCheck, X, AlertCircle, MessageSquare } from 'lucide-react'
 import { cn } from '@/lib/utils'
@@ -22,9 +23,16 @@ interface NotificationsPanelProps {
 }
 
 export function NotificationsPanel({ open, onClose, anchorRef }: NotificationsPanelProps) {
+  const router = useRouter()
   const panelRef = useRef<HTMLDivElement>(null)
   const { notifications, markAsRead, markAllAsRead } = useNotificationsStore()
   const unread = notifications.filter(n => !n.read).length
+
+  const openNotification = (notification: NotificationItem) => {
+    markAsRead(notification.id)
+    onClose()
+    router.push(notification.href)
+  }
 
   useEffect(() => {
     function handleClickOutside(e: MouseEvent) {
@@ -91,7 +99,7 @@ export function NotificationsPanel({ open, onClose, anchorRef }: NotificationsPa
             {notifications.map(n => (
               <button
                 key={n.id}
-                onClick={() => markAsRead(n.id)}
+                onClick={() => openNotification(n)}
                 className={cn(
                   'w-full flex items-start gap-3 px-4 py-3 text-left transition-colors duration-100',
                   'hover:bg-white/[0.04] border-b border-white/[0.04] last:border-none',

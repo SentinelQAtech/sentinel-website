@@ -6,7 +6,7 @@ import { cn } from '@/lib/utils'
 import {
   LayoutDashboard, Bug, BarChart3,
   Bell, Settings, Users, ChevronLeft, ChevronRight,
-  Shield, Search, Plus, Zap, CalendarDays, ClipboardCheck,
+  Search, Plus, Zap, CalendarDays, ClipboardCheck,
   Activity, Columns, FolderOpen,
 } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
@@ -173,8 +173,8 @@ export function Sidebar({ collapsed = false, onToggle }: SidebarProps) {
 
         {/* Logo */}
         <div className="flex items-center gap-3 px-4 py-5 border-b border-white/[0.06]">
-          <div className="w-8 h-8 rounded-lg bg-sentinel-gradient flex items-center justify-center shrink-0 shadow-glow-sm">
-            <Shield className="w-4 h-4 text-white" />
+          <div className="w-8 h-8 rounded-lg bg-black/20 flex items-center justify-center shrink-0 shadow-glow-sm ring-1 ring-white/10">
+            <img src="/brand/logo_icon.png" alt="Sentinel" className="h-6 w-6 object-contain" />
           </div>
           <AnimatePresence>
             {!collapsed && (

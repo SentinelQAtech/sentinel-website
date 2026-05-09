@@ -2,7 +2,7 @@
 
 import { useState, useMemo, useCallback } from 'react'
 import { motion } from 'framer-motion'
-import { Send, ChevronDown, ChevronUp, Layers } from 'lucide-react'
+import { Send, ChevronDown, ChevronUp, Layers, Upload } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import {
   useQAImporterStore,
@@ -37,6 +37,7 @@ export function QAImporterClient() {
   const [filters,       setFilters]       = useState<QAFilterState>(DEFAULT_FILTERS)
   const [selected,      setSelected]      = useState<Set<string>>(new Set())
   const [historyOpen,   setHistoryOpen]   = useState(false)
+  const [importOpen,    setImportOpen]    = useState(false)
   const [groupBy,       setGroupBy]       = useState<'none' | 'client' | 'category' | 'priority'>('none')
   const [sentFeedback,  setSentFeedback]  = useState<string | null>(null)
 
@@ -154,11 +155,30 @@ export function QAImporterClient() {
       {/* Summary cards */}
       <QASummaryCards items={store.items} />
 
+      <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-white/[0.06] bg-white/[0.02] px-4 py-3">
+        <div>
+          <p className="text-sm font-semibold text-white/80">QA Importer</p>
+          <p className="text-xs text-white/35">Importe quando precisar; use o espaco principal para revisar e enviar cards.</p>
+        </div>
+        <button
+          onClick={() => setImportOpen(o => !o)}
+          className={cn(
+            'flex items-center gap-2 rounded-xl px-3 py-2 text-sm font-semibold transition-all',
+            importOpen
+              ? 'bg-white/[0.06] text-white/70 border border-white/[0.10]'
+              : 'bg-primary text-white shadow-[0_0_16px_rgba(99,102,241,0.25)] hover:bg-primary-600'
+          )}
+        >
+          <Upload className="h-4 w-4" />
+          {importOpen ? 'Ocultar importacao' : 'Importar cards'}
+        </button>
+      </div>
+
       {/* Main layout */}
       <div className="grid grid-cols-12 gap-5">
 
         {/* ── QA Items panel (left) ── */}
-        <div className="col-span-12 lg:col-span-8 flex flex-col gap-4">
+        <div className={cn('col-span-12 flex flex-col gap-4', importOpen ? 'lg:col-span-8' : 'lg:col-span-12')}>
 
           {/* Filter bar */}
           <QAFiltersBar
@@ -301,6 +321,7 @@ export function QAImporterClient() {
         </div>
 
         {/* ── Right panel ── */}
+        {importOpen && (
         <div className="col-span-12 lg:col-span-4 flex flex-col gap-4">
 
           {/* Import panel */}
@@ -343,6 +364,7 @@ export function QAImporterClient() {
             </p>
           </div>
         </div>
+        )}
       </div>
     </div>
   )

@@ -10,6 +10,7 @@ import {
 import { cn } from '@/lib/utils'
 import { useQAImporterStore } from '@/store/qa-importer'
 import type { QAItemSource } from '@/store/qa-importer'
+import { isQARelated, type ParsedQAItem } from '@/lib/qa-parser'
 
 function formatRelativeTime(isoDate: string): string {
   const diff  = Date.now() - new Date(isoDate).getTime()
@@ -32,8 +33,9 @@ type SyncStatus = 'synced' | 'pending' | 'running'
 
 export function QAQuickAction() {
   const router              = useRouter()
-  const { items, history }  = useQAImporterStore()
+  const { items, history, qaFilterEnabled, importItems }  = useQAImporterStore()
   const [status, setStatus] = useState<SyncStatus>('synced')
+  const [pullMessage, setPullMessage] = useState<string | null>(null)
 
   const lastSync   = history[0]
   const pendingQA  = items.filter(i => !i.sentToDaily && i.qaCategory !== 'Done')
@@ -41,9 +43,24 @@ export function QAQuickAction() {
 
   const handlePull = async () => {
     setStatus('running')
-    await new Promise(r => setTimeout(r, 600))
+    setPullMessage(null)
+    try {
+      const res = await fetch('/api/qa-import')
+      if (!res.ok) throw new Error(`HTTP ${res.status}`)
+      const data = await res.json() as { items: ParsedQAItem[]; count: number }
+      const filtered = qaFilterEnabled ? data.items.filter(isQARelated) : data.items
+      if (filtered.length > 0) {
+        const result = importItems(filtered.map(i => ({ ...i, source: 'extension' })), 'extension')
+        setPullMessage(`${result.added} novos · ${result.updated} atualizados`)
+      } else {
+        setPullMessage('Nenhum card pendente')
+      }
+    } catch {
+      setStatus('pending')
+      setPullMessage('Falha ao buscar cards')
+      return
+    }
     setStatus('synced')
-    router.push('/qa-importer')
   }
 
   const statusConfig: Record<SyncStatus, { label: string; cls: string; dot: string }> = {
@@ -107,23 +124,37 @@ export function QAQuickAction() {
         )}
       </div>
 
-      {/* Pull button */}
-      <button
-        onClick={handlePull}
-        disabled={status === 'running'}
-        className={cn(
-          'w-full flex items-center justify-center gap-2',
-          'rounded-xl py-2.5 text-sm font-semibold transition-all duration-200',
-          status === 'running'
-            ? 'bg-primary/20 text-primary/70 cursor-not-allowed'
-            : 'bg-primary text-white hover:bg-primary-600 shadow-[0_0_16px_rgba(99,102,241,0.25)] hover:shadow-[0_0_20px_rgba(99,102,241,0.35)]'
-        )}
-      >
-        {status === 'running'
-          ? <><RefreshCw className="h-4 w-4 animate-spin" /> Abrindo...</>
-          : <><ClipboardCheck className="h-4 w-4" /> Pull <ArrowRight className="h-3.5 w-3.5 ml-0.5" /></>
-        }
-      </button>
+      <div className="grid grid-cols-[1fr_auto] gap-2">
+        <button
+          onClick={handlePull}
+          disabled={status === 'running'}
+          className={cn(
+            'flex items-center justify-center gap-2',
+            'rounded-xl py-2.5 text-sm font-semibold transition-all duration-200',
+            status === 'running'
+              ? 'bg-primary/20 text-primary/70 cursor-not-allowed'
+              : 'bg-primary text-white hover:bg-primary-600 shadow-[0_0_16px_rgba(99,102,241,0.25)] hover:shadow-[0_0_20px_rgba(99,102,241,0.35)]'
+          )}
+        >
+          {status === 'running'
+            ? <><RefreshCw className="h-4 w-4 animate-spin" /> Buscando...</>
+            : <><ClipboardCheck className="h-4 w-4" /> Pull</>
+          }
+        </button>
+        <button
+          onClick={() => router.push('/qa-importer')}
+          title="Abrir QA Importer completo"
+          className="flex h-full items-center justify-center rounded-xl border border-white/[0.08] px-3 text-white/40 hover:text-white/70 hover:bg-white/[0.04]"
+        >
+          <ArrowRight className="h-4 w-4" />
+        </button>
+      </div>
+
+      {pullMessage && (
+        <p className="rounded-lg border border-white/[0.05] bg-white/[0.03] px-3 py-2 text-center text-[11px] text-white/45">
+          {pullMessage}
+        </p>
+      )}
 
       {/* Import history */}
       {history.length > 0 ? (

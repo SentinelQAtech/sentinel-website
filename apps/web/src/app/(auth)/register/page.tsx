@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
-import { Shield, Eye, EyeOff, ArrowRight, User, Mail, Lock, Building2 } from 'lucide-react'
+import { Eye, EyeOff, ArrowRight, User, Mail, Lock, Building2 } from 'lucide-react'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import { motion } from 'framer-motion'
@@ -31,8 +31,8 @@ export default function RegisterPage() {
       >
         <div className="glass-card p-8 border border-white/[0.08]">
           <div className="flex flex-col items-center mb-8">
-            <div className="w-12 h-12 rounded-2xl bg-sentinel-gradient flex items-center justify-center shadow-glow-md mb-4">
-              <Shield className="w-6 h-6 text-white" />
+            <div className="w-12 h-12 rounded-2xl bg-black/20 flex items-center justify-center shadow-glow-md ring-1 ring-white/10 mb-4">
+              <img src="/brand/logo_icon.png" alt="Sentinel" className="h-9 w-9 object-contain" />
             </div>
             <h1 className="text-xl font-bold text-white">Create your account</h1>
             <p className="text-sm text-white/40 mt-1">Join Sentinel Project Manager</p>

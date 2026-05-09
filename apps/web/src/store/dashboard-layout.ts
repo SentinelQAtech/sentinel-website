@@ -12,28 +12,24 @@ export interface WidgetConfig {
 }
 
 const DEFAULT_WIDGETS: WidgetConfig[] = [
-  // Full-width
-  { id: 'metrics',          visible: true  },
-  { id: 'sentinel-ai',      visible: true  },
-  // Daily — 3 independent cards
-  { id: 'daily-progress',   visible: true  },
-  { id: 'daily-tasks',      visible: true  },
-  { id: 'daily-meetings',   visible: true  },
-  // Grid
-  { id: 'bug-trend',        visible: true  },
-  { id: 'sprint',           visible: true  },
-  { id: 'active-projects',  visible: true  },
-  { id: 'team-presence',    visible: true  },
-  { id: 'critical-bugs',    visible: true  },
-  { id: 'recent-activity',  visible: true  },
-  { id: 'calendar',         visible: true  },
-  { id: 'qa-today',          visible: true  },
-  { id: 'qa-quick-action',   visible: true  },
-  // Optional / hidden by default
-  { id: 'daily',             visible: false },
-  { id: 'activity-heatmap',  visible: false },
-  { id: 'burndown',          visible: false },
-  { id: 'qa-donut',          visible: false },
+  { id: 'sentinel-ai',      visible: true },
+  { id: 'metrics',          visible: true },
+  { id: 'daily-progress',   visible: true,  size: 'md', height: '3' },
+  { id: 'daily-tasks',      visible: true,  size: 'md', height: '3' },
+  { id: 'daily-meetings',   visible: true,  size: 'md', height: '3' },
+  { id: 'qa-quick-action',  visible: true,  size: 'sm', height: '4' },
+  { id: 'qa-today',         visible: true,  size: 'sm', height: '4' },
+  { id: 'critical-bugs',    visible: true,  size: 'sm', height: '4' },
+  { id: 'recent-activity',  visible: true,  size: 'sm', height: '4' },
+  { id: 'calendar',         visible: true,  size: 'sm', height: '4' },
+  { id: 'team-presence',    visible: true,  size: 'sm', height: '4' },
+  { id: 'sprint',           visible: true,  size: 'sm', height: '4' },
+  { id: 'active-projects',  visible: true,  size: 'sm', height: '4' },
+  { id: 'burndown',         visible: true,  size: 'sm', height: '2' },
+  { id: 'qa-donut',         visible: true,  size: 'sm', height: '2' },
+  { id: 'bug-trend',        visible: true,  size: 'sm', height: '2' },
+  { id: 'activity-heatmap', visible: true,  size: 'sm', height: '2' },
+  { id: 'daily',            visible: false },
 ]
 
 interface DashboardLayoutState {
@@ -120,7 +116,7 @@ export const useDashboardLayoutStore = create<DashboardLayoutState>()(
     }),
     {
       name: 'spm-dashboard-layout',
-      version: 4,
+      version: 5,
     }
   )
 )
