@@ -23,7 +23,9 @@ export function KanbanCard({ task, isDragging }: KanbanCardProps) {
     transition,
   }
 
-  const isBeingDragged = isDragging || isSortableDragging
+  // isSortableDragging → placeholder na lista (fica semitransparente)
+  // isDragging prop    → card dentro do DragOverlay (deve parecer elevado e opaco)
+  const isPlaceholder = isSortableDragging && !isDragging
 
   const storyPointColors: Record<number, string> = {
     1: 'text-emerald-400', 2: 'text-emerald-400', 3: 'text-emerald-400',
@@ -34,23 +36,20 @@ export function KanbanCard({ task, isDragging }: KanbanCardProps) {
     <div
       ref={setNodeRef}
       style={style}
+      {...attributes}
+      {...listeners}
       className={cn(
         'group relative p-3.5 rounded-xl cursor-grab active:cursor-grabbing',
         'bg-surface-800 border border-white/[0.07]',
         'transition-all duration-150',
         'hover:bg-surface-700 hover:border-white/[0.12] hover:shadow-card',
-        isBeingDragged
-          ? 'opacity-50 ring-2 ring-primary/40 scale-[1.02] shadow-glow-sm'
-          : '',
+        isPlaceholder && 'opacity-40 scale-[0.98]',
+        isDragging   && 'shadow-2xl shadow-black/40 ring-1 ring-primary/30 scale-[1.02]',
       )}
     >
-      {/* Drag handle — visible on hover */}
-      <div
-        {...attributes}
-        {...listeners}
-        className="absolute left-0 top-0 bottom-0 w-5 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity cursor-grab active:cursor-grabbing"
-      >
-        <GripVertical className="w-3 h-3 text-white/30" />
+      {/* Grip indicator — purely visual */}
+      <div className="absolute left-1.5 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
+        <GripVertical className="w-3 h-3 text-white/25" />
       </div>
 
       <div className="space-y-2.5 ml-2">

@@ -10,9 +10,10 @@ interface KanbanColumnProps {
   column: { id: TaskStatus; label: string; color: string }
   tasks: Task[]
   count: number
+  onAddTask: (status: TaskStatus) => void
 }
 
-export function KanbanColumn({ column, tasks, count }: KanbanColumnProps) {
+export function KanbanColumn({ column, tasks, count, onAddTask }: KanbanColumnProps) {
   const { setNodeRef, isOver } = useDroppable({ id: column.id })
 
   return (
@@ -26,7 +27,11 @@ export function KanbanColumn({ column, tasks, count }: KanbanColumnProps) {
             {count}
           </span>
         </div>
-        <button className="p-1 rounded-md text-white/30 hover:text-white/60 hover:bg-white/[0.06] transition-colors">
+        <button
+          onClick={() => onAddTask(column.id)}
+          title={`Adicionar task em ${column.label}`}
+          className="p-1 rounded-md text-white/30 hover:text-white/60 hover:bg-white/[0.06] transition-colors"
+        >
           <Plus className="w-3.5 h-3.5" />
         </button>
       </div>
