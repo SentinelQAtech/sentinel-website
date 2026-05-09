@@ -17,19 +17,23 @@ import { KanbanColumn } from './kanban-column'
 import { KanbanCard } from './kanban-card'
 import { KanbanTaskDialog } from './kanban-task-dialog'
 import { KanbanSettingsDialog } from './kanban-settings-dialog'
+import { KanbanTaskPreviewDialog } from './kanban-task-preview-dialog'
 import { snapCenterToCursor } from '@dnd-kit/modifiers'
 import { Plus, Settings2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import type { Task, TaskStatus } from '@/types'
+import type { KanbanColumnDefinition, NewKanbanTask } from './kanban-types'
 
-const COLUMNS: { id: TaskStatus; label: string; color: string }[] = [
-  { id: 'BACKLOG',     label: 'Backlog',     color: '#475569' },
-  { id: 'TODO',        label: 'To Do',       color: '#3b82f6' },
-  { id: 'IN_PROGRESS', label: 'In Progress', color: '#8b5cf6' },
-  { id: 'QA_TESTING',  label: 'QA Testing',  color: '#06b6d4' },
-  { id: 'REVIEW',      label: 'Review',      color: '#f59e0b' },
-  { id: 'DONE',        label: 'Done',        color: '#10b981' },
+const INITIAL_COLUMNS: KanbanColumnDefinition[] = [
+  { id: 'BACKLOG',     label: 'Backlog',     color: '#475569', isDefault: true },
+  { id: 'TODO',        label: 'To Do',       color: '#3b82f6', isDefault: true },
+  { id: 'IN_PROGRESS', label: 'In Progress', color: '#8b5cf6', isDefault: true },
+  { id: 'QA_TESTING',  label: 'QA Testing',  color: '#06b6d4', isDefault: true },
+  { id: 'REVIEW',      label: 'Review',      color: '#f59e0b', isDefault: true },
+  { id: 'DONE',        label: 'Done',        color: '#10b981', isDefault: true },
 ]
+
+const COLUMN_COLORS = ['#14b8a6', '#ec4899', '#f97316', '#84cc16', '#0ea5e9', '#a855f7']
 
 const DEFAULT_CREATOR = {
   id: '1', email: '', username: '', name: 'Raphael',
@@ -50,34 +54,60 @@ const mockTasks: Task[] = [
 ]
 
 export function KanbanClient() {
+  const [columns, setColumns]       = useState<KanbanColumnDefinition[]>(INITIAL_COLUMNS)
   const [tasks, setTasks]           = useState<Task[]>(mockTasks)
   const [activeTask, setActiveTask] = useState<Task | null>(null)
+  const [selectedTask, setSelectedTask] = useState<Task | null>(null)
 
   // Dialog state
   const [taskDialogOpen, setTaskDialogOpen]       = useState(false)
-  const [taskDialogStatus, setTaskDialogStatus]   = useState<TaskStatus>('TODO')
+  const [taskDialogStatus, setTaskDialogStatus]   = useState<string>('TODO')
   const [settingsDialogOpen, setSettingsDialogOpen] = useState(false)
+  const [previewDialogOpen, setPreviewDialogOpen] = useState(false)
 
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 4 } })
   )
 
-  const getTasksByColumn = (status: TaskStatus) =>
+  const getTasksByColumn = (status: string) =>
     tasks.filter(t => t.status === status).sort((a, b) => a.order - b.order)
 
   // ── Dialog handlers ────────────────────────────────────────────
 
-  const openAddTask = (status: TaskStatus = 'TODO') => {
+  const openAddTask = (status: string = 'TODO') => {
     setTaskDialogStatus(status)
     setTaskDialogOpen(true)
   }
 
-  const handleAddTask = (data: Pick<Task, 'title' | 'status' | 'priority' | 'tags' | 'storyPoints'>) => {
+  const handleOpenTask = (task: Task) => {
+    setSelectedTask(task)
+    setPreviewDialogOpen(true)
+  }
+
+  const handleAddColumn = () => {
+    setColumns(prev => {
+      const next = prev.length + 1
+      return [
+        ...prev,
+        {
+          id: `CUSTOM_${Date.now()}`,
+          label: `Nova coluna ${next}`,
+          color: COLUMN_COLORS[prev.length % COLUMN_COLORS.length],
+        },
+      ]
+    })
+  }
+
+  const handleRenameColumn = (columnId: string, label: string) => {
+    setColumns(prev => prev.map(col => col.id === columnId ? { ...col, label } : col))
+  }
+
+  const handleAddTask = (data: NewKanbanTask) => {
     const colTasks = tasks.filter(t => t.status === data.status)
     const newTask: Task = {
       id:        `t${Date.now()}`,
       title:     data.title,
-      status:    data.status,
+      status:    data.status as TaskStatus,
       priority:  data.priority,
       tags:      data.tags,
       storyPoints: data.storyPoints,
@@ -107,11 +137,11 @@ export function KanbanClient() {
     if (!draggedTask) return
 
     // Dragging over a column droppable zone
-    const overColumn = COLUMNS.find(c => c.id === overId)
+    const overColumn = columns.find(c => c.id === overId)
     if (overColumn) {
       if (draggedTask.status !== overColumn.id) {
         setTasks(prev =>
-          prev.map(t => t.id === activeId ? { ...t, status: overColumn.id } : t)
+          prev.map(t => t.id === activeId ? { ...t, status: overColumn.id as TaskStatus } : t)
         )
       }
       return
@@ -121,7 +151,7 @@ export function KanbanClient() {
     const overTask = tasks.find(t => t.id === overId)
     if (overTask && overTask.status !== draggedTask.status) {
       setTasks(prev =>
-        prev.map(t => t.id === activeId ? { ...t, status: overTask.status } : t)
+        prev.map(t => t.id === activeId ? { ...t, status: overTask.status as TaskStatus } : t)
       )
     }
   }
@@ -133,7 +163,7 @@ export function KanbanClient() {
     const activeId = active.id as string
     const overId   = over.id as string
 
-    const overColumn = COLUMNS.find(c => c.id === overId)
+    const overColumn = columns.find(c => c.id === overId)
     const overTask   = tasks.find(t => t.id === overId)
 
     if (!overTask && !overColumn) return
@@ -176,6 +206,14 @@ export function KanbanClient() {
             Board Settings
           </Button>
           <Button
+            variant="outline"
+            size="sm"
+            leftIcon={<Plus className="w-3.5 h-3.5" />}
+            onClick={handleAddColumn}
+          >
+            Add Column
+          </Button>
+          <Button
             variant="glow"
             size="sm"
             leftIcon={<Plus className="w-3.5 h-3.5" />}
@@ -196,7 +234,7 @@ export function KanbanClient() {
           onDragEnd={handleDragEnd}
         >
           <div className="flex gap-4 h-full min-h-[500px] pb-4" style={{ minWidth: 'max-content' }}>
-            {COLUMNS.map(col => {
+            {columns.map(col => {
               const colTasks = getTasksByColumn(col.id)
               return (
                 <SortableContext
@@ -209,14 +247,19 @@ export function KanbanClient() {
                     tasks={colTasks}
                     count={colTasks.length}
                     onAddTask={openAddTask}
+                    onOpenTask={handleOpenTask}
                   />
                 </SortableContext>
               )
             })}
           </div>
 
-          <DragOverlay modifiers={[snapCenterToCursor]} dropAnimation={null}>
-            {activeTask && <KanbanCard task={activeTask} isDragging />}
+          <DragOverlay adjustScale={false} modifiers={[snapCenterToCursor]} dropAnimation={null}>
+            {activeTask && (
+              <div className="w-72">
+                <KanbanCard task={activeTask} isDragging />
+              </div>
+            )}
           </DragOverlay>
         </DndContext>
       </div>
@@ -225,13 +268,22 @@ export function KanbanClient() {
       <KanbanTaskDialog
         open={taskDialogOpen}
         onOpenChange={setTaskDialogOpen}
+        columns={columns}
         defaultStatus={taskDialogStatus}
         onAdd={handleAddTask}
       />
       <KanbanSettingsDialog
         open={settingsDialogOpen}
         onOpenChange={setSettingsDialogOpen}
-        columns={COLUMNS}
+        columns={columns}
+        onRenameColumn={handleRenameColumn}
+        onAddColumn={handleAddColumn}
+      />
+      <KanbanTaskPreviewDialog
+        open={previewDialogOpen}
+        onOpenChange={setPreviewDialogOpen}
+        task={selectedTask}
+        columns={columns}
       />
     </div>
   )

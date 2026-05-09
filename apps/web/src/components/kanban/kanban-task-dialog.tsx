@@ -4,7 +4,8 @@ import * as Dialog from '@radix-ui/react-dialog'
 import { useState, useEffect } from 'react'
 import { X } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import type { Task, TaskStatus, Priority } from '@/types'
+import type { Priority } from '@/types'
+import type { KanbanColumnDefinition, NewKanbanTask } from './kanban-types'
 
 const PRIORITIES: { value: Priority; label: string }[] = [
   { value: 'LOW',      label: 'Low' },
@@ -13,33 +14,26 @@ const PRIORITIES: { value: Priority; label: string }[] = [
   { value: 'CRITICAL', label: 'Critical' },
 ]
 
-const STATUS_OPTIONS: { value: TaskStatus; label: string }[] = [
-  { value: 'BACKLOG',     label: 'Backlog' },
-  { value: 'TODO',        label: 'To Do' },
-  { value: 'IN_PROGRESS', label: 'In Progress' },
-  { value: 'QA_TESTING',  label: 'QA Testing' },
-  { value: 'REVIEW',      label: 'Review' },
-  { value: 'DONE',        label: 'Done' },
-]
-
 const POINT_OPTIONS = [1, 2, 3, 5, 8, 13]
 
 interface KanbanTaskDialogProps {
   open: boolean
   onOpenChange: (open: boolean) => void
-  defaultStatus?: TaskStatus
-  onAdd: (task: Pick<Task, 'title' | 'status' | 'priority' | 'tags' | 'storyPoints'>) => void
+  columns: KanbanColumnDefinition[]
+  defaultStatus?: string
+  onAdd: (task: NewKanbanTask) => void
 }
 
 export function KanbanTaskDialog({
   open,
   onOpenChange,
+  columns,
   defaultStatus = 'TODO',
   onAdd,
 }: KanbanTaskDialogProps) {
   const [title, setTitle]       = useState('')
   const [priority, setPriority] = useState<Priority>('MEDIUM')
-  const [status, setStatus]     = useState<TaskStatus>(defaultStatus)
+  const [status, setStatus]     = useState(defaultStatus)
   const [tagsInput, setTagsInput] = useState('')
   const [points, setPoints]     = useState<number | ''>('')
 
@@ -70,7 +64,8 @@ export function KanbanTaskDialog({
     <Dialog.Root open={open} onOpenChange={onOpenChange}>
       <Dialog.Portal>
         <Dialog.Overlay className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 animate-fade-in" />
-        <Dialog.Content className="fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-50 w-full max-w-md bg-surface-900 border border-white/[0.08] rounded-2xl p-6 shadow-2xl animate-fade-in-up">
+        <Dialog.Content className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          <div className="w-full max-w-md bg-surface-900 border border-white/[0.08] rounded-2xl p-6 shadow-2xl animate-fade-in">
           <div className="flex items-center justify-between mb-5">
             <Dialog.Title className="text-base font-semibold text-white">Nova Task</Dialog.Title>
             <Dialog.Close asChild>
@@ -99,11 +94,11 @@ export function KanbanTaskDialog({
                 <label className="text-xs font-medium text-white/50">Status</label>
                 <select
                   value={status}
-                  onChange={e => setStatus(e.target.value as TaskStatus)}
+                  onChange={e => setStatus(e.target.value)}
                   className="w-full px-3 py-2.5 rounded-xl bg-surface-800 border border-white/[0.08] text-sm text-white focus:outline-none focus:border-primary/50 transition-all cursor-pointer"
                 >
-                  {STATUS_OPTIONS.map(s => (
-                    <option key={s.value} value={s.value}>{s.label}</option>
+                  {columns.map(s => (
+                    <option key={s.id} value={s.id}>{s.label}</option>
                   ))}
                 </select>
               </div>
@@ -169,6 +164,7 @@ export function KanbanTaskDialog({
               </Button>
             </div>
           </form>
+          </div>
         </Dialog.Content>
       </Dialog.Portal>
     </Dialog.Root>

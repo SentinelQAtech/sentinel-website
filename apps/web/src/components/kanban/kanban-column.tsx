@@ -4,16 +4,18 @@ import { useDroppable } from '@dnd-kit/core'
 import { Plus } from 'lucide-react'
 import { KanbanCard } from './kanban-card'
 import { cn } from '@/lib/utils'
-import type { Task, TaskStatus } from '@/types'
+import type { Task } from '@/types'
+import type { KanbanColumnDefinition } from './kanban-types'
 
 interface KanbanColumnProps {
-  column: { id: TaskStatus; label: string; color: string }
+  column: KanbanColumnDefinition
   tasks: Task[]
   count: number
-  onAddTask: (status: TaskStatus) => void
+  onAddTask: (status: string) => void
+  onOpenTask: (task: Task) => void
 }
 
-export function KanbanColumn({ column, tasks, count, onAddTask }: KanbanColumnProps) {
+export function KanbanColumn({ column, tasks, count, onAddTask, onOpenTask }: KanbanColumnProps) {
   const { setNodeRef, isOver } = useDroppable({ id: column.id })
 
   return (
@@ -47,7 +49,7 @@ export function KanbanColumn({ column, tasks, count, onAddTask }: KanbanColumnPr
         )}
       >
         {tasks.map(task => (
-          <KanbanCard key={task.id} task={task} />
+          <KanbanCard key={task.id} task={task} onOpenTask={onOpenTask} />
         ))}
 
         {tasks.length === 0 && (

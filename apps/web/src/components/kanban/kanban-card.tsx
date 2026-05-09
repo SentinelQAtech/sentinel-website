@@ -2,7 +2,7 @@
 
 import { useSortable } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
-import { GripVertical, MessageSquare, Paperclip } from 'lucide-react'
+import { Eye, GripVertical, MessageSquare, Paperclip } from 'lucide-react'
 import { PriorityBadge } from '@/components/ui/badge'
 import { Avatar } from '@/components/ui/avatar'
 import { cn } from '@/lib/utils'
@@ -11,9 +11,10 @@ import type { Task } from '@/types'
 interface KanbanCardProps {
   task: Task
   isDragging?: boolean
+  onOpenTask?: (task: Task) => void
 }
 
-export function KanbanCard({ task, isDragging }: KanbanCardProps) {
+export function KanbanCard({ task, isDragging, onOpenTask }: KanbanCardProps) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging: isSortableDragging } = useSortable({
     id: task.id,
   })
@@ -36,10 +37,9 @@ export function KanbanCard({ task, isDragging }: KanbanCardProps) {
     <div
       ref={setNodeRef}
       style={style}
-      {...attributes}
-      {...listeners}
+      onClick={() => !isDragging && onOpenTask?.(task)}
       className={cn(
-        'group relative p-3.5 rounded-xl cursor-grab active:cursor-grabbing',
+        'group relative p-3.5 rounded-xl cursor-pointer',
         'bg-surface-800 border border-white/[0.07]',
         'transition-all duration-150',
         'hover:bg-surface-700 hover:border-white/[0.12] hover:shadow-card',
@@ -48,9 +48,22 @@ export function KanbanCard({ task, isDragging }: KanbanCardProps) {
       )}
     >
       {/* Grip indicator — purely visual */}
-      <div className="absolute left-1.5 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
-        <GripVertical className="w-3 h-3 text-white/25" />
-      </div>
+      <button
+        type="button"
+        aria-label={`Arrastar ${task.title}`}
+        className="absolute left-1 top-1/2 -translate-y-1/2 rounded-md p-1 text-white/25 opacity-0 transition-colors transition-opacity hover:bg-white/[0.06] hover:text-white/60 group-hover:opacity-100 cursor-grab active:cursor-grabbing"
+        onClick={e => e.stopPropagation()}
+        {...attributes}
+        {...listeners}
+      >
+        <GripVertical className="w-3 h-3" />
+      </button>
+
+      {!isDragging && (
+        <div className="absolute right-2 top-2 rounded-md p-1 text-white/20 opacity-0 transition-opacity group-hover:opacity-100">
+          <Eye className="w-3.5 h-3.5" />
+        </div>
+      )}
 
       <div className="space-y-2.5 ml-2">
         {/* Tags */}
