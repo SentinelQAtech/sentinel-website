@@ -4,6 +4,7 @@ import { useMemo, useState } from 'react'
 import { Building2, Check, Edit3, Globe2, Map as MapIcon, Plus, Search, Trash2, X, XCircle } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { useCompaniesStore, type Company, type CompanyStatus } from '@/store/companies'
+import { WORLD_COUNTRY_PATHS } from '@/data/world-map-paths'
 
 const STATUS_LABEL: Record<CompanyStatus, string> = {
   active: 'Ativa',
@@ -317,12 +318,17 @@ function WorldMapModal({ companies, onClose }: { companies: Company[]; onClose: 
                 {[115, 185, 255, 325, 395].map(y => <path key={`h-${y}`} d={`M95 ${y} C300 ${y - 32} 700 ${y - 32} 905 ${y}`} fill="none" />)}
               </g>
 
-              <g fill="url(#landGradient)" stroke="rgba(125,211,252,0.32)" strokeWidth="1.2" filter="url(#networkGlow)">
-                <path d="M112 171 C143 126 199 111 250 125 C302 139 342 176 326 214 C307 260 237 270 181 249 C133 230 94 207 112 171Z" />
-                <path d="M258 272 C306 281 348 325 337 380 C328 425 294 468 256 430 C224 398 215 338 229 303 C235 287 244 277 258 272Z" />
-                <path d="M435 164 C480 121 556 111 625 125 C709 141 797 182 802 229 C807 273 740 296 650 277 C574 261 516 231 458 249 C410 264 383 213 435 164Z" />
-                <path d="M492 257 C548 273 591 326 584 386 C577 443 525 458 493 411 C460 363 450 283 492 257Z" />
-                <path d="M736 301 C793 287 861 322 888 372 C909 413 873 444 826 428 C775 411 719 354 736 301Z" />
+              <g filter="url(#networkGlow)">
+                {WORLD_COUNTRY_PATHS.map((country, index) => (
+                  <path
+                    key={`${country.id}-${country.name}-${index}`}
+                    d={country.path}
+                    fill="url(#landGradient)"
+                    stroke="rgba(125,211,252,0.30)"
+                    strokeWidth="0.65"
+                    vectorEffect="non-scaling-stroke"
+                  />
+                ))}
               </g>
 
               <g opacity="0.55">
@@ -393,11 +399,21 @@ function WorldMapModal({ companies, onClose }: { companies: Company[]; onClose: 
 function getMapPoint(company: Company) {
   const text = `${company.country ?? ''} ${company.name}`.toLowerCase()
   if (text.includes('usa') || text.includes('eua') || text.includes('uol') || text.includes('brasil')) {
-    return { x: text.includes('usa') || text.includes('eua') ? 245 : 325, y: text.includes('usa') || text.includes('eua') ? 185 : 355, region: text.includes('usa') || text.includes('eua') ? 'America do Norte' : 'America do Sul' }
+    return {
+      ...projectMapCoordinate(text.includes('usa') || text.includes('eua') ? -98 : -52, text.includes('usa') || text.includes('eua') ? 39 : -10),
+      region: text.includes('usa') || text.includes('eua') ? 'America do Norte' : 'America do Sul',
+    }
   }
-  if (text.includes('india') || text.includes('ambev')) return { x: 690, y: 250, region: 'Asia' }
-  if (text.includes('ucrania') || text.includes('ukr') || text.includes('scrumlaunch')) return { x: 560, y: 175, region: 'Europa' }
+  if (text.includes('india') || text.includes('ambev')) return { ...projectMapCoordinate(78, 22), region: 'Asia' }
+  if (text.includes('ucrania') || text.includes('ukr') || text.includes('scrumlaunch')) return { ...projectMapCoordinate(31, 49), region: 'Europa' }
   return { x: 515, y: 305, region: 'Operacao global' }
+}
+
+function projectMapCoordinate(lon: number, lat: number) {
+  return {
+    x: 35 + ((lon + 180) / 360) * 930,
+    y: 28 + ((90 - lat) / 180) * 444,
+  }
 }
 
 function Info({ label, value }: { label: string; value: string }) {
