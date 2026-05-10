@@ -14,6 +14,8 @@ import { cn, formatDate } from '@/lib/utils'
 import { TEAM } from '@/lib/team-data'
 import type { SprintStatus, TaskStatus } from '@/types'
 
+const ACTIVE_TEAM = TEAM.filter(member => member.user.isActive)
+
 const sprints = [
   {
     id: '1',
@@ -29,11 +31,11 @@ const sprints = [
     bugs: 4,
     blockers: 1,
     tasks: [
-      { id: 't1', title: 'Dashboard operational insights', status: 'DONE' as TaskStatus, points: 8, assignee: TEAM[0].user },
-      { id: 't2', title: 'Kanban drag and drop precision', status: 'QA_TESTING' as TaskStatus, points: 5, assignee: TEAM[0].user },
-      { id: 't3', title: 'Calendar event history', status: 'IN_PROGRESS' as TaskStatus, points: 5, assignee: TEAM[1].user },
-      { id: 't4', title: 'Projects filters and deletion flow', status: 'IN_PROGRESS' as TaskStatus, points: 8, assignee: TEAM[1].user },
-      { id: 't5', title: 'Bugs detail preview', status: 'TODO' as TaskStatus, points: 8, assignee: TEAM[0].user },
+      { id: 't1', title: 'Dashboard operational insights', status: 'DONE' as TaskStatus, points: 8, assignee: ACTIVE_TEAM[0].user },
+      { id: 't2', title: 'Kanban drag and drop precision', status: 'QA_TESTING' as TaskStatus, points: 5, assignee: ACTIVE_TEAM[0].user },
+      { id: 't3', title: 'Calendar event history', status: 'IN_PROGRESS' as TaskStatus, points: 5, assignee: ACTIVE_TEAM[1].user },
+      { id: 't4', title: 'Projects filters and deletion flow', status: 'IN_PROGRESS' as TaskStatus, points: 8, assignee: ACTIVE_TEAM[1].user },
+      { id: 't5', title: 'Bugs detail preview', status: 'TODO' as TaskStatus, points: 8, assignee: ACTIVE_TEAM[0].user },
     ],
   },
   {
@@ -50,9 +52,9 @@ const sprints = [
     bugs: 2,
     blockers: 0,
     tasks: [
-      { id: 't6', title: 'Rate limit policy matrix', status: 'DONE' as TaskStatus, points: 5, assignee: TEAM[1].user },
-      { id: 't7', title: 'API monitoring dashboard', status: 'REVIEW' as TaskStatus, points: 8, assignee: TEAM[1].user },
-      { id: 't8', title: 'Regression suite', status: 'QA_TESTING' as TaskStatus, points: 8, assignee: TEAM[0].user },
+      { id: 't6', title: 'Rate limit policy matrix', status: 'DONE' as TaskStatus, points: 5, assignee: ACTIVE_TEAM[1].user },
+      { id: 't7', title: 'API monitoring dashboard', status: 'REVIEW' as TaskStatus, points: 8, assignee: ACTIVE_TEAM[1].user },
+      { id: 't8', title: 'Regression suite', status: 'QA_TESTING' as TaskStatus, points: 8, assignee: ACTIVE_TEAM[0].user },
     ],
   },
 ]
@@ -181,11 +183,11 @@ export function SprintsClient() {
         <div className="col-span-12 lg:col-span-4 space-y-5">
           <Link href="/team" className="block glass-card-hover border border-white/[0.07]">
             <div className="flex items-center justify-between p-5 pb-0">
-              <CardTitle>Team real ({TEAM.length})</CardTitle>
+              <CardTitle>Team real ({ACTIVE_TEAM.length})</CardTitle>
               <ArrowUpRight className="w-4 h-4 text-white/35" />
             </div>
             <CardContent className="pt-3 space-y-3">
-              {TEAM.map(member => (
+              {ACTIVE_TEAM.map(member => (
                 <div key={member.user.id} className="flex items-center gap-3 p-2.5 rounded-lg bg-white/[0.025]">
                   <Avatar user={member.user} size="sm" showStatus isOnline />
                   <div className="flex-1 min-w-0">

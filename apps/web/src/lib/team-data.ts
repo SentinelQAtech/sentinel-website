@@ -8,6 +8,8 @@ export interface TeamMember {
   projects: number
   bugsResolved: number
   sprintsCompleted: number
+  joinedAt?: string
+  offboardedAt?: string
   github?: string
   linkedin?: string
   color: string
@@ -32,6 +34,7 @@ export const TEAM: TeamMember[] = [
     projects: 3,
     bugsResolved: 28,
     sprintsCompleted: 7,
+    joinedAt: '2026-01-01',
     github: 'raphacastilho',
     linkedin: 'raphacastilho',
     color: '#6366f1',
@@ -54,6 +57,7 @@ export const TEAM: TeamMember[] = [
     projects: 3,
     bugsResolved: 19,
     sprintsCompleted: 7,
+    joinedAt: '2026-01-01',
     github: 'antoniosilva',
     linkedin: 'antoniosilva',
     color: '#06b6d4',

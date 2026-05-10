@@ -1,125 +1,198 @@
 'use client'
 
+import { useMemo, useState } from 'react'
 import { motion } from 'framer-motion'
 import {
   Users, Mail, Github, Linkedin, Calendar, Shield,
   FolderKanban, Bug, Zap, Crown, Star, Activity,
+  Plus, Pencil, UserMinus, X, Search, Archive,
 } from 'lucide-react'
 import { Avatar } from '@/components/ui/avatar'
-import { cn } from '@/lib/utils'
-import type { User } from '@/types'
+import { Button } from '@/components/ui/button'
+import { cn, formatDate } from '@/lib/utils'
+import { TEAM, COMPANY_CLIENTS, type TeamMember } from '@/lib/team-data'
+import type { Role } from '@/types'
 
-// ─── Team Data ────────────────────────────────────────────────────────────────
-
-interface TeamMember {
-  user: User
+type MemberForm = {
+  name: string
+  email: string
+  username: string
+  role: Role
   title: string
   bio: string
-  skills: string[]
-  projects: number
-  bugsResolved: number
-  sprintsCompleted: number
-  github?: string
-  linkedin?: string
-  color: string
-  glow: string
+  skills: string
+  github: string
+  linkedin: string
 }
 
-const TEAM: TeamMember[] = [
-  {
-    user: {
-      id: '1',
-      email: 'raphael@sentinel.tech',
-      username: 'raphacastilho',
-      name: 'Raphael Castilho',
-      role: 'ADMIN',
-      isActive: true,
-      lastSeen: new Date().toISOString(),
-      createdAt: '2026-01-01T00:00:00.000Z',
-    },
-    title: 'Founder & QA Lead',
-    bio: 'Especialista em automação de testes e qualidade de software. Lidera a estratégia de QA e desenvolvimento de projetos na Sentinel Tech.',
-    skills: ['QA Automation', 'Playwright', 'Cypress', 'Agile', 'TypeScript', 'Python'],
-    projects: 3,
-    bugsResolved: 28,
-    sprintsCompleted: 7,
-    github: 'raphacastilho',
-    linkedin: 'raphacastilho',
-    color: '#6366f1',
-    glow: 'shadow-[0_0_30px_rgba(99,102,241,0.12)]',
-  },
-  {
-    user: {
-      id: '2',
-      email: 'antonio@sentinel.tech',
-      username: 'antoniosilva',
-      name: 'Antonio Silva',
-      role: 'ADMIN',
-      isActive: true,
-      lastSeen: new Date().toISOString(),
-      createdAt: '2026-01-01T00:00:00.000Z',
-    },
-    title: 'Founder & Tech Lead',
-    bio: 'Engenheiro full-stack com foco em arquitetura de sistemas e entrega de produtos de alta qualidade. Co-fundador da Sentinel Tech.',
-    skills: ['Next.js', 'NestJS', 'PostgreSQL', 'Docker', 'TypeScript', 'AWS'],
-    projects: 3,
-    bugsResolved: 19,
-    sprintsCompleted: 7,
-    github: 'antoniosilva',
-    linkedin: 'antoniosilva',
-    color: '#06b6d4',
-    glow: 'shadow-[0_0_30px_rgba(6,182,212,0.12)]',
-  },
-]
+const COLORS = ['#6366f1', '#06b6d4', '#22c55e', '#f59e0b', '#ec4899', '#8b5cf6']
 
-const COMPANY_CLIENTS = [
-  { name: 'Concept-USA',     flag: '🇺🇸', color: '#3b82f6' },
-  { name: 'ABinBev-IND',     flag: '🇮🇳', color: '#f59e0b' },
-  { name: 'ScrumLaunch-UKR', flag: '🇺🇦', color: '#06b6d4' },
-]
+function emptyForm(): MemberForm {
+  return {
+    name: '',
+    email: '',
+    username: '',
+    role: 'QA_ANALYST',
+    title: '',
+    bio: '',
+    skills: '',
+    github: '',
+    linkedin: '',
+  }
+}
 
-// ─── Component ────────────────────────────────────────────────────────────────
+function formFromMember(member: TeamMember): MemberForm {
+  return {
+    name: member.user.name,
+    email: member.user.email,
+    username: member.user.username,
+    role: member.user.role,
+    title: member.title,
+    bio: member.bio,
+    skills: member.skills.join(', '),
+    github: member.github ?? '',
+    linkedin: member.linkedin ?? '',
+  }
+}
 
 export default function TeamPage() {
+  const [members, setMembers] = useState<TeamMember[]>(TEAM)
+  const [search, setSearch] = useState('')
+  const [formOpen, setFormOpen] = useState(false)
+  const [editing, setEditing] = useState<TeamMember | null>(null)
+  const [offboarding, setOffboarding] = useState<TeamMember | null>(null)
+
+  const activeMembers = useMemo(
+    () => members.filter(member => member.user.isActive),
+    [members]
+  )
+
+  const offboardedMembers = useMemo(
+    () => members.filter(member => !member.user.isActive),
+    [members]
+  )
+
+  const visibleMembers = useMemo(() => {
+    const query = search.trim().toLowerCase()
+    if (!query) return activeMembers
+    return activeMembers.filter(member =>
+      member.user.name.toLowerCase().includes(query) ||
+      member.title.toLowerCase().includes(query) ||
+      member.skills.some(skill => skill.toLowerCase().includes(query))
+    )
+  }, [activeMembers, search])
+
+  const saveMember = (form: MemberForm) => {
+    if (!form.name.trim() || !form.email.trim() || !form.title.trim()) return
+
+    const skills = form.skills
+      .split(',')
+      .map(skill => skill.trim())
+      .filter(Boolean)
+
+    if (editing) {
+      setMembers(current => current.map(member => member.user.id === editing.user.id
+        ? {
+            ...member,
+            title: form.title.trim(),
+            bio: form.bio.trim() || member.bio,
+            skills,
+            github: form.github.trim() || undefined,
+            linkedin: form.linkedin.trim() || undefined,
+            user: {
+              ...member.user,
+              name: form.name.trim(),
+              email: form.email.trim(),
+              username: form.username.trim() || form.email.split('@')[0],
+              role: form.role,
+              lastSeen: new Date().toISOString(),
+            },
+          }
+        : member
+      ))
+    } else {
+      const color = COLORS[members.length % COLORS.length]
+      setMembers(current => [{
+        user: {
+          id: String(Date.now()),
+          email: form.email.trim(),
+          username: form.username.trim() || form.email.split('@')[0],
+          name: form.name.trim(),
+          role: form.role,
+          isActive: true,
+          lastSeen: new Date().toISOString(),
+          createdAt: new Date().toISOString(),
+        },
+        title: form.title.trim(),
+        bio: form.bio.trim() || 'Novo membro cadastrado no time Sentinel Tech.',
+        skills,
+        projects: 0,
+        bugsResolved: 0,
+        sprintsCompleted: 0,
+        joinedAt: new Date().toISOString().slice(0, 10),
+        github: form.github.trim() || undefined,
+        linkedin: form.linkedin.trim() || undefined,
+        color,
+        glow: `shadow-[0_0_30px_${color}20]`,
+      }, ...current])
+    }
+
+    setFormOpen(false)
+    setEditing(null)
+  }
+
+  const offboardMember = () => {
+    if (!offboarding) return
+    setMembers(current => current.map(member => member.user.id === offboarding.user.id
+      ? {
+          ...member,
+          offboardedAt: new Date().toISOString().slice(0, 10),
+          user: {
+            ...member.user,
+            isActive: false,
+            lastSeen: new Date().toISOString(),
+          },
+        }
+      : member
+    ))
+    setOffboarding(null)
+  }
+
   return (
-    <div className="max-w-5xl mx-auto space-y-8">
-      {/* Page header */}
+    <div className="max-w-6xl mx-auto space-y-8">
       <motion.div
         initial={{ opacity: 0, y: 12 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.4 }}
-        className="flex items-center justify-between"
+        className="flex items-center justify-between gap-4"
       >
         <div>
           <h1 className="text-2xl font-bold text-white">Time</h1>
-          <p className="text-sm text-white/40 mt-0.5">Conheça quem está por trás da Sentinel Tech</p>
+          <p className="text-sm text-white/40 mt-0.5">Gestao dos membros ativos e historico de participacao</p>
         </div>
-        <div className="flex items-center gap-2 px-3.5 py-2 rounded-xl bg-white/[0.04] border border-white/[0.08]">
-          <Users className="w-4 h-4 text-white/40" />
-          <span className="text-sm font-semibold text-white/70">{TEAM.length} membros</span>
-        </div>
+        <Button
+          variant="glow"
+          leftIcon={<Plus className="w-4 h-4" />}
+          onClick={() => { setEditing(null); setFormOpen(true) }}
+        >
+          Novo membro
+        </Button>
       </motion.div>
 
-      {/* Stats bar */}
       <motion.div
         initial={{ opacity: 0, y: 12 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.4, delay: 0.05 }}
-        className="grid grid-cols-3 gap-4"
+        className="grid grid-cols-2 lg:grid-cols-4 gap-4"
       >
         {[
+          { label: 'Membros ativos', value: activeMembers.length, icon: <Users className="w-4 h-4" />, color: '#06b6d4' },
           { label: 'Clientes ativos', value: COMPANY_CLIENTS.length, icon: <Crown className="w-4 h-4" />, color: '#f59e0b' },
-          { label: 'Bugs resolvidos', value: TEAM.reduce((a, m) => a + m.bugsResolved, 0), icon: <Bug className="w-4 h-4" />, color: '#ef4444' },
-          { label: 'Sprints concluídos', value: TEAM.reduce((a, m) => a + m.sprintsCompleted, 0) / 2, icon: <Zap className="w-4 h-4" />, color: '#8b5cf6' },
+          { label: 'Bugs resolvidos', value: members.reduce((a, m) => a + m.bugsResolved, 0), icon: <Bug className="w-4 h-4" />, color: '#ef4444' },
+          { label: 'Historico', value: offboardedMembers.length, icon: <Archive className="w-4 h-4" />, color: '#8b5cf6' },
         ].map(({ label, value, icon, color }) => (
-          <div
-            key={label}
-            className="glass-card p-4 flex items-center gap-3 border border-white/[0.07]"
-          >
-            <div
-              className="w-9 h-9 rounded-xl flex items-center justify-center shrink-0"
-              style={{ backgroundColor: color + '20', color }}
-            >
+          <div key={label} className="glass-card p-4 flex items-center gap-3 border border-white/[0.07]">
+            <div className="w-9 h-9 rounded-xl flex items-center justify-center shrink-0" style={{ backgroundColor: color + '20', color }}>
               {icon}
             </div>
             <div>
@@ -130,28 +203,32 @@ export default function TeamPage() {
         ))}
       </motion.div>
 
-      {/* Member cards */}
+      <div className="flex items-center gap-3 glass-card px-3 py-2">
+        <Search className="w-4 h-4 text-white/30" />
+        <input
+          value={search}
+          onChange={e => setSearch(e.target.value)}
+          className="flex-1 bg-transparent outline-none text-sm text-white placeholder-white/25"
+          placeholder="Buscar por nome, funcao ou skill"
+        />
+      </div>
+
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        {TEAM.map((member, i) => (
+        {visibleMembers.map((member, i) => (
           <motion.div
             key={member.user.id}
             initial={{ opacity: 0, y: 16 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.4, delay: 0.1 + i * 0.08 }}
+            transition={{ duration: 0.4, delay: 0.1 + i * 0.05 }}
             className={cn('glass-card border border-white/[0.08] overflow-hidden', member.glow)}
           >
-            {/* Top accent bar */}
             <div className="h-1 w-full" style={{ background: `linear-gradient(90deg, ${member.color}60, ${member.color}10)` }} />
 
             <div className="p-6 space-y-5">
-              {/* Identity row */}
               <div className="flex items-start gap-4">
                 <div className="relative shrink-0">
                   <Avatar user={member.user} size="lg" showStatus isOnline />
-                  <div
-                    className="absolute -bottom-1 -right-1 w-5 h-5 rounded-full flex items-center justify-center border-2 border-surface-900"
-                    style={{ backgroundColor: member.color }}
-                  >
+                  <div className="absolute -bottom-1 -right-1 w-5 h-5 rounded-full flex items-center justify-center border-2 border-surface-900" style={{ backgroundColor: member.color }}>
                     <Shield className="w-2.5 h-2.5 text-white" />
                   </div>
                 </div>
@@ -161,36 +238,40 @@ export default function TeamPage() {
                     <h2 className="text-base font-bold text-white truncate">{member.user.name}</h2>
                     <Star className="w-3.5 h-3.5 shrink-0" style={{ color: member.color }} />
                   </div>
-                  <p className="text-sm font-medium mt-0.5" style={{ color: member.color }}>
-                    {member.title}
-                  </p>
+                  <p className="text-sm font-medium mt-0.5" style={{ color: member.color }}>{member.title}</p>
                   <div className="flex items-center gap-1.5 mt-1.5">
                     <Mail className="w-3 h-3 text-white/30" />
                     <span className="text-xs text-white/40 truncate">{member.user.email}</span>
                   </div>
                 </div>
 
-                {/* Online badge */}
-                <div className="shrink-0 flex items-center gap-1.5 px-2 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20">
-                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
-                  <span className="text-[10px] font-medium text-emerald-400">Online</span>
+                <div className="flex items-center gap-1 shrink-0">
+                  <button
+                    onClick={() => { setEditing(member); setFormOpen(true) }}
+                    className="p-1.5 rounded-lg text-white/35 hover:text-white hover:bg-white/[0.06] transition-colors"
+                    title="Editar membro"
+                  >
+                    <Pencil className="w-3.5 h-3.5" />
+                  </button>
+                  <button
+                    onClick={() => setOffboarding(member)}
+                    className="p-1.5 rounded-lg text-white/35 hover:text-red-300 hover:bg-red-500/10 transition-colors"
+                    title="Desligar membro"
+                  >
+                    <UserMinus className="w-3.5 h-3.5" />
+                  </button>
                 </div>
               </div>
 
-              {/* Bio */}
               <p className="text-xs text-white/50 leading-relaxed">{member.bio}</p>
 
-              {/* Stats */}
               <div className="grid grid-cols-3 gap-3">
                 {[
                   { label: 'Projetos', value: member.projects, icon: <FolderKanban className="w-3 h-3" /> },
                   { label: 'Bugs', value: member.bugsResolved, icon: <Bug className="w-3 h-3" /> },
                   { label: 'Sprints', value: member.sprintsCompleted, icon: <Zap className="w-3 h-3" /> },
                 ].map(({ label, value, icon }) => (
-                  <div
-                    key={label}
-                    className="flex flex-col items-center gap-1 py-2.5 rounded-xl bg-white/[0.03] border border-white/[0.06]"
-                  >
+                  <div key={label} className="flex flex-col items-center gap-1 py-2.5 rounded-xl bg-white/[0.03] border border-white/[0.06]">
                     <span className="text-white/30">{icon}</span>
                     <span className="text-lg font-bold text-white">{value}</span>
                     <span className="text-[10px] text-white/35">{label}</span>
@@ -198,45 +279,30 @@ export default function TeamPage() {
                 ))}
               </div>
 
-              {/* Skills */}
               <div>
                 <p className="text-[10px] font-semibold uppercase tracking-wider text-white/30 mb-2">Skills</p>
                 <div className="flex flex-wrap gap-1.5">
                   {member.skills.map(skill => (
-                    <span
-                      key={skill}
-                      className="px-2 py-0.5 rounded-md text-[11px] font-medium bg-white/[0.06] border border-white/[0.08] text-white/60"
-                    >
+                    <span key={skill} className="px-2 py-0.5 rounded-md text-[11px] font-medium bg-white/[0.06] border border-white/[0.08] text-white/60">
                       {skill}
                     </span>
                   ))}
                 </div>
               </div>
 
-              {/* Member since + links */}
               <div className="flex items-center justify-between pt-1 border-t border-white/[0.06]">
                 <div className="flex items-center gap-1.5 text-[11px] text-white/30">
                   <Calendar className="w-3 h-3" />
-                  <span>Desde Janeiro 2026</span>
+                  <span>Desde {member.joinedAt ? formatDate(member.joinedAt) : 'Janeiro 2026'}</span>
                 </div>
                 <div className="flex items-center gap-2">
                   {member.github && (
-                    <a
-                      href={`https://github.com/${member.github}`}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="p-1.5 rounded-lg text-white/30 hover:text-white/60 hover:bg-white/[0.06] transition-all duration-150"
-                    >
+                    <a href={`https://github.com/${member.github}`} target="_blank" rel="noopener noreferrer" className="p-1.5 rounded-lg text-white/30 hover:text-white/60 hover:bg-white/[0.06] transition-all duration-150">
                       <Github className="w-3.5 h-3.5" />
                     </a>
                   )}
                   {member.linkedin && (
-                    <a
-                      href={`https://linkedin.com/in/${member.linkedin}`}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="p-1.5 rounded-lg text-white/30 hover:text-white/60 hover:bg-white/[0.06] transition-all duration-150"
-                    >
+                    <a href={`https://linkedin.com/in/${member.linkedin}`} target="_blank" rel="noopener noreferrer" className="p-1.5 rounded-lg text-white/30 hover:text-white/60 hover:bg-white/[0.06] transition-all duration-150">
                       <Linkedin className="w-3.5 h-3.5" />
                     </a>
                   )}
@@ -247,33 +313,143 @@ export default function TeamPage() {
         ))}
       </div>
 
-      {/* Clients section */}
-      <motion.div
-        initial={{ opacity: 0, y: 12 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.4, delay: 0.3 }}
-        className="glass-card border border-white/[0.07] p-6"
-      >
+      {offboardedMembers.length > 0 && (
+        <section className="glass-card border border-white/[0.07] p-5">
+          <div className="flex items-center gap-2 mb-4">
+            <Archive className="w-4 h-4 text-white/40" />
+            <h3 className="text-sm font-semibold text-white/70">Historico de membros desligados</h3>
+          </div>
+          <div className="space-y-2">
+            {offboardedMembers.map(member => (
+              <div key={member.user.id} className="flex items-center justify-between gap-3 p-3 rounded-xl bg-white/[0.025] border border-white/[0.05]">
+                <div className="min-w-0">
+                  <p className="text-sm font-medium text-white/70 truncate">{member.user.name}</p>
+                  <p className="text-xs text-white/35 truncate">{member.title} - {member.user.email}</p>
+                </div>
+                <span className="text-xs text-white/35 shrink-0">
+                  Desligado em {member.offboardedAt ? formatDate(member.offboardedAt) : 'data nao informada'}
+                </span>
+              </div>
+            ))}
+          </div>
+        </section>
+      )}
+
+      <section className="glass-card border border-white/[0.07] p-6">
         <div className="flex items-center gap-2 mb-4">
           <Activity className="w-4 h-4 text-white/40" />
-          <h3 className="text-sm font-semibold text-white/70">Clientes Atendidos</h3>
+          <h3 className="text-sm font-semibold text-white/70">Clientes atendidos</h3>
         </div>
         <div className="flex flex-wrap gap-3">
           {COMPANY_CLIENTS.map(client => (
-            <div
-              key={client.name}
-              className="flex items-center gap-2.5 px-4 py-2.5 rounded-xl border transition-all duration-150"
-              style={{
-                backgroundColor: client.color + '10',
-                borderColor: client.color + '30',
-              }}
-            >
-              <span className="text-lg">{client.flag}</span>
+            <div key={client.name} className="flex items-center gap-2.5 px-4 py-2.5 rounded-xl border" style={{ backgroundColor: client.color + '10', borderColor: client.color + '30' }}>
+              <span className="text-xs font-bold text-white/45">{client.flag}</span>
               <span className="text-sm font-medium" style={{ color: client.color }}>{client.name}</span>
             </div>
           ))}
         </div>
-      </motion.div>
+      </section>
+
+      {formOpen && (
+        <MemberModal
+          initial={editing ? formFromMember(editing) : emptyForm()}
+          title={editing ? 'Editar membro' : 'Novo membro'}
+          onClose={() => { setFormOpen(false); setEditing(null) }}
+          onSave={saveMember}
+        />
+      )}
+
+      {offboarding && (
+        <ConfirmOffboarding
+          member={offboarding}
+          onClose={() => setOffboarding(null)}
+          onConfirm={offboardMember}
+        />
+      )}
+    </div>
+  )
+}
+
+function MemberModal({ initial, title, onClose, onSave }: {
+  initial: MemberForm
+  title: string
+  onClose: () => void
+  onSave: (form: MemberForm) => void
+}) {
+  const [form, setForm] = useState<MemberForm>(initial)
+  const inputCls = 'w-full px-3 py-2.5 rounded-lg text-sm bg-white/[0.04] border border-white/[0.08] text-white placeholder-white/25 outline-none focus:border-primary/50'
+
+  const update = <K extends keyof MemberForm>(key: K, value: MemberForm[K]) => {
+    setForm(current => ({ ...current, [key]: value }))
+  }
+
+  return (
+    <div className="fixed inset-0 z-50 grid place-items-center p-4">
+      <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={onClose} />
+      <div className="relative w-full max-w-2xl dropdown-panel overflow-hidden">
+        <div className="flex items-center justify-between px-5 py-4 border-b border-white/[0.08]">
+          <span className="text-sm font-semibold text-white/90">{title}</span>
+          <button onClick={onClose} className="p-1 rounded-lg text-white/35 hover:text-white hover:bg-white/[0.06]">
+            <X className="w-4 h-4" />
+          </button>
+        </div>
+        <div className="p-5 space-y-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <input value={form.name} onChange={e => update('name', e.target.value)} className={inputCls} placeholder="Nome" autoFocus />
+            <input value={form.email} onChange={e => update('email', e.target.value)} className={inputCls} placeholder="E-mail" />
+            <input value={form.username} onChange={e => update('username', e.target.value)} className={inputCls} placeholder="Username" />
+            <select value={form.role} onChange={e => update('role', e.target.value as Role)} className={inputCls}>
+              {(['ADMIN', 'PROJECT_MANAGER', 'QA_ANALYST', 'QA_ENGINEER', 'DEVELOPER', 'CLIENT_VIEWER'] as Role[]).map(role => (
+                <option key={role} value={role}>{role}</option>
+              ))}
+            </select>
+          </div>
+          <input value={form.title} onChange={e => update('title', e.target.value)} className={inputCls} placeholder="Cargo / funcao" />
+          <textarea value={form.bio} onChange={e => update('bio', e.target.value)} className={cn(inputCls, 'resize-none')} rows={3} placeholder="Bio / contexto do membro" />
+          <input value={form.skills} onChange={e => update('skills', e.target.value)} className={inputCls} placeholder="Skills separadas por virgula" />
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <input value={form.github} onChange={e => update('github', e.target.value)} className={inputCls} placeholder="GitHub" />
+            <input value={form.linkedin} onChange={e => update('linkedin', e.target.value)} className={inputCls} placeholder="LinkedIn" />
+          </div>
+          <div className="flex justify-end gap-3 pt-1">
+            <Button variant="outline" onClick={onClose}>Cancelar</Button>
+            <Button variant="glow" onClick={() => onSave(form)} disabled={!form.name.trim() || !form.email.trim() || !form.title.trim()}>
+              Salvar
+            </Button>
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+function ConfirmOffboarding({ member, onClose, onConfirm }: {
+  member: TeamMember
+  onClose: () => void
+  onConfirm: () => void
+}) {
+  return (
+    <div className="fixed inset-0 z-50 grid place-items-center p-4">
+      <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={onClose} />
+      <div className="relative w-full max-w-md dropdown-panel border border-red-500/20 overflow-hidden">
+        <div className="flex items-center justify-between px-5 py-4 border-b border-white/[0.08]">
+          <span className="text-sm font-semibold text-white/90">Desligar membro</span>
+          <button onClick={onClose} className="p-1 rounded-lg text-white/35 hover:text-white hover:bg-white/[0.06]">
+            <X className="w-4 h-4" />
+          </button>
+        </div>
+        <div className="p-5 space-y-4">
+          <p className="text-sm text-white/55">
+            {member.user.name} sairá dos cards de membros ativos, mas seus dados seguem preservados no historico e em registros passados.
+          </p>
+          <div className="flex justify-end gap-3">
+            <Button variant="outline" onClick={onClose}>Cancelar</Button>
+            <Button variant="destructive" onClick={onConfirm} leftIcon={<UserMinus className="w-4 h-4" />}>
+              Desligar
+            </Button>
+          </div>
+        </div>
+      </div>
     </div>
   )
 }
