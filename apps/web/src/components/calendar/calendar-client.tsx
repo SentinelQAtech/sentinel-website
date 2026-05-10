@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useMemo } from 'react'
-import { ChevronLeft, ChevronRight, Plus, CalendarDays, Clock, X } from 'lucide-react'
+import { ChevronLeft, ChevronRight, Plus, CalendarDays, Clock, X, History } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import {
   useCalendarStore,
@@ -55,6 +55,7 @@ export function CalendarClient() {
   const [selectedDate, setSelectedDate] = useState(toISO(today))
   const [addOpen,      setAddOpen]      = useState(false)
   const [prefillDate,  setPrefillDate]  = useState('')
+  const [showHistory,  setShowHistory]  = useState(false)
 
   const { events, removeEvent } = useCalendarStore()
 
@@ -74,11 +75,25 @@ export function CalendarClient() {
     [eventsByDate, selectedDate]
   )
 
+  const historyEvents = useMemo(() => {
+    const todayISO = toISO(today)
+    return events
+      .filter(e => e.date < todayISO)
+      .sort((a, b) => `${b.date}T${b.startTime}`.localeCompare(`${a.date}T${a.startTime}`))
+  }, [events, today])
+
   const prevMonth = () => month === 0  ? (setMonth(11), setYear(y => y - 1)) : setMonth(m => m - 1)
   const nextMonth = () => month === 11 ? (setMonth(0),  setYear(y => y + 1)) : setMonth(m => m + 1)
   const goToday   = () => { setYear(today.getFullYear()); setMonth(today.getMonth()); setSelectedDate(toISO(today)) }
 
   const openAdd = (date: string) => { setPrefillDate(date); setAddOpen(true) }
+  const jumpToDate = (date: string) => {
+    const target = new Date(date + 'T12:00:00')
+    setYear(target.getFullYear())
+    setMonth(target.getMonth())
+    setSelectedDate(date)
+    setShowHistory(false)
+  }
 
   return (
     <div className="flex gap-5 h-full min-h-0">
@@ -111,13 +126,27 @@ export function CalendarClient() {
             </button>
           </div>
 
-          <button
-            onClick={() => openAdd(selectedDate)}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium bg-primary/20 border border-primary/30 text-primary hover:bg-primary/30 transition-all duration-200"
-          >
-            <Plus className="w-3.5 h-3.5" />
-            Add Evento
-          </button>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => setShowHistory(v => !v)}
+              className={cn(
+                'flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium border transition-all duration-150',
+                showHistory
+                  ? 'bg-cyan-500/15 border-cyan-500/30 text-cyan-300'
+                  : 'bg-white/[0.04] border-white/[0.08] text-white/50 hover:text-white/75'
+              )}
+            >
+              <History className="w-3.5 h-3.5" />
+              Historico
+            </button>
+            <button
+              onClick={() => openAdd(selectedDate)}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium bg-primary/20 border border-primary/30 text-primary hover:bg-primary/30 transition-all duration-200"
+            >
+              <Plus className="w-3.5 h-3.5" />
+              Add Evento
+            </button>
+          </div>
         </div>
 
         {/* Weekday header */}
@@ -206,7 +235,40 @@ export function CalendarClient() {
 
         {/* Event list */}
         <div className="flex-1 overflow-y-auto p-3 space-y-2">
-          {selectedEvents.length === 0 ? (
+          {showHistory ? (
+            historyEvents.length === 0 ? (
+              <div className="text-center pt-10">
+                <p className="text-xs text-white/25">Sem eventos anteriores</p>
+              </div>
+            ) : (
+              historyEvents.map(ev => {
+                const cfg = EVENT_TYPE_CONFIG[ev.type]
+                return (
+                  <button
+                    key={ev.id}
+                    onClick={() => jumpToDate(ev.date)}
+                    className="w-full text-left p-2.5 rounded-lg border border-white/[0.06] bg-white/[0.02] hover:bg-white/[0.05] transition-colors duration-100"
+                  >
+                    <div className="flex items-start justify-between gap-2">
+                      <p className="text-xs font-medium text-white/85 leading-snug">{ev.title}</p>
+                      <span className="text-[10px] text-white/30 shrink-0">
+                        {new Date(ev.date + 'T12:00:00').toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' })}
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-1.5 mt-1.5 flex-wrap">
+                      <span className="text-[10px] text-white/35">{ev.startTime} - {ev.endTime}</span>
+                      <span
+                        className="text-[10px] px-1.5 py-0.5 rounded font-medium"
+                        style={{ backgroundColor: cfg.color + '22', color: cfg.color }}
+                      >
+                        {cfg.label}
+                      </span>
+                    </div>
+                  </button>
+                )
+              })
+            )
+          ) : selectedEvents.length === 0 ? (
             <div className="text-center pt-10">
               <p className="text-xs text-white/25">Nenhum evento</p>
               <button

@@ -1,7 +1,8 @@
 'use client'
 
+import { useState } from 'react'
 import Link from 'next/link'
-import { Bug, CheckSquare, Zap, MoreHorizontal, Calendar } from 'lucide-react'
+import { Bug, CheckSquare, Zap, MoreHorizontal, Calendar, Trash2 } from 'lucide-react'
 import { Progress } from '@/components/ui/progress'
 import { PriorityBadge } from '@/components/ui/badge'
 import { Avatar } from '@/components/ui/avatar'
@@ -12,9 +13,11 @@ import type { Project } from '@/types'
 interface ProjectCardProps {
   project: Project
   view?: 'grid' | 'list'
+  onDeleteRequest?: (project: Project) => void
 }
 
-export function ProjectCard({ project, view = 'grid' }: ProjectCardProps) {
+export function ProjectCard({ project, view = 'grid', onDeleteRequest }: ProjectCardProps) {
+  const [menuOpen, setMenuOpen] = useState(false)
   const statusCfg = projectStatusConfig[project.status]
   const company = getCompany(project.clientName)
 
@@ -75,6 +78,17 @@ export function ProjectCard({ project, view = 'grid' }: ProjectCardProps) {
           </div>
 
           <Avatar user={project.owner} size="sm" />
+          <button
+            onClick={e => {
+              e.preventDefault()
+              e.stopPropagation()
+              onDeleteRequest?.(project)
+            }}
+            className="p-1.5 rounded-lg text-white/25 hover:text-red-300 hover:bg-red-500/10 transition-all duration-150"
+            title="Excluir projeto"
+          >
+            <Trash2 className="w-3.5 h-3.5" />
+          </button>
         </div>
       </Link>
     )
@@ -129,12 +143,34 @@ export function ProjectCard({ project, view = 'grid' }: ProjectCardProps) {
             ) : null}
           </div>
         </div>
-        <button
-          onClick={e => e.preventDefault()}
-          className="opacity-0 group-hover:opacity-100 p-1 rounded-md hover:bg-white/10 text-white/40 hover:text-white transition-all duration-150 shrink-0"
-        >
-          <MoreHorizontal className="w-4 h-4" />
-        </button>
+        <div className="relative">
+          <button
+            onClick={e => {
+              e.preventDefault()
+              e.stopPropagation()
+              setMenuOpen(v => !v)
+            }}
+            className="opacity-0 group-hover:opacity-100 p-1 rounded-md hover:bg-white/10 text-white/40 hover:text-white transition-all duration-150 shrink-0"
+          >
+            <MoreHorizontal className="w-4 h-4" />
+          </button>
+          {menuOpen && (
+            <div className="absolute right-0 top-7 z-20 w-40 dropdown-panel border border-white/[0.08] overflow-hidden">
+              <button
+                onClick={e => {
+                  e.preventDefault()
+                  e.stopPropagation()
+                  setMenuOpen(false)
+                  onDeleteRequest?.(project)
+                }}
+                className="w-full flex items-center gap-2 px-3 py-2 text-xs text-red-300 hover:bg-red-500/10 transition-colors"
+              >
+                <Trash2 className="w-3.5 h-3.5" />
+                Excluir projeto
+              </button>
+            </div>
+          )}
+        </div>
       </div>
 
       {/* Description */}

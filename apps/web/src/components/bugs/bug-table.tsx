@@ -1,17 +1,17 @@
 'use client'
 
-import Link from 'next/link'
 import { SeverityBadge, BugStatusBadge, PriorityBadge } from '@/components/ui/badge'
 import { Avatar } from '@/components/ui/avatar'
 import { timeAgo } from '@/lib/utils'
-import { ArrowUpRight, ExternalLink } from 'lucide-react'
+import { ArrowUpRight } from 'lucide-react'
 import type { Bug } from '@/types'
 
 interface BugTableProps {
   bugs: Bug[]
+  onOpenBug?: (bug: Bug) => void
 }
 
-export function BugTable({ bugs }: BugTableProps) {
+export function BugTable({ bugs, onOpenBug }: BugTableProps) {
   if (bugs.length === 0) {
     return (
       <div className="glass-card flex flex-col items-center justify-center py-20 text-center">
@@ -43,18 +43,18 @@ export function BugTable({ bugs }: BugTableProps) {
               className="border-b border-white/[0.04] hover:bg-white/[0.03] transition-colors duration-150 group"
             >
               <td className="px-4 py-3.5">
-                <Link
-                  href={`/bugs/${bug.id}`}
+                <button
+                  onClick={() => onOpenBug?.(bug)}
                   className="font-mono text-xs text-primary/80 hover:text-primary flex items-center gap-1 transition-colors"
                 >
                   {bug.bugId}
                   <ArrowUpRight className="w-3 h-3 opacity-0 group-hover:opacity-100 transition-opacity" />
-                </Link>
+                </button>
               </td>
               <td className="px-4 py-3.5 max-w-[280px]">
-                <Link href={`/bugs/${bug.id}`} className="text-white/80 hover:text-white transition-colors line-clamp-1">
+                <button onClick={() => onOpenBug?.(bug)} className="text-left text-white/80 hover:text-white transition-colors line-clamp-1">
                   {bug.title}
-                </Link>
+                </button>
                 {bug.tags.length > 0 && (
                   <div className="flex gap-1 mt-1">
                     {bug.tags.slice(0, 2).map(tag => (

@@ -76,7 +76,7 @@ export function AddEventModal({ open, onClose, defaultDate = '' }: Props) {
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.96, y: 8 }}
             transition={{ duration: 0.2, ease: 'easeOut' }}
-            className="fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-[420px] dropdown-panel z-50 overflow-hidden"
+            className="fixed inset-4 m-auto h-fit max-h-[calc(100vh-2rem)] w-full max-w-[420px] dropdown-panel z-50 overflow-y-auto"
           >
             {/* Header */}
             <div className="flex items-center justify-between px-5 py-4 border-b border-white/[0.08]">
