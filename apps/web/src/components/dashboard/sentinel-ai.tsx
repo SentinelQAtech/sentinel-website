@@ -5,13 +5,14 @@ import { motion } from 'framer-motion'
 import { Brain, TrendingDown, TrendingUp, AlertTriangle, Bug, ArrowRight, Cpu, Sparkles, MessageSquare } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { useAIStore } from '@/store/ai'
-import { useDailyStore } from '@/store/daily'
+import { useDailyStore, getTodayISO } from '@/store/daily'
 import { useQAImporterStore } from '@/store/qa-importer'
 
 // ─── Dynamic insights from real store data ────────────────────
 
 function useInsights() {
-  const tasks   = useDailyStore(s => s.tasks)
+  const getTasksForDate = useDailyStore(s => s.getTasksForDate)
+  const tasks   = getTasksForDate(getTodayISO())
   const qaItems = useQAImporterStore(s => s.items)
 
   return useMemo(() => {
