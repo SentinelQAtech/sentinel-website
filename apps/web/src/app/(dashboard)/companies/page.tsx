@@ -91,7 +91,7 @@ export default function CompaniesPage() {
             className="flex h-10 items-center justify-center gap-2 rounded-xl border border-primary/30 bg-primary/15 px-4 text-sm font-semibold text-primary hover:bg-primary/25"
           >
             <MapIcon className="h-4 w-4" />
-            Mapa mundial
+            Mapa de atuacao
           </button>
           <div className="relative w-full lg:w-72">
             <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-white/25" />
@@ -224,11 +224,11 @@ export default function CompaniesPage() {
 function WorldMapModal({ companies, onClose }: { companies: Company[]; onClose: () => void }) {
   const regionIndexes = new Map<string, number>()
   const offsetPattern = [
-    { x: 0, y: 0 },
-    { x: 38, y: -18 },
-    { x: -34, y: 20 },
-    { x: 30, y: 28 },
-    { x: -42, y: -22 },
+    { x: 0, y: 0, labelX: 38, labelY: -55 },
+    { x: 38, y: -18, labelX: 44, labelY: -66 },
+    { x: -34, y: 26, labelX: 46, labelY: -20 },
+    { x: 34, y: 34, labelX: 42, labelY: 10 },
+    { x: -46, y: -28, labelX: -188, labelY: -52 },
   ]
 
   const plottedCompanies = companies.map(company => {
@@ -243,23 +243,27 @@ function WorldMapModal({ companies, onClose }: { companies: Company[]; onClose: 
         ...basePoint,
         x: basePoint.x + offset.x,
         y: basePoint.y + offset.y,
+        labelX: basePoint.x + offset.x + offset.labelX,
+        labelY: basePoint.y + offset.y + offset.labelY,
       },
     }
   })
 
   const regions = [...new Set(plottedCompanies.map(item => item.point.region))]
+  const hub = { x: 505, y: 250 }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4 backdrop-blur-sm">
-      <div className="relative w-full max-w-6xl overflow-hidden rounded-2xl border border-white/[0.10] bg-surface-950 shadow-2xl">
-        <div className="flex items-center justify-between border-b border-white/[0.08] px-5 py-4">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/75 p-4 backdrop-blur-md">
+      <div className="relative w-full max-w-6xl overflow-hidden rounded-2xl border border-primary/20 bg-[#070a14] shadow-2xl shadow-primary/10">
+        <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_50%_15%,rgba(99,102,241,0.20),transparent_32%),radial-gradient(circle_at_16%_85%,rgba(6,182,212,0.12),transparent_28%)]" />
+        <div className="relative flex items-center justify-between border-b border-white/[0.08] px-5 py-4">
           <div className="flex items-center gap-3">
             <div className="flex h-9 w-9 items-center justify-center rounded-xl border border-primary/25 bg-primary/15">
               <Globe2 className="h-4 w-4 text-primary" />
             </div>
             <div>
-              <h2 className="text-base font-semibold text-white">Mapa mundial de atuacao</h2>
-              <p className="text-xs text-white/35">{companies.length} empresas ativas em {regions.length} regioes</p>
+              <h2 className="text-base font-semibold text-white">Mapa de atuacao global</h2>
+              <p className="text-xs text-white/35">{companies.length} empresas ativas conectadas em {regions.length} regioes</p>
             </div>
           </div>
           <button onClick={onClose} className="rounded-lg p-2 text-white/35 hover:bg-white/[0.06] hover:text-white/70">
@@ -267,13 +271,40 @@ function WorldMapModal({ companies, onClose }: { companies: Company[]; onClose: 
           </button>
         </div>
 
-        <div className="grid gap-0 lg:grid-cols-[1fr_280px]">
-          <div className="relative min-h-[460px] overflow-hidden bg-[radial-gradient(circle_at_50%_40%,rgba(99,102,241,0.16),transparent_55%)]">
-            <div className="absolute inset-0 dot-grid opacity-25" />
+        <div className="relative grid gap-0 lg:grid-cols-[1fr_300px]">
+          <div className="relative min-h-[500px] overflow-hidden">
+            <div className="absolute inset-0 dot-grid opacity-20" />
+            <div className="absolute left-8 top-8 rounded-full border border-cyan-400/15 px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.28em] text-cyan-200/55">
+              Sentinel network
+            </div>
+            <div className="absolute bottom-8 left-8 grid grid-cols-3 gap-2 text-xs">
+              <div className="rounded-xl border border-white/[0.08] bg-white/[0.04] px-3 py-2">
+                <p className="text-white/30">Empresas</p>
+                <p className="mt-1 font-semibold text-white">{companies.length}</p>
+              </div>
+              <div className="rounded-xl border border-white/[0.08] bg-white/[0.04] px-3 py-2">
+                <p className="text-white/30">Regioes</p>
+                <p className="mt-1 font-semibold text-white">{regions.length}</p>
+              </div>
+              <div className="rounded-xl border border-white/[0.08] bg-white/[0.04] px-3 py-2">
+                <p className="text-white/30">Status</p>
+                <p className="mt-1 font-semibold text-emerald-300">Ativo</p>
+              </div>
+            </div>
             <svg viewBox="0 0 1000 520" className="relative z-10 h-full min-h-[460px] w-full">
               <defs>
-                <filter id="continentGlow">
-                  <feGaussianBlur stdDeviation="4" result="blur" />
+                <linearGradient id="landGradient" x1="0" x2="1" y1="0" y2="1">
+                  <stop offset="0%" stopColor="rgba(99,102,241,0.28)" />
+                  <stop offset="52%" stopColor="rgba(6,182,212,0.18)" />
+                  <stop offset="100%" stopColor="rgba(168,85,247,0.22)" />
+                </linearGradient>
+                <radialGradient id="hubGradient" cx="50%" cy="50%" r="50%">
+                  <stop offset="0%" stopColor="rgba(255,255,255,0.95)" />
+                  <stop offset="45%" stopColor="rgba(99,102,241,0.85)" />
+                  <stop offset="100%" stopColor="rgba(99,102,241,0)" />
+                </radialGradient>
+                <filter id="networkGlow">
+                  <feGaussianBlur stdDeviation="3" result="blur" />
                   <feMerge>
                     <feMergeNode in="blur" />
                     <feMergeNode in="SourceGraphic" />
@@ -281,24 +312,54 @@ function WorldMapModal({ companies, onClose }: { companies: Company[]; onClose: 
                 </filter>
               </defs>
 
-              <path d="M121 170 C170 111 257 104 312 147 C353 180 337 236 284 254 C216 276 150 248 121 170Z" fill="rgba(99,102,241,0.16)" stroke="rgba(99,102,241,0.35)" filter="url(#continentGlow)" />
-              <path d="M250 275 C315 286 350 346 325 417 C306 470 250 448 230 388 C213 337 205 293 250 275Z" fill="rgba(6,182,212,0.13)" stroke="rgba(6,182,212,0.32)" filter="url(#continentGlow)" />
-              <path d="M455 151 C532 95 670 98 765 151 C835 190 822 260 732 272 C635 286 582 229 492 246 C421 258 383 204 455 151Z" fill="rgba(139,92,246,0.18)" stroke="rgba(139,92,246,0.36)" filter="url(#continentGlow)" />
-              <path d="M500 255 C548 271 586 318 578 390 C570 457 500 451 474 389 C451 334 454 276 500 255Z" fill="rgba(245,158,11,0.14)" stroke="rgba(245,158,11,0.34)" filter="url(#continentGlow)" />
-              <path d="M731 294 C790 281 856 315 888 370 C911 410 872 439 821 424 C770 409 715 348 731 294Z" fill="rgba(16,185,129,0.13)" stroke="rgba(16,185,129,0.32)" filter="url(#continentGlow)" />
+              <g opacity="0.26" stroke="rgba(148,163,184,0.45)" strokeWidth="1">
+                {[160, 260, 360, 460, 560, 660, 760, 860].map(x => <line key={`v-${x}`} x1={x} y1="74" x2={x} y2="430" />)}
+                {[115, 185, 255, 325, 395].map(y => <path key={`h-${y}`} d={`M95 ${y} C300 ${y - 32} 700 ${y - 32} 905 ${y}`} fill="none" />)}
+              </g>
+
+              <g fill="url(#landGradient)" stroke="rgba(125,211,252,0.32)" strokeWidth="1.2" filter="url(#networkGlow)">
+                <path d="M112 171 C143 126 199 111 250 125 C302 139 342 176 326 214 C307 260 237 270 181 249 C133 230 94 207 112 171Z" />
+                <path d="M258 272 C306 281 348 325 337 380 C328 425 294 468 256 430 C224 398 215 338 229 303 C235 287 244 277 258 272Z" />
+                <path d="M435 164 C480 121 556 111 625 125 C709 141 797 182 802 229 C807 273 740 296 650 277 C574 261 516 231 458 249 C410 264 383 213 435 164Z" />
+                <path d="M492 257 C548 273 591 326 584 386 C577 443 525 458 493 411 C460 363 450 283 492 257Z" />
+                <path d="M736 301 C793 287 861 322 888 372 C909 413 873 444 826 428 C775 411 719 354 736 301Z" />
+              </g>
+
+              <g opacity="0.55">
+                {plottedCompanies.map(({ company, point }) => (
+                  <path
+                    key={`route-${company.id}`}
+                    d={`M${hub.x} ${hub.y} Q${(hub.x + point.x) / 2} ${Math.min(hub.y, point.y) - 80} ${point.x} ${point.y}`}
+                    fill="none"
+                    stroke={company.color}
+                    strokeWidth="1.4"
+                    strokeDasharray="6 8"
+                    filter="url(#networkGlow)"
+                  />
+                ))}
+              </g>
+
+              <circle cx={hub.x} cy={hub.y} r="58" fill="url(#hubGradient)" opacity="0.28" />
+              <circle cx={hub.x} cy={hub.y} r="10" fill="rgba(255,255,255,0.92)" stroke="rgba(99,102,241,0.9)" strokeWidth="3" />
+              <circle cx={hub.x} cy={hub.y} r="24" fill="none" stroke="rgba(99,102,241,0.42)" strokeWidth="1">
+                <animate attributeName="r" values="20;34;20" dur="3.4s" repeatCount="indefinite" />
+                <animate attributeName="opacity" values="0.8;0.15;0.8" dur="3.4s" repeatCount="indefinite" />
+              </circle>
+              <text x={hub.x + 18} y={hub.y - 14} fill="rgba(255,255,255,0.82)" fontSize="11" fontWeight="700">SENTINEL</text>
+              <text x={hub.x + 18} y={hub.y + 2} fill="rgba(255,255,255,0.42)" fontSize="10">global ops</text>
 
               {plottedCompanies.map(({ company, point }, index) => (
                 <g key={company.id}>
-                  <circle cx={point.x} cy={point.y} r="18" fill={company.color} opacity="0.14">
-                    <animate attributeName="r" values="12;24;12" dur={`${2.4 + index * 0.2}s`} repeatCount="indefinite" />
+                  <circle cx={point.x} cy={point.y} r="28" fill={company.color} opacity="0.10">
+                    <animate attributeName="r" values="18;36;18" dur={`${2.8 + index * 0.2}s`} repeatCount="indefinite" />
                   </circle>
-                  <circle cx={point.x} cy={point.y} r="6" fill={company.color} stroke="rgba(255,255,255,0.85)" strokeWidth="2" />
-                  <line x1={point.x} y1={point.y - 8} x2={point.x + 34} y2={point.y - 36} stroke={company.color} strokeWidth="1" opacity="0.8" />
-                  <rect x={point.x + 38} y={point.y - 55} width="150" height="42" rx="10" fill="rgba(15,23,42,0.88)" stroke="rgba(255,255,255,0.10)" />
-                  <text x={point.x + 48} y={point.y - 32} fill="rgba(255,255,255,0.88)" fontSize="12" fontWeight="700">
+                  <circle cx={point.x} cy={point.y} r="7" fill={company.color} stroke="rgba(255,255,255,0.9)" strokeWidth="2.4" filter="url(#networkGlow)" />
+                  <line x1={point.x} y1={point.y - 9} x2={point.labelX} y2={point.labelY + 19} stroke={company.color} strokeWidth="1" opacity="0.75" />
+                  <rect x={point.labelX} y={point.labelY} width="154" height="44" rx="10" fill="rgba(7,10,20,0.88)" stroke="rgba(125,211,252,0.18)" />
+                  <text x={point.labelX + 10} y={point.labelY + 23} fill="rgba(255,255,255,0.88)" fontSize="12" fontWeight="700">
                     {company.shortName || company.name.slice(0, 16)}
                   </text>
-                  <text x={point.x + 48} y={point.y - 15} fill="rgba(255,255,255,0.42)" fontSize="11">
+                  <text x={point.labelX + 10} y={point.labelY + 40} fill="rgba(255,255,255,0.42)" fontSize="11">
                     {point.region}
                   </text>
                 </g>
@@ -306,11 +367,11 @@ function WorldMapModal({ companies, onClose }: { companies: Company[]; onClose: 
             </svg>
           </div>
 
-          <div className="border-t border-white/[0.08] bg-white/[0.02] p-5 lg:border-l lg:border-t-0">
-            <p className="text-xs font-semibold uppercase tracking-wider text-white/35">Areas em destaque</p>
+          <div className="border-t border-white/[0.08] bg-white/[0.03] p-5 lg:border-l lg:border-t-0">
+            <p className="text-xs font-semibold uppercase tracking-wider text-white/35">Presenca operacional</p>
             <div className="mt-4 space-y-3">
               {plottedCompanies.map(({ company, point }) => (
-                <div key={company.id} className="rounded-xl border border-white/[0.06] bg-white/[0.03] p-3">
+                <div key={company.id} className="rounded-xl border border-white/[0.07] bg-white/[0.04] p-3">
                   <div className="flex items-center gap-2">
                     <span className="h-2.5 w-2.5 rounded-full" style={{ backgroundColor: company.color }} />
                     <span className="text-sm font-semibold text-white/80">{company.name}</span>
@@ -320,7 +381,7 @@ function WorldMapModal({ companies, onClose }: { companies: Company[]; onClose: 
               ))}
             </div>
             <p className="mt-5 text-xs leading-relaxed text-white/30">
-              Visao operacional das regioes onde a Sentinel acompanha clientes, QA, boards e rotinas de entrega.
+              Visao executiva das regioes onde a Sentinel conecta clientes, QA, boards e rotinas de entrega.
             </p>
           </div>
         </div>
