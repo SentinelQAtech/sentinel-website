@@ -73,6 +73,58 @@ const HEIGHTS: { value: WidgetHeight; label: string; tip: string }[] = [
   { value: '4', label: '4', tip: 'Altura máxima'    },
 ]
 
+const LAYOUT_PRESETS: { label: string; items: WidgetConfig[] }[] = [
+  {
+    label: 'Operacional',
+    items: [
+      { id: 'sentinel-ai', visible: true },
+      { id: 'metrics', visible: true },
+      { id: 'daily-progress', visible: true, size: 'md', height: '3' },
+      { id: 'daily-tasks', visible: true, size: 'md', height: '3' },
+      { id: 'daily-meetings', visible: true, size: 'md', height: '3' },
+      { id: 'qa-quick-action', visible: true, size: 'sm', height: '4' },
+      { id: 'qa-today', visible: true, size: 'sm', height: '4' },
+      { id: 'critical-bugs', visible: true, size: 'sm', height: '4' },
+      { id: 'calendar', visible: true, size: 'sm', height: '4' },
+    ],
+  },
+  {
+    label: 'QA Focus',
+    items: [
+      { id: 'sentinel-ai', visible: true },
+      { id: 'qa-quick-action', visible: true, size: 'lg', height: '4' },
+      { id: 'qa-today', visible: true, size: 'md', height: '4' },
+      { id: 'critical-bugs', visible: true, size: 'md', height: '3' },
+      { id: 'qa-donut', visible: true, size: 'md', height: '3' },
+      { id: 'bug-trend', visible: true, size: 'xl', height: '3' },
+      { id: 'daily-progress', visible: true, size: 'md', height: '3' },
+    ],
+  },
+  {
+    label: 'Gestao',
+    items: [
+      { id: 'sentinel-ai', visible: true },
+      { id: 'metrics', visible: true },
+      { id: 'active-projects', visible: true, size: 'lg', height: '4' },
+      { id: 'team-presence', visible: true, size: 'md', height: '4' },
+      { id: 'sprint', visible: true, size: 'md', height: '3' },
+      { id: 'burndown', visible: true, size: 'lg', height: '3' },
+      { id: 'activity-heatmap', visible: true, size: 'lg', height: '3' },
+    ],
+  },
+  {
+    label: 'Daily',
+    items: [
+      { id: 'daily', visible: true },
+      { id: 'daily-progress', visible: true, size: 'md', height: '3' },
+      { id: 'daily-tasks', visible: true, size: 'lg', height: '4' },
+      { id: 'daily-meetings', visible: true, size: 'md', height: '4' },
+      { id: 'calendar', visible: true, size: 'md', height: '3' },
+      { id: 'qa-quick-action', visible: true, size: 'md', height: '3' },
+    ],
+  },
+]
+
 interface SortableItemProps {
   widget:         WidgetConfig
   onToggle:       () => void
@@ -326,6 +378,21 @@ export function LayoutEditor({ userId, open, onClose }: LayoutEditorProps) {
           <p className="px-4 py-1.5 text-[10px] text-white/20 border-b border-white/[0.04] shrink-0">
             Arraste · Olho para ocultar · Largura e Altura para grid
           </p>
+
+          <div className="border-b border-white/[0.05] px-3 py-2.5 shrink-0">
+            <p className="mb-2 text-[10px] font-semibold uppercase tracking-wider text-white/25">Presets</p>
+            <div className="grid grid-cols-2 gap-1.5">
+              {LAYOUT_PRESETS.map(preset => (
+                <button
+                  key={preset.label}
+                  onClick={() => { importLayout(userId, preset.items); flash() }}
+                  className="rounded-lg border border-white/[0.06] bg-white/[0.03] px-2 py-1.5 text-[11px] font-medium text-white/45 hover:border-primary/25 hover:bg-primary/10 hover:text-primary"
+                >
+                  {preset.label}
+                </button>
+              ))}
+            </div>
+          </div>
 
           {/* List */}
           <div className="flex-1 overflow-y-auto px-3 py-3">

@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { motion } from 'framer-motion'
-import { SlidersHorizontal } from 'lucide-react'
+import { Bug, CalendarDays, Gauge, SlidersHorizontal, Sun, Target } from 'lucide-react'
 import { DashboardMetrics }   from '@/components/dashboard/metrics'
 import { BugTrendChart }      from '@/components/dashboard/bug-trend-chart'
 import { SprintProgress }     from '@/components/dashboard/sprint-progress'
@@ -77,6 +77,16 @@ const HEIGHT_CLASS: Record<string, string> = {
   '4': 'h-[36rem]',
 }
 
+type DashboardFilter = 'all' | 'daily' | 'qa' | 'risks' | 'sprint'
+
+const FILTERS: { id: DashboardFilter; label: string; icon: React.ElementType; widgets: string[] }[] = [
+  { id: 'all',    label: 'Tudo',   icon: Gauge,        widgets: [] },
+  { id: 'daily',  label: 'Daily',  icon: Sun,          widgets: ['daily', 'daily-progress', 'daily-tasks', 'daily-meetings', 'calendar'] },
+  { id: 'qa',     label: 'QA',     icon: Bug,          widgets: ['qa-quick-action', 'qa-today', 'qa-donut', 'critical-bugs', 'bug-trend'] },
+  { id: 'risks',  label: 'Riscos', icon: Target,       widgets: ['sentinel-ai', 'critical-bugs', 'qa-today', 'daily-progress', 'recent-activity'] },
+  { id: 'sprint', label: 'Sprint', icon: CalendarDays, widgets: ['sprint', 'burndown', 'active-projects', 'activity-heatmap', 'team-presence'] },
+]
+
 function WidgetNode({ id }: { id: string }) {
   switch (id) {
     case 'daily':           return <TodayDailyWidget />
@@ -110,8 +120,10 @@ export default function DashboardPage() {
   const layout = getLayout(userId)
 
   const [editorOpen, setEditorOpen] = useState(false)
+  const [activeFilter, setActiveFilter] = useState<DashboardFilter>('all')
 
-  const visible       = layout.filter(w => w.visible)
+  const filterIds = FILTERS.find(f => f.id === activeFilter)?.widgets ?? []
+  const visible       = layout.filter(w => w.visible && (activeFilter === 'all' || filterIds.includes(w.id)))
   const fullWidthList = visible.filter(w => FULL_WIDTH.has(w.id))
   const gridList      = visible.filter(w => !FULL_WIDTH.has(w.id))
 
@@ -145,6 +157,28 @@ export default function DashboardPage() {
               <SlidersHorizontal className="h-3.5 w-3.5" />
             </button>
           </div>
+        </motion.div>
+
+        <motion.div variants={fadeUp} className="flex flex-wrap items-center gap-2">
+          {FILTERS.map(filter => {
+            const Icon = filter.icon
+            const active = activeFilter === filter.id
+            return (
+              <button
+                key={filter.id}
+                onClick={() => setActiveFilter(filter.id)}
+                className={cn(
+                  'flex items-center gap-1.5 rounded-lg border px-3 py-1.5 text-xs font-medium transition-all',
+                  active
+                    ? 'border-primary/35 bg-primary/15 text-primary'
+                    : 'border-white/[0.08] bg-white/[0.03] text-white/35 hover:bg-white/[0.06] hover:text-white/65'
+                )}
+              >
+                <Icon className="h-3.5 w-3.5" />
+                {filter.label}
+              </button>
+            )
+          })}
         </motion.div>
 
         {/* Full-width widgets */}
