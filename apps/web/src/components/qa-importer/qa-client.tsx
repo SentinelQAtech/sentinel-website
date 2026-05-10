@@ -8,7 +8,7 @@ import {
   useQAImporterStore,
   type QAItem, type QAItemSource, PRIORITY_ORDER,
 } from '@/store/qa-importer'
-import { useDailyStore, type DailyPriority, type DailyType } from '@/store/daily'
+import { useDailyStore, getTodayISO, type DailyPriority, type DailyType } from '@/store/daily'
 import type { ParsedQAItem } from '@/lib/qa-parser'
 
 import { QASummaryCards }  from './qa-summary-cards'
@@ -111,6 +111,7 @@ export function QAImporterClient() {
     const titleParts = [item.issueKey && `[${item.issueKey}]`, item.title].filter(Boolean)
     const notes      = [item.notes, item.link && `🔗 ${item.link}`].filter(Boolean).join(' · ')
     addTask({
+      date:     getTodayISO(),
       client,
       title:    titleParts.join(' '),
       type:     mapToDailyType(item.qaCategory),

@@ -2,7 +2,7 @@
 
 import { ClipboardList, CheckCircle2, Circle, AlertCircle, Minus } from 'lucide-react'
 import { cn } from '@/lib/utils'
-import { useDailyStore, PRIORITY_CONFIG, CLIENT_CONFIG } from '@/store/daily'
+import { useDailyStore, PRIORITY_CONFIG, CLIENT_CONFIG, getTodayISO } from '@/store/daily'
 import type { DailyStatus } from '@/store/daily'
 
 const STATUS_ICON: Record<DailyStatus, { icon: React.ElementType; cls: string }> = {
@@ -13,7 +13,8 @@ const STATUS_ICON: Record<DailyStatus, { icon: React.ElementType; cls: string }>
 }
 
 export function DailyTasksWidget() {
-  const { tasks, toggleTask } = useDailyStore()
+  const { getTasksForDate, toggleTask } = useDailyStore()
+  const tasks = getTasksForDate(getTodayISO())
 
   const sorted = [...tasks].sort((a, b) => {
     const order = { Critical: 0, High: 1, Medium: 2, Low: 3 }

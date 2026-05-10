@@ -9,6 +9,7 @@ export type DailyType     = 'Daily' | 'Card Work' | 'Study' | 'Testing' | 'QA Pl
 
 export interface DailyTask {
   id:          string
+  date?:       string
   client:      string
   title:       string
   type:        DailyType
@@ -20,6 +21,7 @@ export interface DailyTask {
 
 export interface DailyMeeting {
   id:           string
+  date?:         string
   region:       string
   time:         string
   title?:       string
@@ -102,11 +104,43 @@ const INITIAL_MEETINGS: DailyMeeting[] = [
   { id: 'm8', region: 'Ucrânia', time: '10:30' },
 ]
 
+export function getTodayISO() {
+  const now = new Date()
+  const tzOffset = now.getTimezoneOffset() * 60000
+  return new Date(now.getTime() - tzOffset).toISOString().slice(0, 10)
+}
+
+function withDate<T extends { date?: string }>(items: T[], date: string): T[] {
+  return items.map(item => ({ ...item, date: item.date ?? date }))
+}
+
+function copyOpenTasks(tasks: DailyTask[], targetDate: string): DailyTask[] {
+  return tasks
+    .filter(task => task.status !== 'done')
+    .map(task => ({
+      ...task,
+      id: `t${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
+      date: targetDate,
+      status: 'todo' as DailyStatus,
+      notes: task.notes ? `${task.notes}\nCopiada do Daily de ${task.date}.` : `Copiada do Daily de ${task.date}.`,
+    }))
+}
+
 // ─── Store ────────────────────────────────────────────────────
 
 interface DailyStore {
-  tasks:    DailyTask[]
-  meetings: DailyMeeting[]
+  tasks:       DailyTask[]
+  meetings:    DailyMeeting[]
+  allTasks:    DailyTask[]
+  allMeetings: DailyMeeting[]
+  selectedDate: string
+
+  setSelectedDate: (date: string) => void
+  goToToday:       () => void
+  getTasksForDate:    (date: string) => DailyTask[]
+  getMeetingsForDate: (date: string) => DailyMeeting[]
+  getDailyDates:      () => string[]
+  copyOpenTasksToToday: (fromDate: string) => number
 
   addTask:        (task: Omit<DailyTask, 'id'>) => void
   updateTask:     (id: string, updates: Partial<DailyTask>) => void
@@ -121,41 +155,150 @@ interface DailyStore {
 
 export const useDailyStore = create<DailyStore>()(
   persist(
-    (set) => ({
-      tasks:    INITIAL_TASKS,
-      meetings: INITIAL_MEETINGS,
+    (set, get) => {
+      const today = getTodayISO()
+      const initialTasks = withDate(INITIAL_TASKS, today)
+      const initialMeetings = withDate(INITIAL_MEETINGS, today)
+      const refreshSelected = (date = get().selectedDate) =>
+        set(s => ({
+          selectedDate: date,
+          tasks: s.allTasks.filter(t => (t.date ?? today) === date),
+          meetings: s.allMeetings.filter(m => (m.date ?? today) === date).sort((a, b) => a.time.localeCompare(b.time)),
+        }))
+
+      return {
+      tasks:    initialTasks,
+      meetings: initialMeetings,
+      allTasks: initialTasks,
+      allMeetings: initialMeetings,
+      selectedDate: today,
+
+      setSelectedDate: (date) => refreshSelected(date),
+
+      goToToday: () => refreshSelected(getTodayISO()),
+
+      getTasksForDate: (date) => get().allTasks.filter(t => (t.date ?? today) === date),
+
+      getMeetingsForDate: (date) => get().allMeetings.filter(m => (m.date ?? today) === date).sort((a, b) => a.time.localeCompare(b.time)),
+
+      getDailyDates: () => {
+        const dates = new Set<string>([getTodayISO()])
+        get().allTasks.forEach(t => dates.add(t.date ?? today))
+        get().allMeetings.forEach(m => dates.add(m.date ?? today))
+        return [...dates].sort((a, b) => b.localeCompare(a))
+      },
+
+      copyOpenTasksToToday: (fromDate) => {
+        const targetDate = getTodayISO()
+        const copies = copyOpenTasks(get().allTasks.filter(t => (t.date ?? today) === fromDate), targetDate)
+        if (copies.length === 0) return 0
+        set(s => ({ allTasks: [...s.allTasks, ...copies] }))
+        refreshSelected(get().selectedDate)
+        return copies.length
+      },
 
       addTask: (task) =>
-        set(s => ({ tasks: [...s.tasks, { ...task, id: `t${Date.now()}` }] })),
+        set(s => {
+          const datedTask = { ...task, date: task.date ?? s.selectedDate, id: `t${Date.now()}` }
+          const allTasks = [...s.allTasks, datedTask]
+          return {
+            allTasks,
+            tasks: allTasks.filter(t => (t.date ?? today) === s.selectedDate),
+          }
+        }),
 
       updateTask: (id, updates) =>
-        set(s => ({ tasks: s.tasks.map(t => t.id === id ? { ...t, ...updates } : t) })),
+        set(s => {
+          const allTasks = s.allTasks.map(t => t.id === id ? { ...t, ...updates } : t)
+          return {
+            allTasks,
+            tasks: allTasks.filter(t => (t.date ?? today) === s.selectedDate),
+          }
+        }),
 
       toggleTask: (id) =>
-        set(s => ({
-          tasks: s.tasks.map(t =>
-            t.id === id ? { ...t, status: t.status === 'done' ? 'todo' : 'done' } : t
-          ),
-        })),
+        set(s => {
+          const allTasks = s.allTasks.map(t =>
+            t.id === id ? { ...t, status: (t.status === 'done' ? 'todo' : 'done') as DailyStatus } : t
+          )
+          return {
+            allTasks,
+            tasks: allTasks.filter(t => (t.date ?? today) === s.selectedDate),
+          }
+        }),
 
       removeTask: (id) =>
-        set(s => ({ tasks: s.tasks.filter(t => t.id !== id) })),
+        set(s => {
+          const allTasks = s.allTasks.filter(t => t.id !== id)
+          return {
+            allTasks,
+            tasks: allTasks.filter(t => (t.date ?? today) === s.selectedDate),
+          }
+        }),
 
       addMeeting: (m) =>
-        set(s => ({
-          meetings: [...s.meetings, { ...m, id: `m${Date.now()}` }]
-            .sort((a, b) => a.time.localeCompare(b.time)),
-        })),
+        set(s => {
+          const datedMeeting = { ...m, date: m.date ?? s.selectedDate, id: `m${Date.now()}` }
+          const allMeetings = [...s.allMeetings, datedMeeting]
+          return {
+            allMeetings,
+            meetings: allMeetings
+              .filter(meeting => (meeting.date ?? today) === s.selectedDate)
+              .sort((a, b) => a.time.localeCompare(b.time)),
+          }
+        }),
 
       removeMeeting: (id) =>
-        set(s => ({ meetings: s.meetings.filter(m => m.id !== id) })),
+        set(s => {
+          const allMeetings = s.allMeetings.filter(m => m.id !== id)
+          return {
+            allMeetings,
+            meetings: allMeetings
+              .filter(m => (m.date ?? today) === s.selectedDate)
+              .sort((a, b) => a.time.localeCompare(b.time)),
+          }
+        }),
 
       generateTemplate: () =>
-        set({
-          tasks:    INITIAL_TASKS.map(t => ({ ...t, status: 'todo' as DailyStatus })),
-          meetings: INITIAL_MEETINGS,
+        set(s => {
+          const date = s.selectedDate
+          const allTasks = [
+            ...s.allTasks.filter(t => (t.date ?? today) !== date),
+            ...INITIAL_TASKS.map(t => ({ ...t, id: `${t.id}-${date}`, date, status: 'todo' as DailyStatus })),
+          ]
+          const allMeetings = [
+            ...s.allMeetings.filter(m => (m.date ?? today) !== date),
+            ...INITIAL_MEETINGS.map(m => ({ ...m, id: `${m.id}-${date}`, date })),
+          ]
+          return {
+            allTasks,
+            allMeetings,
+            tasks: allTasks.filter(t => (t.date ?? today) === date),
+            meetings: allMeetings.filter(m => (m.date ?? today) === date),
+          }
         }),
-    }),
-    { name: 'spm-daily' }
+      }
+    },
+    {
+      name: 'spm-daily',
+      version: 2,
+      migrate: (persistedState: unknown) => {
+        const state = persistedState as Partial<DailyStore> | undefined
+        const today = getTodayISO()
+        const sourceTasks = state?.allTasks ?? state?.tasks ?? INITIAL_TASKS
+        const sourceMeetings = state?.allMeetings ?? state?.meetings ?? INITIAL_MEETINGS
+        const selectedDate = state?.selectedDate ?? today
+        const allTasks = withDate(sourceTasks, today)
+        const allMeetings = withDate(sourceMeetings, today)
+        return {
+          ...state,
+          selectedDate,
+          allTasks,
+          allMeetings,
+          tasks: allTasks.filter(t => (t.date ?? today) === selectedDate),
+          meetings: allMeetings.filter(m => (m.date ?? today) === selectedDate),
+        }
+      },
+    }
   )
 )

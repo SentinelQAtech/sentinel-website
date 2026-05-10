@@ -2,36 +2,68 @@
 
 import Link from 'next/link'
 import { motion } from 'framer-motion'
-import { Sun, ArrowRight } from 'lucide-react'
-import { useDailyStore } from '@/store/daily'
+import { AlertTriangle, ArrowRight, Ban, CheckCircle2, Clock3, History, Sun } from 'lucide-react'
+import { useDailyStore, getTodayISO } from '@/store/daily'
 
 export function DailyProgressWidget() {
-  const tasks = useDailyStore(s => s.tasks)
+  const { getTasksForDate, getDailyDates } = useDailyStore()
+  const today = getTodayISO()
+  const tasks = getTasksForDate(today)
+  const dates = getDailyDates()
 
   const total = tasks.length
-  const done  = tasks.filter(t => t.status === 'done').length
-  const pct   = total > 0 ? Math.round((done / total) * 100) : 0
+  const done = tasks.filter(t => t.status === 'done').length
+  const open = tasks.filter(t => t.status !== 'done').length
+  const blocked = tasks.filter(t => t.status === 'blocked').length
+  const priorityOpen = tasks.filter(t => t.status !== 'done' && (t.priority === 'Critical' || t.priority === 'High')).length
+  const activeClients = new Set(tasks.map(t => t.client)).size
+  const pct = total > 0 ? Math.round((done / total) * 100) : 0
+
+  const previousOpen = dates
+    .filter(date => date !== today)
+    .map(date => ({ date, count: getTasksForDate(date).filter(t => t.status !== 'done').length }))
+    .filter(item => item.count > 0)[0]
+
+  const stats = [
+    { label: 'Abertas', value: open, icon: Clock3, color: '#f59e0b' },
+    { label: 'Prioritarias', value: priorityOpen, icon: AlertTriangle, color: '#f97316' },
+    { label: 'Bloqueadas', value: blocked, icon: Ban, color: '#ef4444' },
+    { label: 'Clientes', value: activeClients, icon: CheckCircle2, color: '#06b6d4' },
+  ]
 
   return (
     <div className="glass-card border border-white/[0.07] overflow-hidden h-full flex flex-col">
       <div className="h-px w-full bg-gradient-to-r from-primary/60 via-violet-500/40 to-transparent shrink-0" />
 
-      <div className="flex flex-col gap-4 px-5 py-4 flex-1 justify-between">
-        {/* Header */}
+      <div className="flex flex-col gap-3 px-4 py-3 flex-1">
         <div className="flex items-center gap-2.5">
           <div className="w-7 h-7 rounded-lg bg-primary/15 border border-primary/25 flex items-center justify-center shrink-0">
             <Sun className="w-3.5 h-3.5 text-primary" />
           </div>
           <div>
-            <h3 className="text-sm font-semibold text-white/85 leading-none">Daily — Progresso</h3>
-            <p className="text-[10px] text-white/35 mt-0.5">{done} de {total} tarefas concluídas</p>
+            <h3 className="text-sm font-semibold text-white/85 leading-none">Daily - Progresso</h3>
+            <p className="text-[10px] text-white/35 mt-0.5">{done} de {total} concluidas hoje</p>
           </div>
         </div>
 
-        {/* Progress */}
+        <div className="grid grid-cols-2 gap-2">
+          {stats.map(stat => {
+            const Icon = stat.icon
+            return (
+              <div key={stat.label} className="rounded-lg border border-white/[0.06] bg-white/[0.03] px-2 py-1.5">
+                <div className="flex items-center justify-between gap-2">
+                  <Icon className="w-3 h-3" style={{ color: stat.color }} />
+                  <span className="text-sm font-bold text-white tabular-nums">{stat.value}</span>
+                </div>
+                <p className="mt-0.5 text-[9px] text-white/35">{stat.label}</p>
+              </div>
+            )
+          })}
+        </div>
+
         <div className="space-y-2">
           <div className="flex items-center justify-between text-xs">
-            <span className="text-white/30">Conclusão</span>
+            <span className="text-white/30">Conclusao</span>
             <span
               className="font-bold tabular-nums"
               style={{ color: pct === 100 ? '#10b981' : '#6366f1' }}
@@ -52,27 +84,32 @@ export function DailyProgressWidget() {
               }}
             />
           </div>
-          {/* Dot progress */}
-          {total > 0 && total <= 20 && (
-            <div className="flex gap-1 flex-wrap">
-              {Array.from({ length: total }).map((_, i) => (
-                <span
-                  key={i}
-                  className="w-2 h-2 rounded-full transition-colors"
-                  style={{ background: i < done ? '#6366f1' : 'rgba(255,255,255,0.08)' }}
-                />
-              ))}
-            </div>
-          )}
         </div>
 
-        {/* Action */}
-        <Link
-          href="/daily"
-          className="flex items-center justify-center gap-1.5 w-full px-3 py-2 rounded-lg text-xs font-medium bg-primary/15 border border-primary/25 text-primary hover:bg-primary/25 transition-all duration-150"
-        >
-          Abrir Daily <ArrowRight className="w-3 h-3" />
-        </Link>
+        {previousOpen && (
+          <Link
+            href="/daily"
+            className="flex items-center gap-2 rounded-lg border border-amber-500/20 bg-amber-500/10 px-3 py-2 text-xs text-amber-300 hover:bg-amber-500/15"
+          >
+            <History className="w-3.5 h-3.5" />
+            {previousOpen.count} pendente{previousOpen.count > 1 ? 's' : ''} no historico
+          </Link>
+        )}
+
+        <div className="mt-auto flex gap-2">
+          <Link
+            href="/daily"
+            className="flex flex-1 items-center justify-center gap-1.5 rounded-lg border border-primary/25 bg-primary/15 px-3 py-2 text-xs font-medium text-primary transition-all duration-150 hover:bg-primary/25"
+          >
+            Abrir <ArrowRight className="w-3 h-3" />
+          </Link>
+          <Link
+            href="/daily"
+            className="flex items-center justify-center rounded-lg border border-white/[0.08] bg-white/[0.04] px-3 py-2 text-xs font-medium text-white/45 hover:text-white/70"
+          >
+            Historico
+          </Link>
+        </div>
       </div>
     </div>
   )

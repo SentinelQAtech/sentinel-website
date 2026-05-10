@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { X, Plus, ChevronDown } from 'lucide-react'
 import { cn } from '@/lib/utils'
@@ -9,7 +9,7 @@ import {
   DEFAULT_CLIENTS, TASK_TYPES, PRIORITIES, STATUSES,
   type DailyType, type DailyPriority, type DailyStatus,
 } from '@/store/daily'
-import { useActiveCompanies } from '@/store/companies'
+import { useCompaniesStore } from '@/store/companies'
 import { Button } from '@/components/ui/button'
 
 interface AddItemModalProps {
@@ -25,8 +25,11 @@ const inputCls = cn(
 
 export function AddItemModal({ open, onClose }: AddItemModalProps) {
   const addTask = useDailyStore(s => s.addTask)
-  const activeCompanies = useActiveCompanies()
-  const companyOptions = activeCompanies.length > 0 ? activeCompanies.map(c => c.name) : DEFAULT_CLIENTS
+  const companies = useCompaniesStore(s => s.companies)
+  const companyOptions = useMemo(() => {
+    const activeCompanies = companies.filter(c => c.status !== 'finished').map(c => c.name)
+    return activeCompanies.length > 0 ? activeCompanies : DEFAULT_CLIENTS
+  }, [companies])
 
   const [client,  setClient]  = useState(DEFAULT_CLIENTS[0])
   const [custom,  setCustom]  = useState('')

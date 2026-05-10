@@ -2,10 +2,11 @@
 
 import { Video, Clock } from 'lucide-react'
 import { cn } from '@/lib/utils'
-import { useDailyStore, REGION_CONFIG } from '@/store/daily'
+import { useDailyStore, REGION_CONFIG, getTodayISO } from '@/store/daily'
 
 export function DailyMeetingsWidget() {
-  const meetings = useDailyStore(s => s.meetings)
+  const { getMeetingsForDate } = useDailyStore()
+  const meetings = getMeetingsForDate(getTodayISO())
 
   const now    = new Date()
   const nowMin = now.getHours() * 60 + now.getMinutes()

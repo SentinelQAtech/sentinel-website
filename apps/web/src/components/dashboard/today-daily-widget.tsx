@@ -7,7 +7,7 @@ import {
   AlertCircle, Minus, Video,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
-import { useDailyStore, PRIORITY_CONFIG, CLIENT_CONFIG, REGION_CONFIG } from '@/store/daily'
+import { useDailyStore, PRIORITY_CONFIG, CLIENT_CONFIG, REGION_CONFIG, getTodayISO } from '@/store/daily'
 import type { DailyStatus } from '@/store/daily'
 
 const STATUS_ICON: Record<DailyStatus, { icon: React.ElementType; cls: string }> = {
@@ -18,7 +18,10 @@ const STATUS_ICON: Record<DailyStatus, { icon: React.ElementType; cls: string }>
 }
 
 export function TodayDailyWidget() {
-  const { tasks, meetings, toggleTask } = useDailyStore()
+  const { getTasksForDate, getMeetingsForDate, toggleTask } = useDailyStore()
+  const today = getTodayISO()
+  const tasks = getTasksForDate(today)
+  const meetings = getMeetingsForDate(today)
 
   const total = tasks.length
   const done  = tasks.filter(t => t.status === 'done').length

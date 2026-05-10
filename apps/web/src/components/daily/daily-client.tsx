@@ -4,10 +4,10 @@ import { useState } from 'react'
 import { motion } from 'framer-motion'
 import {
   Plus, Video, RefreshCw, Sun, Filter,
-  AlertTriangle, ChevronRight, Target
+  AlertTriangle, ChevronLeft, ChevronRight, History, Target
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
-import { useDailyStore, DEFAULT_CLIENTS, PRIORITY_CONFIG, CLIENT_CONFIG, type DailyPriority } from '@/store/daily'
+import { useDailyStore, DEFAULT_CLIENTS, PRIORITY_CONFIG, CLIENT_CONFIG, getTodayISO, type DailyPriority } from '@/store/daily'
 import { DailyOverview } from './daily-overview'
 import { ClientSection } from './client-section'
 import { MeetingsPanel } from './meetings-panel'
@@ -24,17 +24,42 @@ const fadeUp = {
 }
 
 export function DailyClient() {
-  const { tasks, meetings, generateTemplate } = useDailyStore()
+  const {
+    tasks,
+    meetings,
+    selectedDate,
+    setSelectedDate,
+    goToToday,
+    getDailyDates,
+    copyOpenTasksToToday,
+    generateTemplate,
+  } = useDailyStore()
 
   const [addItem,    setAddItem]    = useState(false)
   const [addMeeting, setAddMeeting] = useState(false)
   const [view,       setView]       = useState<ViewMode>('client')
+  const [historyOpen, setHistoryOpen] = useState(false)
 
   // Gather all unique clients (default + any custom)
   const clientsWithTasks = [...new Set([...DEFAULT_CLIENTS, ...tasks.map(t => t.client)])]
     .filter(c => tasks.some(t => t.client === c))
-  const today  = new Date()
-  const dateStr = today.toLocaleDateString('pt-BR', { weekday: 'long', day: 'numeric', month: 'long' })
+  const selected = new Date(`${selectedDate}T12:00:00`)
+  const todayISO = getTodayISO()
+  const isToday = selectedDate === todayISO
+  const dailyDates = getDailyDates()
+  const openTasks = tasks.filter(t => t.status !== 'done')
+  const dateStr = selected.toLocaleDateString('pt-BR', { weekday: 'long', day: 'numeric', month: 'long' })
+
+  const shiftDay = (delta: number) => {
+    const next = new Date(`${selectedDate}T12:00:00`)
+    next.setDate(next.getDate() + delta)
+    setSelectedDate(next.toISOString().slice(0, 10))
+  }
+
+  const copyOpenToToday = () => {
+    const copied = copyOpenTasksToToday(selectedDate)
+    if (copied > 0) goToToday()
+  }
 
   return (
     <>
@@ -54,7 +79,7 @@ export function DailyClient() {
           </div>
           <p className="text-sm text-white/40 ml-10.5 capitalize">{dateStr}</p>
           <p className="text-xs text-white/30 ml-10.5 mt-0.5">
-            Planeje, priorize e acompanhe o trabalho de hoje.
+            {isToday ? 'Planeje, priorize e acompanhe o trabalho de hoje.' : 'Consulta historica da Daily selecionada.'}
           </p>
         </div>
 
@@ -72,6 +97,20 @@ export function DailyClient() {
             <RefreshCw className="w-3.5 h-3.5" />
             <span className="hidden sm:block">Gerar Template</span>
           </button>
+          {!isToday && openTasks.length > 0 && (
+            <button
+              onClick={copyOpenToToday}
+              title="Copiar tarefas abertas desta data para o Daily atual"
+              className={cn(
+                'flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-medium',
+                'bg-emerald-500/10 border border-emerald-500/25 text-emerald-300',
+                'hover:bg-emerald-500/15 transition-all duration-150'
+              )}
+            >
+              <ChevronRight className="w-3.5 h-3.5" />
+              <span className="hidden sm:block">Enviar abertas para hoje</span>
+            </button>
+          )}
           <button
             onClick={() => setAddMeeting(true)}
             className={cn(
@@ -95,6 +134,89 @@ export function DailyClient() {
             <span className="hidden sm:block">Tarefa</span>
           </button>
         </div>
+      </motion.div>
+
+      <motion.div
+        variants={fadeUp}
+        initial="hidden"
+        animate="show"
+        style={{ transitionDelay: '40ms' }}
+        className="glass-card border border-white/[0.07] p-3"
+      >
+        <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+          <div className="flex flex-wrap items-center gap-2">
+            <button
+              onClick={() => shiftDay(-1)}
+              className="flex h-9 w-9 items-center justify-center rounded-lg border border-white/[0.08] bg-white/[0.04] text-white/45 hover:text-white/70"
+              title="Daily anterior"
+            >
+              <ChevronLeft className="w-4 h-4" />
+            </button>
+            <input
+              type="date"
+              value={selectedDate}
+              onChange={e => setSelectedDate(e.target.value)}
+              className="h-9 rounded-lg border border-white/[0.08] bg-white/[0.04] px-3 text-sm font-medium text-white outline-none"
+            />
+            <button
+              onClick={() => shiftDay(1)}
+              className="flex h-9 w-9 items-center justify-center rounded-lg border border-white/[0.08] bg-white/[0.04] text-white/45 hover:text-white/70"
+              title="Proxima Daily"
+            >
+              <ChevronRight className="w-4 h-4" />
+            </button>
+            <button
+              onClick={goToToday}
+              className={cn(
+                'h-9 rounded-lg border px-3 text-xs font-semibold transition-colors',
+                isToday
+                  ? 'border-primary/35 bg-primary/15 text-primary'
+                  : 'border-white/[0.08] bg-white/[0.04] text-white/45 hover:text-white/70'
+              )}
+            >
+              Hoje
+            </button>
+          </div>
+
+          <div className="flex flex-wrap items-center gap-2">
+            <button
+              onClick={() => setHistoryOpen(o => !o)}
+              className="flex h-9 items-center gap-2 rounded-lg border border-white/[0.08] bg-white/[0.04] px-3 text-xs font-medium text-white/55 hover:text-white/75"
+            >
+              <History className="w-3.5 h-3.5" />
+              Historico
+            </button>
+            {!isToday && (
+              <span className="rounded-lg border border-amber-500/20 bg-amber-500/10 px-3 py-2 text-xs text-amber-300">
+                Visualizando Daily anterior
+              </span>
+            )}
+          </div>
+        </div>
+
+        {historyOpen && (
+          <div className="mt-3 flex gap-2 overflow-x-auto border-t border-white/[0.06] pt-3">
+            {dailyDates.map(date => {
+              const dt = new Date(`${date}T12:00:00`)
+              const label = dt.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' })
+              return (
+                <button
+                  key={date}
+                  onClick={() => setSelectedDate(date)}
+                  className={cn(
+                    'rounded-lg border px-3 py-2 text-left text-xs transition-colors shrink-0',
+                    selectedDate === date
+                      ? 'border-primary/35 bg-primary/15 text-primary'
+                      : 'border-white/[0.08] bg-white/[0.03] text-white/45 hover:text-white/70'
+                  )}
+                >
+                  <span className="block font-semibold">{date === todayISO ? 'Hoje' : label}</span>
+                  <span className="block text-[10px] opacity-60">{date}</span>
+                </button>
+              )
+            })}
+          </div>
+        )}
       </motion.div>
 
       {/* Overview + Progress */}
