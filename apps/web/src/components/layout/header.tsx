@@ -11,10 +11,14 @@ import { useRouter } from 'next/navigation'
 import { SearchModal } from './search-modal'
 import { NotificationsPanel } from './notifications-panel'
 import { QuickCreateModal } from './quick-create-modal'
+import { LanguageToggle } from './language-toggle'
+import { useI18nStore } from '@/store/i18n'
 
 export function Header() {
   const router = useRouter()
   const { user, logout } = useAuthStore()
+  useI18nStore(s => s.locale)
+  const t = useI18nStore(s => s.t)
 
   const [menuOpen, setMenuOpen]     = useState(false)
   const [searchOpen, setSearchOpen] = useState(false)
@@ -81,8 +85,10 @@ export function Header() {
             leftIcon={<Plus className="w-3.5 h-3.5" />}
             onClick={() => setCreateOpen(true)}
           >
-            <span className="hidden sm:block">Criar</span>
+            <span className="hidden sm:block">{t('create')}</span>
           </Button>
+
+          <LanguageToggle />
 
           {/* Notifications */}
           <div className="relative">
@@ -141,13 +147,13 @@ export function Header() {
                     onClick={() => { setMenuOpen(false); router.push('/profile') }}
                     className="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-white/70 hover:text-white hover:bg-white/[0.08] transition-all duration-150"
                   >
-                    <User className="w-4 h-4 text-white/40" /> Meu perfil
+                    <User className="w-4 h-4 text-white/40" /> {t('myProfile')}
                   </button>
                   <button
                     onClick={() => { setMenuOpen(false); router.push('/settings') }}
                     className="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-white/70 hover:text-white hover:bg-white/[0.08] transition-all duration-150"
                   >
-                    <Settings className="w-4 h-4 text-white/40" /> Configurações
+                    <Settings className="w-4 h-4 text-white/40" /> {t('settings')}
                   </button>
                 </div>
 
@@ -156,7 +162,7 @@ export function Header() {
                     onClick={handleLogout}
                     className="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-red-400 hover:text-red-300 hover:bg-red-500/10 transition-all duration-150"
                   >
-                    <LogOut className="w-4 h-4" /> Sair
+                    <LogOut className="w-4 h-4" /> {t('logout')}
                   </button>
                 </div>
               </div>

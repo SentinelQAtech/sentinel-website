@@ -1,6 +1,6 @@
 'use client'
 
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { motion } from 'framer-motion'
 import {
   Users, Mail, Github, Linkedin, Calendar, Shield,
@@ -26,6 +26,7 @@ type MemberForm = {
 }
 
 const COLORS = ['#6366f1', '#06b6d4', '#22c55e', '#f59e0b', '#ec4899', '#8b5cf6']
+const TEAM_STORAGE_KEY = 'spm-team-members'
 
 function emptyForm(): MemberForm {
   return {
@@ -57,10 +58,27 @@ function formFromMember(member: TeamMember): MemberForm {
 
 export default function TeamPage() {
   const [members, setMembers] = useState<TeamMember[]>(TEAM)
+  const [hydrated, setHydrated] = useState(false)
   const [search, setSearch] = useState('')
   const [formOpen, setFormOpen] = useState(false)
   const [editing, setEditing] = useState<TeamMember | null>(null)
   const [offboarding, setOffboarding] = useState<TeamMember | null>(null)
+
+  useEffect(() => {
+    try {
+      const saved = window.localStorage.getItem(TEAM_STORAGE_KEY)
+      if (saved) setMembers(JSON.parse(saved) as TeamMember[])
+    } catch {
+      setMembers(TEAM)
+    } finally {
+      setHydrated(true)
+    }
+  }, [])
+
+  useEffect(() => {
+    if (!hydrated) return
+    window.localStorage.setItem(TEAM_STORAGE_KEY, JSON.stringify(members))
+  }, [hydrated, members])
 
   const activeMembers = useMemo(
     () => members.filter(member => member.user.isActive),

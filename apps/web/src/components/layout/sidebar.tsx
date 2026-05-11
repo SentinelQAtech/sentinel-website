@@ -3,10 +3,11 @@
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { cn } from '@/lib/utils'
+import { useI18nStore } from '@/store/i18n'
 import {
   LayoutDashboard, Bug, BarChart3,
   Bell, Settings, Users, ChevronLeft, ChevronRight,
-  Search, Plus, Zap, CalendarDays, ClipboardCheck,
+  Search, Zap, CalendarDays, ClipboardCheck,
   Activity, Columns, FolderOpen, Building2,
 } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
@@ -19,14 +20,14 @@ interface BadgeConfig {
 }
 
 interface NavItem {
-  label:  string
+  labelKey: string
   href:   string
   icon:   React.ElementType
   badge?: BadgeConfig
 }
 
 interface NavGroup {
-  label: string
+  labelKey: string
   items: NavItem[]
 }
 
@@ -34,47 +35,47 @@ interface NavGroup {
 
 const navGroups: NavGroup[] = [
   {
-    label: 'OVERVIEW',
+    labelKey: 'overview',
     items: [
-      { label: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
-      { label: 'Daily',     href: '/daily',     icon: Activity        },
-      { label: 'Calendar',  href: '/calendar',  icon: CalendarDays    },
+      { labelKey: 'dashboard', href: '/dashboard', icon: LayoutDashboard },
+      { labelKey: 'daily',     href: '/daily',     icon: Activity        },
+      { labelKey: 'calendar',  href: '/calendar',  icon: CalendarDays    },
     ],
   },
   {
-    label: 'WORKSPACE',
+    labelKey: 'workspace',
     items: [
-      { label: 'Projects', href: '/projects', icon: FolderOpen },
-      { label: 'Board',    href: '/kanban',   icon: Columns    },
-      { label: 'Sprints',  href: '/sprints',  icon: Zap        },
+      { labelKey: 'projects', href: '/projects', icon: FolderOpen },
+      { labelKey: 'board',    href: '/kanban',   icon: Columns    },
+      { labelKey: 'sprints',  href: '/sprints',  icon: Zap        },
       {
-        label: 'Bugs', href: '/bugs', icon: Bug,
+        labelKey: 'bugs', href: '/bugs', icon: Bug,
         badge: { count: 6, cls: 'bg-red-500/20 text-red-400 border-red-500/30' },
       },
     ],
   },
   {
-    label: 'MANAGEMENT',
+    labelKey: 'management',
     items: [
-      { label: 'Team',        href: '/team',        icon: Users          },
-      { label: 'Empresas',    href: '/companies',   icon: Building2      },
-      { label: 'QA Importer', href: '/qa-importer', icon: ClipboardCheck },
+      { labelKey: 'team',       href: '/team',        icon: Users          },
+      { labelKey: 'clients',    href: '/companies',   icon: Building2      },
+      { labelKey: 'qaImporter', href: '/qa-importer', icon: ClipboardCheck },
     ],
   },
   {
-    label: 'ANALYTICS',
+    labelKey: 'analytics',
     items: [
-      { label: 'Reports', href: '/reports', icon: BarChart3 },
+      { labelKey: 'reports', href: '/reports', icon: BarChart3 },
     ],
   },
 ]
 
 const bottomItems: NavItem[] = [
   {
-    label: 'Notifications', href: '/notifications', icon: Bell,
+    labelKey: 'notifications', href: '/notifications', icon: Bell,
     badge: { count: 5, cls: 'bg-primary/20 text-primary border-primary/30' },
   },
-  { label: 'Settings', href: '/settings', icon: Settings },
+  { labelKey: 'settings', href: '/settings', icon: Settings },
 ]
 
 // ─── Sidebar ───────────────────────────────────────────────────
@@ -86,9 +87,12 @@ interface SidebarProps {
 
 export function Sidebar({ collapsed = false, onToggle }: SidebarProps) {
   const pathname = usePathname()
+  useI18nStore(s => s.locale)
+  const t = useI18nStore(s => s.t)
 
   const renderItem = (item: NavItem) => {
     const active = pathname.startsWith(item.href)
+    const label = t(item.labelKey)
     return (
       <Link
         key={item.href}
@@ -116,7 +120,7 @@ export function Sidebar({ collapsed = false, onToggle }: SidebarProps) {
               transition={{ duration: 0.15 }}
               className="flex-1 overflow-hidden whitespace-nowrap"
             >
-              {item.label}
+              {label}
             </motion.span>
           )}
         </AnimatePresence>
@@ -152,7 +156,7 @@ export function Sidebar({ collapsed = false, onToggle }: SidebarProps) {
             'transition-opacity duration-150 shadow-xl z-50',
             'flex items-center gap-2'
           )}>
-            {item.label}
+            {label}
             {item.badge && (
               <span className={cn('px-1.5 py-0.5 rounded-full text-[10px] font-bold border', item.badge.cls)}>
                 {item.badge.count}
@@ -205,29 +209,15 @@ export function Sidebar({ collapsed = false, onToggle }: SidebarProps) {
           </button>
         </div>
 
-        {/* Quick Create */}
-        {!collapsed && (
-          <div className="px-3 py-2">
-            <button className={cn(
-              'w-full flex items-center gap-2 px-3 py-2 rounded-lg text-xs font-medium',
-              'bg-primary/20 border border-primary/30 text-primary',
-              'hover:bg-primary/30 transition-all duration-200'
-            )}>
-              <Plus className="w-3.5 h-3.5" />
-              Quick Create
-            </button>
-          </div>
-        )}
-
         {/* Grouped Nav */}
         <nav className="flex-1 px-3 py-2 overflow-y-auto scrollbar-hide">
           {navGroups.map((group, gi) => (
-            <div key={group.label} className={cn(gi > 0 && 'mt-3')}>
+            <div key={group.labelKey} className={cn(gi > 0 && 'mt-3')}>
 
               {/* Section label */}
               {!collapsed ? (
                 <p className="px-2 pb-1.5 pt-0.5 text-[10px] font-semibold uppercase tracking-wider text-white/25 select-none">
-                  {group.label}
+                  {t(group.labelKey)}
                 </p>
               ) : (
                 gi > 0 && <div className="my-2 mx-2 border-t border-white/[0.06]" />

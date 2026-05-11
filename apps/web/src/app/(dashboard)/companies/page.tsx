@@ -5,6 +5,7 @@ import { Building2, Check, Edit3, Globe2, Map as MapIcon, Plus, Search, Trash2, 
 import { cn } from '@/lib/utils'
 import { useCompaniesStore, type Company, type CompanyStatus } from '@/store/companies'
 import { WORLD_COUNTRY_PATHS } from '@/data/world-map-paths'
+import { useI18nStore } from '@/store/i18n'
 
 const STATUS_LABEL: Record<CompanyStatus, string> = {
   active: 'Ativa',
@@ -33,6 +34,8 @@ const EMPTY_FORM: Omit<Company, 'id'> = {
 
 export default function CompaniesPage() {
   const { companies, addCompany, updateCompany, deleteCompany, finishCompany } = useCompaniesStore()
+  useI18nStore(s => s.locale)
+  const t = useI18nStore(s => s.t)
   const [query, setQuery] = useState('')
   const [editingId, setEditingId] = useState<string | null>(null)
   const [form, setForm] = useState<Omit<Company, 'id'>>(EMPTY_FORM)
@@ -80,8 +83,8 @@ export default function CompaniesPage() {
               <Building2 className="h-5 w-5 text-primary" />
             </div>
             <div>
-              <h1 className="text-2xl font-bold text-white">Empresas</h1>
-              <p className="text-sm text-white/40">Base de clientes usada no Daily, projetos e rotinas de QA.</p>
+              <h1 className="text-2xl font-bold text-white">{t('clientsTitle')}</h1>
+              <p className="text-sm text-white/40">{t('clientsSubtitle')}</p>
             </div>
           </div>
         </div>
@@ -92,14 +95,14 @@ export default function CompaniesPage() {
             className="flex h-10 items-center justify-center gap-2 rounded-xl border border-primary/30 bg-primary/15 px-4 text-sm font-semibold text-primary hover:bg-primary/25"
           >
             <MapIcon className="h-4 w-4" />
-            Mapa de atuacao
+            {t('actionMap')}
           </button>
           <div className="relative w-full lg:w-72">
             <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-white/25" />
             <input
               value={query}
               onChange={e => setQuery(e.target.value)}
-              placeholder="Buscar empresa..."
+              placeholder={t('searchClient')}
               className="h-10 w-full rounded-xl border border-white/[0.08] bg-white/[0.04] pl-9 pr-3 text-sm text-white outline-none placeholder:text-white/25 focus:border-primary/40"
             />
           </div>
@@ -130,7 +133,7 @@ export default function CompaniesPage() {
                   </button>
                   <button
                     onClick={() => {
-                      if (window.confirm(`Excluir ${company.name}? Esta acao remove a empresa da lista.`)) deleteCompany(company.id)
+                      if (window.confirm(`Excluir ${company.name}? Esta acao remove o cliente da lista.`)) deleteCompany(company.id)
                     }}
                     className="rounded-lg p-1.5 text-white/30 hover:bg-red-500/10 hover:text-red-300"
                   >
@@ -152,7 +155,7 @@ export default function CompaniesPage() {
 
         <form onSubmit={saveCompany} className="glass-card h-fit p-5">
           <div className="mb-4 flex items-center justify-between">
-            <h2 className="text-sm font-semibold text-white/85">{editingId ? 'Editar empresa' : 'Nova empresa'}</h2>
+            <h2 className="text-sm font-semibold text-white/85">{editingId ? 'Editar cliente' : 'Novo cliente'}</h2>
             {editingId && (
               <button type="button" onClick={resetForm} className="rounded-lg p-1.5 text-white/30 hover:bg-white/[0.06] hover:text-white/60">
                 <XCircle className="h-4 w-4" />
@@ -207,7 +210,7 @@ export default function CompaniesPage() {
 
           <button type="submit" className="mt-4 flex w-full items-center justify-center gap-2 rounded-xl bg-primary px-4 py-2.5 text-sm font-semibold text-white hover:bg-primary-600">
             <Plus className="h-4 w-4" />
-            {editingId ? 'Salvar alteracoes' : 'Adicionar empresa'}
+            {editingId ? 'Salvar alteracoes' : 'Adicionar cliente'}
           </button>
         </form>
       </div>
@@ -264,7 +267,7 @@ function WorldMapModal({ companies, onClose }: { companies: Company[]; onClose: 
             </div>
             <div>
               <h2 className="text-base font-semibold text-white">Mapa de atuacao global</h2>
-              <p className="text-xs text-white/35">{companies.length} empresas ativas conectadas em {regions.length} regioes</p>
+              <p className="text-xs text-white/35">{companies.length} clientes ativos conectados em {regions.length} regioes</p>
             </div>
           </div>
           <button onClick={onClose} className="rounded-lg p-2 text-white/35 hover:bg-white/[0.06] hover:text-white/70">
@@ -280,7 +283,7 @@ function WorldMapModal({ companies, onClose }: { companies: Company[]; onClose: 
             </div>
             <div className="absolute bottom-8 left-8 grid grid-cols-3 gap-2 text-xs">
               <div className="rounded-xl border border-white/[0.08] bg-white/[0.04] px-3 py-2">
-                <p className="text-white/30">Empresas</p>
+                <p className="text-white/30">Clientes</p>
                 <p className="mt-1 font-semibold text-white">{companies.length}</p>
               </div>
               <div className="rounded-xl border border-white/[0.08] bg-white/[0.04] px-3 py-2">
