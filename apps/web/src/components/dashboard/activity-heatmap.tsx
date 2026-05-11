@@ -18,7 +18,7 @@ function generateData() {
     cells.push({
       date:  d.toLocaleDateString('pt-BR', { day: '2-digit', month: 'short' }),
       day:   d.getDay(),
-      count: isFuture ? 0 : Math.random() < 0.25 ? 0 : Math.floor(Math.random() * 9),
+      count: isFuture ? 0 : 0,
     })
   }
   return cells

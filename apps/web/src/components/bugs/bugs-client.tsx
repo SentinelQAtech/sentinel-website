@@ -11,82 +11,33 @@ import { cn } from '@/lib/utils'
 import { useI18nStore } from '@/store/i18n'
 import type { Bug as BugType, BugSeverity, BugStatus, Priority } from '@/types'
 
-export const mockBugs: BugType[] = [
-  {
-    id: '1', bugId: 'BUG-042',
-    title: 'Auth token not refreshing on mobile Safari',
-    description: 'When the access token expires on iOS Safari, the refresh token mechanism silently fails.',
-    severity: 'CRITICAL', priority: 'HIGH', status: 'OPEN',
-    environment: 'Production / iOS 17 / Safari',
-    stepsToReproduce: '1. Login on iOS Safari\n2. Wait 15 min\n3. Perform any API call',
-    expectedBehavior: 'Token should refresh automatically',
-    actualBehavior: 'User gets 401 and needs to re-login',
-    browserInfo: 'Safari 17.2', osInfo: 'iOS 17.3', buildVersion: '1.4.2',
-    tags: ['auth', 'mobile', 'token'],
-    projectId: '1', reporterId: '3',
-    reporter: { id: '3', email: '', username: 'maria', name: 'Maria Santos', role: 'QA_ANALYST', isActive: true, createdAt: '' },
-    project: { id: '1', name: 'SPM', description: '', status: 'ACTIVE', priority: 'HIGH', progress: 68, tags: [], coverColor: '#6366f1', ownerId: '1', owner: { id: '1', email: '', username: '', name: 'Raphael', role: 'ADMIN', isActive: true, createdAt: '' }, members: [], createdAt: '', updatedAt: '' },
-    createdAt: new Date(Date.now() - 1000 * 60 * 30).toISOString(),
-    updatedAt: new Date(Date.now() - 1000 * 60 * 30).toISOString(),
-  },
-  {
-    id: '2', bugId: 'BUG-041',
-    title: 'Kanban drag & drop breaks on Safari desktop',
-    description: 'DnD kit pointer events not working on Safari 17 due to missing pointer capture polyfill.',
-    severity: 'HIGH', priority: 'HIGH', status: 'IN_PROGRESS',
-    environment: 'Production / macOS / Safari 17',
-    tags: ['kanban', 'dnd', 'safari'],
-    projectId: '1', reporterId: '1',
-    reporter: { id: '1', email: '', username: 'rapha', name: 'Raphael Castilho', role: 'ADMIN', isActive: true, createdAt: '' },
-    project: { id: '1', name: 'SPM', description: '', status: 'ACTIVE', priority: 'HIGH', progress: 68, tags: [], coverColor: '#6366f1', ownerId: '1', owner: { id: '1', email: '', username: '', name: 'Raphael', role: 'ADMIN', isActive: true, createdAt: '' }, members: [], createdAt: '', updatedAt: '' },
-    assigneeId: '2',
-    assignee: { id: '2', email: '', username: 'antonio', name: 'Antonio Silva', role: 'DEVELOPER', isActive: true, createdAt: '' },
-    createdAt: new Date(Date.now() - 1000 * 60 * 60 * 2).toISOString(),
-    updatedAt: new Date(Date.now() - 1000 * 60 * 45).toISOString(),
-  },
-  {
-    id: '3', bugId: 'BUG-039',
-    title: 'Memory leak in Socket.IO disconnect handler',
-    description: 'Event listeners are not removed on component unmount, causing memory leaks after navigation.',
-    severity: 'HIGH', priority: 'CRITICAL', status: 'IN_REVIEW',
-    environment: 'Staging / Node 20 / Chrome 120',
-    tags: ['socket.io', 'memory', 'leak'],
-    projectId: '2', reporterId: '4',
-    reporter: { id: '4', email: '', username: 'carlos', name: 'Carlos Mendes', role: 'DEVELOPER', isActive: true, createdAt: '' },
-    project: { id: '2', name: 'API Gateway', description: '', status: 'ACTIVE', priority: 'CRITICAL', progress: 42, tags: [], coverColor: '#06b6d4', ownerId: '2', owner: { id: '2', email: '', username: '', name: 'Antonio', role: 'DEVELOPER', isActive: true, createdAt: '' }, members: [], createdAt: '', updatedAt: '' },
-    assigneeId: '4',
-    assignee: { id: '4', email: '', username: 'carlos', name: 'Carlos Mendes', role: 'DEVELOPER', isActive: true, createdAt: '' },
-    createdAt: new Date(Date.now() - 1000 * 60 * 60 * 5).toISOString(),
-    updatedAt: new Date(Date.now() - 1000 * 60 * 60).toISOString(),
-  },
-  {
-    id: '4', bugId: 'BUG-038',
-    title: 'Sprint burndown chart shows incorrect velocity',
-    description: 'Story points from subtasks are being double-counted in velocity calculation.',
-    severity: 'MEDIUM', priority: 'MEDIUM', status: 'OPEN',
-    environment: 'Production',
-    tags: ['sprints', 'chart', 'velocity'],
-    projectId: '1', reporterId: '1',
-    reporter: { id: '1', email: '', username: 'rapha', name: 'Raphael Castilho', role: 'ADMIN', isActive: true, createdAt: '' },
-    project: { id: '1', name: 'SPM', description: '', status: 'ACTIVE', priority: 'HIGH', progress: 68, tags: [], coverColor: '#6366f1', ownerId: '1', owner: { id: '1', email: '', username: '', name: 'Raphael', role: 'ADMIN', isActive: true, createdAt: '' }, members: [], createdAt: '', updatedAt: '' },
-    createdAt: new Date(Date.now() - 1000 * 60 * 60 * 8).toISOString(),
-    updatedAt: new Date(Date.now() - 1000 * 60 * 60 * 8).toISOString(),
-  },
-  {
-    id: '5', bugId: 'BUG-036',
-    title: 'File upload silently fails for files > 5MB',
-    description: 'The API returns 413 but the frontend shows a success toast, misleading users.',
-    severity: 'MEDIUM', priority: 'HIGH', status: 'RESOLVED',
-    environment: 'Production / Chrome',
-    tags: ['upload', 'ux', 'api'],
-    projectId: '1', reporterId: '3',
-    reporter: { id: '3', email: '', username: 'maria', name: 'Maria Santos', role: 'QA_ANALYST', isActive: true, createdAt: '' },
-    project: { id: '1', name: 'SPM', description: '', status: 'ACTIVE', priority: 'HIGH', progress: 68, tags: [], coverColor: '#6366f1', ownerId: '1', owner: { id: '1', email: '', username: '', name: 'Raphael', role: 'ADMIN', isActive: true, createdAt: '' }, members: [], createdAt: '', updatedAt: '' },
-    resolvedAt: new Date(Date.now() - 1000 * 60 * 60 * 24).toISOString(),
-    createdAt: new Date(Date.now() - 1000 * 60 * 60 * 48).toISOString(),
-    updatedAt: new Date(Date.now() - 1000 * 60 * 60 * 24).toISOString(),
-  },
-]
+export const initialBugs: BugType[] = []
+
+const defaultReporter = {
+  id: '1',
+  email: 'raphael@sentinel.tech',
+  username: 'raphacastilho',
+  name: 'Raphael Castilho',
+  role: 'ADMIN' as const,
+  isActive: true,
+  createdAt: new Date().toISOString(),
+}
+
+const defaultProject = {
+  id: 'manual-project',
+  name: 'Manual Intake',
+  description: '',
+  status: 'ACTIVE' as const,
+  priority: 'MEDIUM' as const,
+  progress: 0,
+  tags: [],
+  coverColor: '#6366f1',
+  ownerId: defaultReporter.id,
+  owner: defaultReporter,
+  members: [],
+  createdAt: new Date().toISOString(),
+  updatedAt: new Date().toISOString(),
+}
 
 type SeverityFilter = 'ALL' | BugSeverity
 type StatusFilter = 'ALL' | BugStatus
@@ -97,7 +48,7 @@ export function BugsClient() {
   const [search, setSearch] = useState('')
   const [severity, setSeverity] = useState<SeverityFilter>('ALL')
   const [status, setStatus] = useState<StatusFilter>('ALL')
-  const [bugs, setBugs] = useState<BugType[]>(mockBugs)
+  const [bugs, setBugs] = useState<BugType[]>(initialBugs)
   const [reportOpen, setReportOpen] = useState(false)
   const [selectedBug, setSelectedBug] = useState<BugType | null>(null)
   const [fullscreen, setFullscreen] = useState(false)
@@ -207,7 +158,7 @@ export function BugsClient() {
       {/* Table */}
       <BugTable bugs={filtered} onOpenBug={bug => { setSelectedBug(bug); setFullscreen(false) }} />
 
-      {reportOpen && <ReportBugModal onClose={() => setReportOpen(false)} onCreate={addBug} nextNumber={bugs.length + 43} />}
+      {reportOpen && <ReportBugModal onClose={() => setReportOpen(false)} onCreate={addBug} nextNumber={bugs.length + 1} />}
       {selectedBug && (
         <BugDetailModal
           bug={selectedBug}
@@ -234,9 +185,7 @@ function ReportBugModal({ onClose, onCreate, nextNumber }: { onClose: () => void
   const create = () => {
     if (!title.trim() || !description.trim()) return
     const now = new Date().toISOString()
-    const base = mockBugs[0]
     onCreate({
-      ...base,
       id: String(Date.now()),
       bugId: `BUG-${String(nextNumber).padStart(3, '0')}`,
       title: title.trim(),
@@ -246,6 +195,10 @@ function ReportBugModal({ onClose, onCreate, nextNumber }: { onClose: () => void
       status: 'OPEN',
       environment,
       tags: ['manual'],
+      projectId: defaultProject.id,
+      reporterId: defaultReporter.id,
+      reporter: defaultReporter,
+      project: defaultProject,
       createdAt: now,
       updatedAt: now,
       resolvedAt: undefined,

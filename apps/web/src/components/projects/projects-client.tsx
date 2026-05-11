@@ -12,76 +12,8 @@ import { useI18nStore } from '@/store/i18n'
 import type { Priority, Project } from '@/types'
 
 const owner1 = { id: '1', email: 'rapha@sentinel.tech', username: 'raphacastilho', name: 'Raphael Castilho', role: 'ADMIN' as const, isActive: true, createdAt: '' }
-const owner2 = { id: '2', email: 'antonio@sentinel.tech', username: 'antoniosilva', name: 'Antonio Silva', role: 'DEVELOPER' as const, isActive: true, createdAt: '' }
 
-const mockProjects: Project[] = [
-  {
-    id: '1', name: 'E-Commerce Platform',
-    description: 'Full rewrite of the US storefront with Next.js, Stripe and headless CMS.',
-    status: 'ACTIVE', priority: 'HIGH',
-    progress: 68, tags: ['react', 'stripe', 'cms'],
-    clientName: 'Concept-USA', coverColor: '#3b82f6',
-    ownerId: '1', owner: owner1, members: [],
-    startDate: '2026-01-01', endDate: '2026-09-30',
-    _count: { tasks: 142, bugs: 12, sprints: 14 },
-    createdAt: '2026-01-01', updatedAt: '2026-05-06',
-  },
-  {
-    id: '2', name: 'Design System',
-    description: 'Component library and brand tokens for all Concept-USA digital products.',
-    status: 'PAUSED', priority: 'LOW',
-    progress: 31, tags: ['design', 'storybook', 'tokens'],
-    clientName: 'Concept-USA', coverColor: '#60a5fa',
-    ownerId: '1', owner: owner1, members: [],
-    startDate: '2026-03-01', endDate: '2026-10-31',
-    _count: { tasks: 38, bugs: 2, sprints: 2 },
-    createdAt: '2026-03-01', updatedAt: '2026-04-28',
-  },
-  {
-    id: '3', name: 'Brewery QA Automation',
-    description: 'End-to-end Playwright suite covering 400+ test cases across production lines.',
-    status: 'ACTIVE', priority: 'CRITICAL',
-    progress: 42, tags: ['qa', 'playwright', 'automation'],
-    clientName: 'ABinBev-IND', coverColor: '#f59e0b',
-    ownerId: '2', owner: owner2, members: [],
-    startDate: '2026-02-01', endDate: '2026-07-31',
-    _count: { tasks: 87, bugs: 18, sprints: 9 },
-    createdAt: '2026-02-01', updatedAt: '2026-05-06',
-  },
-  {
-    id: '4', name: 'Supply Chain Dashboard',
-    description: 'Real-time logistics monitoring dashboard for India distribution network.',
-    status: 'ACTIVE', priority: 'HIGH',
-    progress: 57, tags: ['dashboard', 'realtime', 'logistics'],
-    clientName: 'ABinBev-IND', coverColor: '#fbbf24',
-    ownerId: '1', owner: owner1, members: [],
-    startDate: '2026-02-15', endDate: '2026-08-15',
-    _count: { tasks: 71, bugs: 6, sprints: 5 },
-    createdAt: '2026-02-15', updatedAt: '2026-05-05',
-  },
-  {
-    id: '5', name: 'Sprint Tracker App',
-    description: 'Internal tool for Ukraine dev team — sprint planning, velocity and daily standups.',
-    status: 'ACTIVE', priority: 'MEDIUM',
-    progress: 85, tags: ['agile', 'nestjs', 'react'],
-    clientName: 'ScrumLaunch-UKR', coverColor: '#06b6d4',
-    ownerId: '1', owner: owner1, members: [],
-    startDate: '2026-03-01', endDate: '2026-06-30',
-    _count: { tasks: 54, bugs: 4, sprints: 3 },
-    createdAt: '2026-03-01', updatedAt: '2026-05-06',
-  },
-  {
-    id: '6', name: 'Client Portal v3',
-    description: 'Revamped portal for ScrumLaunch clients — real-time project status and reports.',
-    status: 'COMPLETED', priority: 'MEDIUM',
-    progress: 100, tags: ['portal', 'next.js', 'reporting'],
-    clientName: 'ScrumLaunch-UKR', coverColor: '#22d3ee',
-    ownerId: '2', owner: owner2, members: [],
-    startDate: '2025-10-01', endDate: '2026-03-31',
-    _count: { tasks: 93, bugs: 1, sprints: 6 },
-    createdAt: '2025-10-01', updatedAt: '2026-03-31',
-  },
-]
+const initialProjects: Project[] = []
 
 type ViewMode = 'grid' | 'list'
 type FilterStatus = 'ALL' | 'ACTIVE' | 'PAUSED' | 'COMPLETED' | 'ARCHIVED'
@@ -96,7 +28,7 @@ export function ProjectsClient() {
   const [status, setStatus]       = useState<FilterStatus>('ALL')
   const [company, setCompany]     = useState<FilterCompany>('ALL')
   const [priority, setPriority]   = useState<FilterPriority>('ALL')
-  const [projects, setProjects]   = useState<Project[]>(mockProjects)
+  const [projects, setProjects]   = useState<Project[]>(initialProjects)
   const [filtersOpen, setFiltersOpen] = useState(false)
   const [newOpen, setNewOpen]     = useState(false)
   const [deleteTarget, setDeleteTarget] = useState<Project | null>(null)

@@ -1,11 +1,13 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import type { ReactNode } from 'react'
 import { useRouter } from 'next/navigation'
 import { motion } from 'framer-motion'
 import { FolderKanban, Bug, CheckSquare, Zap, Users, TrendingUp, TrendingDown, Minus } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { useI18nStore } from '@/store/i18n'
+import { TEAM, TEAM_STORAGE_KEY, type TeamMember } from '@/lib/team-data'
 
 function useCounter(target: number, duration = 900, delay = 0) {
   const [value, setValue] = useState(0)
@@ -39,19 +41,37 @@ interface MetricItem {
   titleKey: string
   value: number
   delta: { value: number; labelKey: string }
-  icon: React.ReactNode
+  icon: ReactNode
   color: ColorKey
   href: string
 }
 
 const METRICS: MetricItem[] = [
-  { titleKey: 'dashboardMetricActiveProjects', value: 12,  delta: { value: 8,   labelKey: 'vsLastMonth'  }, icon: <FolderKanban className="w-4 h-4" />, color: 'indigo',  href: '/projects' },
-  { titleKey: 'dashboardMetricOpenBugs',       value: 47,  delta: { value: -12, labelKey: 'vsLastSprint' }, icon: <Bug className="w-4 h-4" />,          color: 'red',     href: '/bugs'     },
-  { titleKey: 'dashboardMetricCriticalBugs',   value: 6,   delta: { value: -33, labelKey: 'vsLastSprint' }, icon: <Bug className="w-4 h-4" />,          color: 'amber',   href: '/bugs'     },
-  { titleKey: 'dashboardMetricTasksDone',      value: 183, delta: { value: 22,  labelKey: 'thisSprint'    }, icon: <CheckSquare className="w-4 h-4" />,  color: 'emerald', href: '/kanban'   },
-  { titleKey: 'dashboardMetricActiveSprints',  value: 3,   delta: { value: 0,   labelKey: 'noChange'      }, icon: <Zap className="w-4 h-4" />,          color: 'purple',  href: '/sprints'  },
-  { titleKey: 'dashboardMetricTeamMembers',    value: 24,  delta: { value: 4,   labelKey: 'newThisMonth'  }, icon: <Users className="w-4 h-4" />,        color: 'cyan',    href: '/team'     },
+  { titleKey: 'dashboardMetricActiveProjects', value: 0, delta: { value: 0, labelKey: 'noChange' }, icon: <FolderKanban className="w-4 h-4" />, color: 'indigo',  href: '/projects' },
+  { titleKey: 'dashboardMetricOpenBugs',       value: 0, delta: { value: 0, labelKey: 'noChange' }, icon: <Bug className="w-4 h-4" />,          color: 'red',     href: '/bugs'     },
+  { titleKey: 'dashboardMetricCriticalBugs',   value: 0, delta: { value: 0, labelKey: 'noChange' }, icon: <Bug className="w-4 h-4" />,          color: 'amber',   href: '/bugs'     },
+  { titleKey: 'dashboardMetricTasksDone',      value: 0, delta: { value: 0, labelKey: 'noChange' }, icon: <CheckSquare className="w-4 h-4" />,  color: 'emerald', href: '/kanban'   },
+  { titleKey: 'dashboardMetricActiveSprints',  value: 0, delta: { value: 0, labelKey: 'noChange' }, icon: <Zap className="w-4 h-4" />,          color: 'purple',  href: '/sprints'  },
+  { titleKey: 'dashboardMetricTeamMembers',    value: 0, delta: { value: 0, labelKey: 'noChange' }, icon: <Users className="w-4 h-4" />,        color: 'cyan',    href: '/team'     },
 ]
+
+function useTeamCount() {
+  const [count, setCount] = useState(TEAM.filter(member => member.user.isActive).length)
+
+  useEffect(() => {
+    try {
+      const saved = window.localStorage.getItem(TEAM_STORAGE_KEY)
+      if (saved) {
+        const members = JSON.parse(saved) as TeamMember[]
+        setCount(members.filter(member => member.user.isActive).length)
+      }
+    } catch {
+      setCount(TEAM.filter(member => member.user.isActive).length)
+    }
+  }, [])
+
+  return count
+}
 
 function AnimatedMetricCard({ item, index }: { item: MetricItem; index: number }) {
   useI18nStore(s => s.locale)
@@ -107,9 +127,14 @@ function AnimatedMetricCard({ item, index }: { item: MetricItem; index: number }
 }
 
 export function DashboardMetrics() {
+  const teamCount = useTeamCount()
+  const metrics = METRICS.map(item =>
+    item.titleKey === 'dashboardMetricTeamMembers' ? { ...item, value: teamCount } : item
+  )
+
   return (
     <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4">
-      {METRICS.map((item, i) => (
+      {metrics.map((item, i) => (
         <AnimatedMetricCard key={item.titleKey} item={item} index={i} />
       ))}
     </div>

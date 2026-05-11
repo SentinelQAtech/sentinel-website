@@ -60,70 +60,7 @@ export const PRIORITY_CONFIG: Record<QAPriority, { color: string; label: string 
 
 // ─── Initial data ─────────────────────────────────────────────
 
-const now = new Date().toISOString()
-
-const INITIAL_ITEMS: QAItem[] = [
-  {
-    id: 'qa-1', source: 'manual',
-    issueKey: 'SCRUM-123', title: 'Validate login flow on SmartFlyer',
-    client: 'ScrumLaunch', project: 'SmartFlyer',
-    status: 'Ready for QA', priority: 'High', sprint: 'Sprint 14',
-    assignee: 'Raphael', type: 'QA Testing',
-    link: 'https://jira.example.com/browse/SCRUM-123',
-    notes: 'Validate login scenarios before release',
-    importedAt: now, sentToDaily: false, qaCategory: 'Ready for QA',
-  },
-  {
-    id: 'qa-2', source: 'manual',
-    issueKey: 'AMB-442', title: 'Review checkout bug fix',
-    client: 'Ambev', project: 'Checkout',
-    status: 'In Testing', priority: 'Critical', sprint: 'Sprint 9',
-    assignee: 'Raphael', type: 'Bug Validation',
-    link: '',
-    notes: 'Confirm bug does not reproduce anymore',
-    importedAt: now, sentToDaily: false, qaCategory: 'In Testing',
-  },
-  {
-    id: 'qa-3', source: 'manual',
-    issueKey: 'SCRUM-124', title: 'Regression test — payment flow',
-    client: 'ScrumLaunch', project: 'SmartFlyer',
-    status: 'Ready for QA', priority: 'High', sprint: 'Sprint 14',
-    assignee: 'Raphael', type: 'Regression',
-    link: 'https://jira.example.com/browse/SCRUM-124',
-    notes: 'Full regression on checkout after hotfix',
-    importedAt: now, sentToDaily: false, qaCategory: 'Regression',
-  },
-  {
-    id: 'qa-4', source: 'manual',
-    issueKey: 'UOL-88', title: 'Validar homepage após deploy',
-    client: 'UOL', project: 'Portal',
-    status: 'Ready for QA', priority: 'Medium', sprint: 'Sprint 15',
-    assignee: 'Raphael', type: 'QA Testing',
-    link: '',
-    notes: 'Smoke test after release',
-    importedAt: now, sentToDaily: false, qaCategory: 'Ready for QA',
-  },
-  {
-    id: 'qa-5', source: 'manual',
-    issueKey: 'AMB-443', title: 'Validate cart total calculation bug',
-    client: 'Ambev', project: 'E-Commerce',
-    status: 'Blocked', priority: 'Critical', sprint: 'Sprint 9',
-    assignee: 'Raphael', type: 'Bug Validation',
-    link: '',
-    notes: 'Blocked: waiting for hotfix from dev team',
-    importedAt: now, sentToDaily: false, qaCategory: 'Blocked',
-  },
-  {
-    id: 'qa-6', source: 'manual',
-    issueKey: 'CON-77', title: 'Review API endpoint tests',
-    client: 'Concepta', project: 'API Gateway',
-    status: 'In Review', priority: 'High', sprint: 'Sprint 14',
-    assignee: 'Raphael', type: 'Review',
-    link: '',
-    notes: '',
-    importedAt: now, sentToDaily: false, qaCategory: 'Review',
-  },
-]
+const INITIAL_ITEMS: QAItem[] = []
 
 // ─── Store ────────────────────────────────────────────────────
 
@@ -225,7 +162,7 @@ export const useQAImporterStore = create<QAImporterStore>()(
 
       setQaFilter: (enabled) => set({ qaFilterEnabled: enabled }),
 
-      clearAll: () => set({ items: [] }),
+      clearAll: () => set({ items: [], history: [] }),
 
       handleQaImportPayload: (payload, source) => {
         const normalized: ImportInput[] = payload.map(p => ({
@@ -246,6 +183,10 @@ export const useQAImporterStore = create<QAImporterStore>()(
         return get().importItems(normalized, source)
       },
     }),
-    { name: 'spm-qa-importer' }
+    {
+      name: 'spm-qa-importer',
+      version: 2,
+      migrate: () => ({ items: [], history: [], qaFilterEnabled: true }),
+    }
   )
 )

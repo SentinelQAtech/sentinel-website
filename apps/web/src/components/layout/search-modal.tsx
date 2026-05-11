@@ -2,7 +2,8 @@
 
 import { useEffect, useRef, useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Search, FolderKanban, Bug, Zap, ArrowRight, Clock, Hash } from 'lucide-react'
+import { Search, ArrowRight, Hash } from 'lucide-react'
+import type { ReactNode } from 'react'
 import { cn } from '@/lib/utils'
 import { useRouter } from 'next/navigation'
 
@@ -12,18 +13,11 @@ interface SearchItem {
   title: string
   subtitle?: string
   href: string
-  icon: React.ReactNode
+  icon: ReactNode
   color: string
 }
 
-const STATIC_ITEMS: SearchItem[] = [
-  { id: 'p1', type: 'project', title: 'E-Commerce Platform',     subtitle: 'Concept-USA',     href: '/projects/1', icon: <FolderKanban className="w-4 h-4" />, color: '#3b82f6' },
-  { id: 'p2', type: 'project', title: 'Brewery QA Automation',   subtitle: 'ABinBev-IND',     href: '/projects/3', icon: <FolderKanban className="w-4 h-4" />, color: '#f59e0b' },
-  { id: 'p3', type: 'project', title: 'Sprint Tracker App',      subtitle: 'ScrumLaunch-UKR', href: '/projects/5', icon: <FolderKanban className="w-4 h-4" />, color: '#06b6d4' },
-  { id: 'b1', type: 'bug',     title: 'BUG-042 · Auth token not refreshing', subtitle: 'Critical · Open', href: '/bugs/1', icon: <Bug className="w-4 h-4" />, color: '#ef4444' },
-  { id: 'b2', type: 'bug',     title: 'BUG-041 · Kanban drag & drop Safari', subtitle: 'High · In Progress', href: '/bugs/2', icon: <Bug className="w-4 h-4" />, color: '#f97316' },
-  { id: 's1', type: 'sprint',  title: 'Sprint 14',               subtitle: 'SPM Frontend · Active', href: '/sprints', icon: <Zap className="w-4 h-4" />, color: '#8b5cf6' },
-]
+const STATIC_ITEMS: SearchItem[] = []
 
 const PAGES: SearchItem[] = [
   { id: 'pg1', type: 'page', title: 'Dashboard',   subtitle: 'Visão geral', href: '/dashboard', icon: <Hash className="w-4 h-4" />, color: '#6366f1' },

@@ -10,7 +10,7 @@ import {
 import { Avatar } from '@/components/ui/avatar'
 import { Button } from '@/components/ui/button'
 import { cn, formatDate } from '@/lib/utils'
-import { TEAM, COMPANY_CLIENTS, type TeamMember } from '@/lib/team-data'
+import { TEAM, TEAM_STORAGE_KEY, COMPANY_CLIENTS, type TeamMember } from '@/lib/team-data'
 import { useI18nStore } from '@/store/i18n'
 import type { Role } from '@/types'
 
@@ -27,8 +27,6 @@ type MemberForm = {
 }
 
 const COLORS = ['#6366f1', '#06b6d4', '#22c55e', '#f59e0b', '#ec4899', '#8b5cf6']
-const TEAM_STORAGE_KEY = 'spm-team-members'
-
 function emptyForm(): MemberForm {
   return {
     name: '',

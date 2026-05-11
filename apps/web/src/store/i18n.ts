@@ -143,6 +143,11 @@ const ptBR: Dictionary = {
   openBoard: 'Abrir board',
   shortcuts: 'Atalhos',
   realTeam: 'Time real',
+  emptyDashboard: 'Sem dados reais ainda',
+  emptyRecentActivity: 'Nenhuma atividade recente registrada',
+  emptyProjects: 'Nenhum projeto ativo cadastrado',
+  emptyBugs: 'Nenhum bug crítico ou alto registrado',
+  emptySprints: 'Nenhuma sprint ativa cadastrada',
 
   calendarTitle: 'Calendário',
   addEvent: 'Adicionar Evento',
@@ -316,6 +321,11 @@ const enUS: Dictionary = {
   openBoard: 'Open board',
   shortcuts: 'Shortcuts',
   realTeam: 'Real team',
+  emptyDashboard: 'No real data yet',
+  emptyRecentActivity: 'No recent activity recorded',
+  emptyProjects: 'No active projects registered',
+  emptyBugs: 'No critical or high bugs recorded',
+  emptySprints: 'No active sprints registered',
 
   calendarTitle: 'Calendar',
   addEvent: 'Add Event',

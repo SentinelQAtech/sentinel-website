@@ -1,5 +1,7 @@
 import type { User } from '@/types'
 
+export const TEAM_STORAGE_KEY = 'spm-team-members'
+
 export interface TeamMember {
   user: User
   title: string

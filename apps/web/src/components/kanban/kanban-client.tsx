@@ -37,22 +37,11 @@ const DEFAULT_CREATOR = {
   role: 'ADMIN' as const, isActive: true, createdAt: '',
 }
 
-const mockTasks: Task[] = [
-  { id: 't1',  title: 'Setup authentication module',  status: 'DONE',        priority: 'HIGH',     storyPoints: 5,  projectId: '1', creatorId: '1', creator: DEFAULT_CREATOR, tags: ['auth', 'backend'],     order: 0, createdAt: '', updatedAt: '' },
-  { id: 't2',  title: 'Design system token setup',    status: 'DONE',        priority: 'MEDIUM',   storyPoints: 3,  projectId: '1', creatorId: '1', creator: DEFAULT_CREATOR, tags: ['design'],              order: 1, createdAt: '', updatedAt: '' },
-  { id: 't3',  title: 'Build Dashboard page',         status: 'IN_PROGRESS', priority: 'HIGH',     storyPoints: 8,  projectId: '1', creatorId: '1', creator: DEFAULT_CREATOR, tags: ['frontend'],            order: 0, createdAt: '', updatedAt: '' },
-  { id: 't4',  title: 'Kanban drag & drop',           status: 'IN_PROGRESS', priority: 'HIGH',     storyPoints: 5,  projectId: '1', creatorId: '1', creator: { ...DEFAULT_CREATOR, name: 'Antonio', role: 'DEVELOPER' }, tags: ['frontend', 'dnd'], order: 1, createdAt: '', updatedAt: '' },
-  { id: 't5',  title: 'Bug management module',        status: 'TODO',        priority: 'CRITICAL',  storyPoints: 13, projectId: '1', creatorId: '1', creator: DEFAULT_CREATOR, tags: ['bugs'],                order: 0, createdAt: '', updatedAt: '' },
-  { id: 't6',  title: 'Sprint velocity chart',        status: 'TODO',        priority: 'MEDIUM',   storyPoints: 5,  projectId: '1', creatorId: '1', creator: { ...DEFAULT_CREATOR, name: 'Maria', role: 'QA_ANALYST' }, tags: ['charts'], order: 1, createdAt: '', updatedAt: '' },
-  { id: 't7',  title: 'Write E2E test suite',         status: 'QA_TESTING',  priority: 'HIGH',     storyPoints: 8,  projectId: '1', creatorId: '1', creator: { ...DEFAULT_CREATOR, name: 'Maria', role: 'QA_ANALYST' }, tags: ['qa', 'e2e'], order: 0, createdAt: '', updatedAt: '' },
-  { id: 't8',  title: 'API rate limiting',            status: 'REVIEW',      priority: 'HIGH',     storyPoints: 5,  projectId: '1', creatorId: '1', creator: { ...DEFAULT_CREATOR, name: 'Antonio', role: 'DEVELOPER' }, tags: ['backend', 'api'], order: 0, createdAt: '', updatedAt: '' },
-  { id: 't9',  title: 'Notification system',          status: 'BACKLOG',     priority: 'LOW',      storyPoints: 8,  projectId: '1', creatorId: '1', creator: DEFAULT_CREATOR, tags: ['backend', 'realtime'], order: 0, createdAt: '', updatedAt: '' },
-  { id: 't10', title: 'Reports module',               status: 'BACKLOG',     priority: 'MEDIUM',   storyPoints: 13, projectId: '1', creatorId: '1', creator: DEFAULT_CREATOR, tags: ['reports'],             order: 1, createdAt: '', updatedAt: '' },
-]
+const initialTasks: Task[] = []
 
 export function KanbanClient() {
   const [columns, setColumns]       = useState<KanbanColumnDefinition[]>(INITIAL_COLUMNS)
-  const [tasks, setTasks]           = useState<Task[]>(mockTasks)
+  const [tasks, setTasks]           = useState<Task[]>(initialTasks)
   const [selectedTask, setSelectedTask] = useState<Task | null>(null)
 
   // Dialog state
@@ -213,7 +202,7 @@ export function KanbanClient() {
       <div className="flex items-center justify-between shrink-0">
         <div>
           <h1 className="text-2xl font-bold text-white">Kanban Board</h1>
-          <p className="text-sm text-white/40 mt-0.5">Sprint 14 · Sentinel Project Manager</p>
+          <p className="text-sm text-white/40 mt-0.5">Workspace operacional</p>
         </div>
         <div className="flex items-center gap-2">
           <Button
