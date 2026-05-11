@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import { motion } from 'framer-motion'
 import { FolderKanban, Bug, CheckSquare, Zap, Users, TrendingUp, TrendingDown, Minus } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import { useI18nStore } from '@/store/i18n'
 
 function useCounter(target: number, duration = 900, delay = 0) {
   const [value, setValue] = useState(0)
@@ -35,24 +36,26 @@ const colorMap = {
 type ColorKey = keyof typeof colorMap
 
 interface MetricItem {
-  title: string
+  titleKey: string
   value: number
-  delta: { value: number; label: string }
+  delta: { value: number; labelKey: string }
   icon: React.ReactNode
   color: ColorKey
   href: string
 }
 
 const METRICS: MetricItem[] = [
-  { title: 'Active Projects', value: 12,  delta: { value: 8,   label: 'vs last month'  }, icon: <FolderKanban className="w-4 h-4" />, color: 'indigo',  href: '/projects'          },
-  { title: 'Open Bugs',       value: 47,  delta: { value: -12, label: 'vs last sprint'  }, icon: <Bug className="w-4 h-4" />,          color: 'red',     href: '/bugs'              },
-  { title: 'Critical Bugs',   value: 6,   delta: { value: -33, label: 'vs last sprint'  }, icon: <Bug className="w-4 h-4" />,          color: 'amber',   href: '/bugs'              },
-  { title: 'Tasks Done',      value: 183, delta: { value: 22,  label: 'this sprint'     }, icon: <CheckSquare className="w-4 h-4" />,  color: 'emerald', href: '/kanban'            },
-  { title: 'Active Sprints',  value: 3,   delta: { value: 0,   label: 'no change'       }, icon: <Zap className="w-4 h-4" />,          color: 'purple',  href: '/sprints'           },
-  { title: 'Team Members',    value: 24,  delta: { value: 4,   label: 'new this month'  }, icon: <Users className="w-4 h-4" />,        color: 'cyan',    href: '/team'              },
+  { titleKey: 'dashboardMetricActiveProjects', value: 12,  delta: { value: 8,   labelKey: 'vsLastMonth'  }, icon: <FolderKanban className="w-4 h-4" />, color: 'indigo',  href: '/projects' },
+  { titleKey: 'dashboardMetricOpenBugs',       value: 47,  delta: { value: -12, labelKey: 'vsLastSprint' }, icon: <Bug className="w-4 h-4" />,          color: 'red',     href: '/bugs'     },
+  { titleKey: 'dashboardMetricCriticalBugs',   value: 6,   delta: { value: -33, labelKey: 'vsLastSprint' }, icon: <Bug className="w-4 h-4" />,          color: 'amber',   href: '/bugs'     },
+  { titleKey: 'dashboardMetricTasksDone',      value: 183, delta: { value: 22,  labelKey: 'thisSprint'    }, icon: <CheckSquare className="w-4 h-4" />,  color: 'emerald', href: '/kanban'   },
+  { titleKey: 'dashboardMetricActiveSprints',  value: 3,   delta: { value: 0,   labelKey: 'noChange'      }, icon: <Zap className="w-4 h-4" />,          color: 'purple',  href: '/sprints'  },
+  { titleKey: 'dashboardMetricTeamMembers',    value: 24,  delta: { value: 4,   labelKey: 'newThisMonth'  }, icon: <Users className="w-4 h-4" />,        color: 'cyan',    href: '/team'     },
 ]
 
 function AnimatedMetricCard({ item, index }: { item: MetricItem; index: number }) {
+  useI18nStore(s => s.locale)
+  const t = useI18nStore(s => s.t)
   const count  = useCounter(item.value, 900, index * 90)
   const router = useRouter()
   const c      = colorMap[item.color]
@@ -77,7 +80,7 @@ function AnimatedMetricCard({ item, index }: { item: MetricItem; index: number }
       <div className="flex items-start justify-between gap-3">
         <div className="flex-1 min-w-0">
           <p className="text-[10px] font-semibold text-white/35 uppercase tracking-widest mb-2.5 truncate">
-            {item.title}
+            {t(item.titleKey)}
           </p>
           <p className="text-3xl font-bold text-white tabular-nums leading-none">{count}</p>
           <div className={cn(
@@ -86,7 +89,7 @@ function AnimatedMetricCard({ item, index }: { item: MetricItem; index: number }
           )}>
             <Icon className="w-3 h-3 shrink-0" />
             {item.delta.value !== 0 && <span>{Math.abs(item.delta.value)}%</span>}
-            <span className="text-white/25 font-normal">{item.delta.label}</span>
+            <span className="text-white/25 font-normal">{t(item.delta.labelKey)}</span>
           </div>
         </div>
         <div className={cn(
@@ -107,7 +110,7 @@ export function DashboardMetrics() {
   return (
     <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4">
       {METRICS.map((item, i) => (
-        <AnimatedMetricCard key={item.title} item={item} index={i} />
+        <AnimatedMetricCard key={item.titleKey} item={item} index={i} />
       ))}
     </div>
   )

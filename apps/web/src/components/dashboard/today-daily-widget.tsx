@@ -8,6 +8,7 @@ import {
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { useDailyStore, PRIORITY_CONFIG, CLIENT_CONFIG, REGION_CONFIG, getTodayISO } from '@/store/daily'
+import { useI18nStore } from '@/store/i18n'
 import type { DailyStatus } from '@/store/daily'
 
 const STATUS_ICON: Record<DailyStatus, { icon: React.ElementType; cls: string }> = {
@@ -18,6 +19,8 @@ const STATUS_ICON: Record<DailyStatus, { icon: React.ElementType; cls: string }>
 }
 
 export function TodayDailyWidget() {
+  useI18nStore(s => s.locale)
+  const t = useI18nStore(s => s.t)
   const { getTasksForDate, getMeetingsForDate, toggleTask } = useDailyStore()
   const today = getTodayISO()
   const tasks = getTasksForDate(today)
@@ -55,8 +58,8 @@ export function TodayDailyWidget() {
             <Sun className="w-3.5 h-3.5 text-primary" />
           </div>
           <div>
-            <h3 className="text-sm font-semibold text-white/85 leading-none">Daily de Hoje</h3>
-            <p className="text-[10px] text-white/35 mt-0.5">{done} de {total} concluídas</p>
+            <h3 className="text-sm font-semibold text-white/85 leading-none">{t('todayDaily')}</h3>
+            <p className="text-[10px] text-white/35 mt-0.5">{done} de {total} {t('doneTasks')}</p>
           </div>
         </div>
 
@@ -87,14 +90,14 @@ export function TodayDailyWidget() {
           href="/daily"
           className="shrink-0 flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium bg-primary/15 border border-primary/25 text-primary hover:bg-primary/25 transition-all duration-150"
         >
-          Abrir Daily <ArrowRight className="w-3 h-3" />
+          {t('openDaily')} <ArrowRight className="w-3 h-3" />
         </Link>
       </div>
 
       {/* Strip 2 — Task list */}
       <div className="overflow-y-auto max-h-48 px-3 py-2 border-b border-white/[0.06]">
         {sorted.length === 0 ? (
-          <p className="text-xs text-white/25 italic px-2 py-1">Nenhuma tarefa para hoje</p>
+          <p className="text-xs text-white/25 italic px-2 py-1">{t('noTasksToday')}</p>
         ) : (
           <div className="space-y-0.5">
             {sorted.map(task => {
@@ -108,7 +111,7 @@ export function TodayDailyWidget() {
                 <button
                   key={task.id}
                   onClick={() => toggleTask(task.id)}
-                  title={isDone ? 'Marcar como pendente' : 'Marcar como concluída'}
+                  title={isDone ? t('markPending') : t('markDone')}
                   className="w-full flex items-center gap-2 px-2 py-1.5 rounded-lg text-left hover:bg-white/[0.04] group transition-colors"
                 >
                   <Icon className={cn('w-3.5 h-3.5 shrink-0', sIcon.cls)} />
@@ -143,12 +146,12 @@ export function TodayDailyWidget() {
         <div className="flex items-center gap-1.5 mb-2 shrink-0">
           <Video className="w-3 h-3 text-cyan-400/70" />
           <span className="text-[10px] font-semibold uppercase tracking-wider text-white/25">
-            Reuniões
+            {t('meetings')}
           </span>
         </div>
 
         {allMeetings.length === 0 ? (
-          <p className="text-xs text-white/25 italic">Sem reuniões hoje</p>
+          <p className="text-xs text-white/25 italic">{t('noMeetingsToday')}</p>
         ) : (
           <div className="flex items-center gap-2 overflow-x-auto pb-0.5 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
             {allMeetings.map(m => {

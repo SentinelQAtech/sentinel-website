@@ -5,6 +5,7 @@ import { Avatar } from '@/components/ui/avatar'
 import { timeAgo } from '@/lib/utils'
 import { ArrowUpRight } from 'lucide-react'
 import type { Bug } from '@/types'
+import { useI18nStore } from '@/store/i18n'
 
 interface BugTableProps {
   bugs: Bug[]
@@ -12,14 +13,16 @@ interface BugTableProps {
 }
 
 export function BugTable({ bugs, onOpenBug }: BugTableProps) {
+  useI18nStore(s => s.locale)
+  const t = useI18nStore(s => s.t)
   if (bugs.length === 0) {
     return (
       <div className="glass-card flex flex-col items-center justify-center py-20 text-center">
         <div className="w-16 h-16 rounded-2xl bg-white/[0.04] flex items-center justify-center mb-4">
           <span className="text-3xl">🐛</span>
         </div>
-        <p className="text-white/50 font-medium">No bugs found</p>
-        <p className="text-white/30 text-sm mt-1">Try adjusting your search or filters</p>
+        <p className="text-white/50 font-medium">{t('noBugsFound')}</p>
+        <p className="text-white/30 text-sm mt-1">{t('adjustFilters')}</p>
       </div>
     )
   }
@@ -29,7 +32,7 @@ export function BugTable({ bugs, onOpenBug }: BugTableProps) {
       <table className="w-full text-sm">
         <thead>
           <tr className="border-b border-white/[0.06]">
-            {['Bug ID', 'Title', 'Severity', 'Priority', 'Status', 'Project', 'Reporter', 'Assignee', 'Created'].map(h => (
+            {['Bug ID', t('bugTitle'), t('severity'), t('priority'), t('status'), t('project'), t('reporter'), t('assignee'), t('created')].map(h => (
               <th key={h} className="px-4 py-3 text-left text-xs font-semibold text-white/40 uppercase tracking-wider whitespace-nowrap">
                 {h}
               </th>

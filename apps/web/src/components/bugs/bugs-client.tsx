@@ -8,6 +8,7 @@ import { Input } from '@/components/ui/input'
 import { BugTable } from './bug-table'
 import { BugStats } from './bug-stats'
 import { cn } from '@/lib/utils'
+import { useI18nStore } from '@/store/i18n'
 import type { Bug as BugType, BugSeverity, BugStatus, Priority } from '@/types'
 
 export const mockBugs: BugType[] = [
@@ -91,6 +92,8 @@ type SeverityFilter = 'ALL' | BugSeverity
 type StatusFilter = 'ALL' | BugStatus
 
 export function BugsClient() {
+  useI18nStore(s => s.locale)
+  const t = useI18nStore(s => s.t)
   const [search, setSearch] = useState('')
   const [severity, setSeverity] = useState<SeverityFilter>('ALL')
   const [status, setStatus] = useState<StatusFilter>('ALL')
@@ -145,12 +148,12 @@ export function BugsClient() {
         <div>
           <h1 className="text-2xl font-bold text-white flex items-center gap-2">
             <Bug className="w-6 h-6 text-red-400" />
-            Bug Tracker
+            {t('bugsTitle')}
           </h1>
-          <p className="text-sm text-white/40 mt-0.5">Track and manage issues across all projects</p>
+          <p className="text-sm text-white/40 mt-0.5">{t('bugsSubtitle')}</p>
         </div>
         <Button onClick={() => setReportOpen(true)} variant="glow" leftIcon={<Plus className="w-4 h-4" />}>
-          Report Bug
+          {t('reportBug')}
         </Button>
       </div>
 
@@ -161,7 +164,7 @@ export function BugsClient() {
       <div className="flex items-center gap-3 flex-wrap">
         <div className="flex-1 min-w-[200px] max-w-sm">
           <Input
-            placeholder="Search bugs..."
+            placeholder={t('searchBugs')}
             leftIcon={<Search className="w-4 h-4" />}
             value={search}
             onChange={e => setSearch(e.target.value)}
@@ -179,7 +182,7 @@ export function BugsClient() {
                 severity === s ? 'bg-white/10 text-white' : 'text-white/40 hover:text-white/60'
               )}
             >
-              {s === 'ALL' ? 'All' : s.charAt(0) + s.slice(1).toLowerCase()}
+              {s === 'ALL' ? t('all') : s.charAt(0) + s.slice(1).toLowerCase()}
             </button>
           ))}
         </div>
@@ -195,7 +198,7 @@ export function BugsClient() {
                 status === s ? 'bg-white/10 text-white' : 'text-white/40 hover:text-white/60'
               )}
             >
-              {s === 'ALL' ? 'All' : s === 'IN_PROGRESS' ? 'In Progress' : s === 'IN_REVIEW' ? 'In Review' : s.charAt(0) + s.slice(1).toLowerCase()}
+              {s === 'ALL' ? t('all') : s === 'IN_PROGRESS' ? 'In Progress' : s === 'IN_REVIEW' ? 'In Review' : s.charAt(0) + s.slice(1).toLowerCase()}
             </button>
           ))}
         </div>
@@ -218,6 +221,8 @@ export function BugsClient() {
 }
 
 function ReportBugModal({ onClose, onCreate, nextNumber }: { onClose: () => void; onCreate: (bug: BugType) => void; nextNumber: number }) {
+  useI18nStore(s => s.locale)
+  const t = useI18nStore(s => s.t)
   const [title, setTitle] = useState('')
   const [description, setDescription] = useState('')
   const [severity, setSeverity] = useState<BugSeverity>('MEDIUM')
@@ -254,14 +259,14 @@ function ReportBugModal({ onClose, onCreate, nextNumber }: { onClose: () => void
       <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={onClose} />
       <div className="relative w-full max-w-xl dropdown-panel overflow-hidden">
         <div className="flex items-center justify-between px-5 py-4 border-b border-white/[0.08]">
-          <span className="text-sm font-semibold text-white/90">Reportar bug</span>
+          <span className="text-sm font-semibold text-white/90">{t('reportBug')}</span>
           <button onClick={onClose} className="p-1 rounded-lg text-white/35 hover:text-white hover:bg-white/[0.06]">
             <X className="w-4 h-4" />
           </button>
         </div>
         <div className="p-5 space-y-4">
-          <input value={title} onChange={e => setTitle(e.target.value)} className={inputCls} placeholder="Titulo do bug" autoFocus />
-          <textarea value={description} onChange={e => setDescription(e.target.value)} className={cn(inputCls, 'resize-none')} rows={4} placeholder="Descricao e impacto" />
+          <input value={title} onChange={e => setTitle(e.target.value)} className={inputCls} placeholder={t('bugTitle')} autoFocus />
+          <textarea value={description} onChange={e => setDescription(e.target.value)} className={cn(inputCls, 'resize-none')} rows={4} placeholder={t('impactDescription')} />
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
             <select value={severity} onChange={e => setSeverity(e.target.value as BugSeverity)} className={inputCls}>
               {(['LOW', 'MEDIUM', 'HIGH', 'CRITICAL'] as BugSeverity[]).map(s => <option key={s} value={s}>{s}</option>)}
@@ -269,11 +274,11 @@ function ReportBugModal({ onClose, onCreate, nextNumber }: { onClose: () => void
             <select value={priority} onChange={e => setPriority(e.target.value as Priority)} className={inputCls}>
               {(['LOW', 'MEDIUM', 'HIGH', 'CRITICAL'] as Priority[]).map(p => <option key={p} value={p}>{p}</option>)}
             </select>
-            <input value={environment} onChange={e => setEnvironment(e.target.value)} className={inputCls} placeholder="Ambiente" />
+            <input value={environment} onChange={e => setEnvironment(e.target.value)} className={inputCls} placeholder={t('environment')} />
           </div>
           <div className="flex justify-end gap-3">
-            <Button variant="outline" onClick={onClose}>Cancelar</Button>
-            <Button variant="glow" onClick={create} disabled={!title.trim() || !description.trim()} leftIcon={<Plus className="w-4 h-4" />}>Criar bug</Button>
+            <Button variant="outline" onClick={onClose}>{t('cancel')}</Button>
+            <Button variant="glow" onClick={create} disabled={!title.trim() || !description.trim()} leftIcon={<Plus className="w-4 h-4" />}>{t('createBug')}</Button>
           </div>
         </div>
       </div>
@@ -282,6 +287,8 @@ function ReportBugModal({ onClose, onCreate, nextNumber }: { onClose: () => void
 }
 
 function BugDetailModal({ bug, fullscreen, onToggleFullscreen, onClose }: { bug: BugType; fullscreen: boolean; onToggleFullscreen: () => void; onClose: () => void }) {
+  useI18nStore(s => s.locale)
+  const t = useI18nStore(s => s.t)
   return (
     <div className="fixed inset-0 z-50 grid place-items-center p-4">
       <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={onClose} />
@@ -302,26 +309,26 @@ function BugDetailModal({ bug, fullscreen, onToggleFullscreen, onClose }: { bug:
         </div>
         <div className="p-5 overflow-y-auto max-h-[calc(100vh-8rem)] space-y-5">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-            <Info label="Severity" value={bug.severity} />
-            <Info label="Priority" value={bug.priority} />
-            <Info label="Status" value={bug.status.replace('_', ' ')} />
-            <Info label="Project" value={bug.project.name} />
+            <Info label={t('severity')} value={bug.severity} />
+            <Info label={t('priority')} value={bug.priority} />
+            <Info label={t('status')} value={bug.status.replace('_', ' ')} />
+            <Info label={t('project')} value={bug.project.name} />
           </div>
           <section>
-            <h3 className="text-xs font-semibold uppercase tracking-wider text-white/35 mb-2">Descricao</h3>
+            <h3 className="text-xs font-semibold uppercase tracking-wider text-white/35 mb-2">{t('description')}</h3>
             <p className="text-sm text-white/70 leading-relaxed">{bug.description}</p>
           </section>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <Info label="Ambiente" value={bug.environment || 'Nao informado'} multiline />
+            <Info label={t('environment')} value={bug.environment || '-'} multiline />
             <Info label="Build" value={bug.buildVersion || 'Nao informado'} multiline />
-            <Info label="Reporter" value={bug.reporter.name} multiline />
-            <Info label="Assignee" value={bug.assignee?.name || 'Sem responsavel'} multiline />
+            <Info label={t('reporter')} value={bug.reporter.name} multiline />
+            <Info label={t('assignee')} value={bug.assignee?.name || '-'} multiline />
           </div>
           {(bug.stepsToReproduce || bug.expectedBehavior || bug.actualBehavior) && (
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <Info label="Reproducao" value={bug.stepsToReproduce || '-'} multiline />
-              <Info label="Esperado" value={bug.expectedBehavior || '-'} multiline />
-              <Info label="Atual" value={bug.actualBehavior || '-'} multiline />
+              <Info label={t('reproduction')} value={bug.stepsToReproduce || '-'} multiline />
+              <Info label={t('expected')} value={bug.expectedBehavior || '-'} multiline />
+              <Info label={t('actual')} value={bug.actualBehavior || '-'} multiline />
             </div>
           )}
           <div className="flex flex-wrap gap-1.5">

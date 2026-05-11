@@ -112,7 +112,7 @@ export function DailyClient() {
               )}
             >
               <ChevronRight className="w-3.5 h-3.5" />
-              <span className="hidden sm:block">Enviar abertas para hoje</span>
+              <span className="hidden sm:block">{t('sendOpenToToday')}</span>
             </button>
           )}
           <button
@@ -192,7 +192,7 @@ export function DailyClient() {
             </button>
             {!isToday && (
               <span className="rounded-lg border border-amber-500/20 bg-amber-500/10 px-3 py-2 text-xs text-amber-300">
-                Visualizando Daily anterior
+                {t('viewingPreviousDaily')}
               </span>
             )}
           </div>
@@ -256,7 +256,7 @@ export function DailyClient() {
             </button>
           ))}
         </div>
-        <span className="text-xs text-white/25">{tasks.length} tarefas · {meetings.length} reuniões</span>
+        <span className="text-xs text-white/25">{tasks.length} {t('tasks')} · {meetings.length} {t('meetings')}</span>
       </motion.div>
 
       {/* Main content */}

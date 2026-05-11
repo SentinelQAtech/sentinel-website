@@ -12,6 +12,7 @@ import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card'
 import { BurndownChart } from './burndown-chart'
 import { cn, formatDate } from '@/lib/utils'
 import { TEAM } from '@/lib/team-data'
+import { useI18nStore } from '@/store/i18n'
 import type { SprintStatus, TaskStatus } from '@/types'
 
 const ACTIVE_TEAM = TEAM.filter(member => member.user.isActive)
@@ -60,6 +61,8 @@ const sprints = [
 ]
 
 export function SprintsClient() {
+  useI18nStore(s => s.locale)
+  const t = useI18nStore(s => s.t)
   const [activeSprint, setActiveSprint] = useState(sprints[0])
 
   const metrics = useMemo(() => {
@@ -75,11 +78,11 @@ export function SprintsClient() {
       <div className="flex items-center justify-between gap-4">
         <div>
           <h1 className="text-2xl font-bold text-white flex items-center gap-2">
-            <Zap className="w-6 h-6 text-violet-400" /> Sprints
+            <Zap className="w-6 h-6 text-violet-400" /> {t('sprintsTitle')}
           </h1>
-          <p className="text-sm text-white/40 mt-0.5">{sprints.filter(s => s.status === 'ACTIVE').length} active sprints with actionable status</p>
+          <p className="text-sm text-white/40 mt-0.5">{sprints.filter(s => s.status === 'ACTIVE').length} {t('activeSprintsWithStatus')}</p>
         </div>
-        <Button variant="glow" leftIcon={<Plus className="w-4 h-4" />}>New Sprint</Button>
+        <Button variant="glow" leftIcon={<Plus className="w-4 h-4" />}>{t('newSprint')}</Button>
       </div>
 
       <div className="flex gap-2 overflow-x-auto scrollbar-hide pb-1">
@@ -103,10 +106,10 @@ export function SprintsClient() {
 
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         {[
-          { label: 'Progress', value: `${metrics.progress}%`, icon: <CheckCircle2 className="w-4 h-4" />, href: '/kanban' },
-          { label: 'Tasks', value: `${metrics.doneTasks}/${metrics.totalTasks}`, icon: <KanbanSquare className="w-4 h-4" />, href: '/kanban' },
-          { label: 'Bugs', value: activeSprint.bugs, icon: <Bug className="w-4 h-4" />, href: '/bugs' },
-          { label: 'Blockers', value: activeSprint.blockers, icon: <AlertTriangle className="w-4 h-4" />, href: '/bugs' },
+          { label: t('progress'), value: `${metrics.progress}%`, icon: <CheckCircle2 className="w-4 h-4" />, href: '/kanban' },
+          { label: t('tasks'), value: `${metrics.doneTasks}/${metrics.totalTasks}`, icon: <KanbanSquare className="w-4 h-4" />, href: '/kanban' },
+          { label: t('bugs'), value: activeSprint.bugs, icon: <Bug className="w-4 h-4" />, href: '/bugs' },
+          { label: t('blockers'), value: activeSprint.blockers, icon: <AlertTriangle className="w-4 h-4" />, href: '/bugs' },
         ].map(item => (
           <Link key={item.label} href={item.href} className="glass-card-hover p-4 border border-white/[0.07] flex items-center justify-between">
             <div>
@@ -133,14 +136,14 @@ export function SprintsClient() {
               </div>
 
               <div className="grid grid-cols-3 gap-4 mb-5">
-                <SprintBox label="Planned pts" value={activeSprint.planned} />
-                <SprintBox label="Completed" value={activeSprint.completed} color="text-emerald-400" />
-                <SprintBox label="QA/Review" value={metrics.qaTasks} color="text-cyan-400" />
+                <SprintBox label={t('plannedPts')} value={activeSprint.planned} />
+                <SprintBox label={t('completed')} value={activeSprint.completed} color="text-emerald-400" />
+                <SprintBox label={t('qaReview')} value={metrics.qaTasks} color="text-cyan-400" />
               </div>
 
               <div className="space-y-1.5">
                 <div className="flex items-center justify-between text-xs text-white/50">
-                  <span>Sprint progress</span>
+                  <span>{t('sprintProgress')}</span>
                   <span>{metrics.progress}%</span>
                 </div>
                 <Progress value={activeSprint.completed} max={activeSprint.planned} size="lg" color="primary" />
@@ -158,9 +161,9 @@ export function SprintsClient() {
 
           <Card>
             <CardHeader>
-              <CardTitle>Sprint Tasks</CardTitle>
+              <CardTitle>{t('sprintTasks')}</CardTitle>
               <Link href="/kanban" className="text-xs text-primary hover:text-primary/80 flex items-center gap-1">
-                Abrir board <ArrowUpRight className="w-3 h-3" />
+                {t('openBoard')} <ArrowUpRight className="w-3 h-3" />
               </Link>
             </CardHeader>
             <CardContent className="pt-3 space-y-2">
@@ -183,7 +186,7 @@ export function SprintsClient() {
         <div className="col-span-12 lg:col-span-4 space-y-5">
           <Link href="/team" className="block glass-card-hover border border-white/[0.07]">
             <div className="flex items-center justify-between p-5 pb-0">
-              <CardTitle>Team real ({ACTIVE_TEAM.length})</CardTitle>
+              <CardTitle>{t('realTeam')} ({ACTIVE_TEAM.length})</CardTitle>
               <ArrowUpRight className="w-4 h-4 text-white/35" />
             </div>
             <CardContent className="pt-3 space-y-3">
@@ -202,7 +205,7 @@ export function SprintsClient() {
 
           <Card>
             <CardHeader>
-              <CardTitle>Atalhos</CardTitle>
+              <CardTitle>{t('shortcuts')}</CardTitle>
             </CardHeader>
             <CardContent className="pt-3 grid grid-cols-2 gap-2">
               <QuickLink href="/projects" icon={<FolderKanban className="w-4 h-4" />} label="Projects" />

@@ -9,6 +9,7 @@ import {
   CalendarEvent,
 } from '@/store/calendar'
 import { AddEventModal } from './add-event-modal'
+import { useI18nStore } from '@/store/i18n'
 
 const WEEKDAYS  = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb']
 const MONTHS_PT = [
@@ -49,6 +50,8 @@ function buildGrid(year: number, month: number) {
 }
 
 export function CalendarClient() {
+  useI18nStore(s => s.locale)
+  const t = useI18nStore(s => s.t)
   const today = new Date()
   const [year,         setYear]         = useState(today.getFullYear())
   const [month,        setMonth]        = useState(today.getMonth())
@@ -122,7 +125,7 @@ export function CalendarClient() {
               onClick={goToday}
               className="px-3 py-1.5 text-xs font-medium rounded-lg border border-white/[0.08] text-white/50 hover:text-white hover:border-white/20 transition-all duration-150"
             >
-              Hoje
+              {t('today')}
             </button>
           </div>
 
@@ -137,14 +140,14 @@ export function CalendarClient() {
               )}
             >
               <History className="w-3.5 h-3.5" />
-              Historico
+              {t('history')}
             </button>
             <button
               onClick={() => openAdd(selectedDate)}
               className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium bg-primary/20 border border-primary/30 text-primary hover:bg-primary/30 transition-all duration-200"
             >
               <Plus className="w-3.5 h-3.5" />
-              Add Evento
+              {t('addEvent')}
             </button>
           </div>
         </div>
@@ -238,7 +241,7 @@ export function CalendarClient() {
           {showHistory ? (
             historyEvents.length === 0 ? (
               <div className="text-center pt-10">
-                <p className="text-xs text-white/25">Sem eventos anteriores</p>
+                <p className="text-xs text-white/25">{t('noPastEvents')}</p>
               </div>
             ) : (
               historyEvents.map(ev => {
@@ -270,12 +273,12 @@ export function CalendarClient() {
             )
           ) : selectedEvents.length === 0 ? (
             <div className="text-center pt-10">
-              <p className="text-xs text-white/25">Nenhum evento</p>
+              <p className="text-xs text-white/25">{t('noEvents')}</p>
               <button
                 onClick={() => openAdd(selectedDate)}
                 className="mt-3 text-xs text-primary/70 hover:text-primary transition-colors"
               >
-                + Adicionar evento
+                + {t('addEvent')}
               </button>
             </div>
           ) : (
@@ -322,7 +325,7 @@ export function CalendarClient() {
 
         {/* Legend */}
         <div className="px-4 py-3 border-t border-white/[0.06] shrink-0">
-          <p className="text-[10px] font-semibold uppercase tracking-wider text-white/25 mb-2">Legenda</p>
+          <p className="text-[10px] font-semibold uppercase tracking-wider text-white/25 mb-2">{t('legend')}</p>
           <div className="flex flex-col gap-1">
             {(Object.entries(EVENT_TYPE_CONFIG) as [string, { label: string; color: string }][]).map(([, cfg]) => (
               <div key={cfg.label} className="flex items-center gap-2">

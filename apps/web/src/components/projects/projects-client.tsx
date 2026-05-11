@@ -8,6 +8,7 @@ import { Input } from '@/components/ui/input'
 import { ProjectCard } from './project-card'
 import { cn } from '@/lib/utils'
 import { COMPANIES, type CompanyKey } from '@/lib/companies'
+import { useI18nStore } from '@/store/i18n'
 import type { Priority, Project } from '@/types'
 
 const owner1 = { id: '1', email: 'rapha@sentinel.tech', username: 'raphacastilho', name: 'Raphael Castilho', role: 'ADMIN' as const, isActive: true, createdAt: '' }
@@ -88,6 +89,8 @@ type FilterCompany = 'ALL' | CompanyKey
 type FilterPriority = 'ALL' | Priority
 
 export function ProjectsClient() {
+  useI18nStore(s => s.locale)
+  const t = useI18nStore(s => s.t)
   const [search, setSearch]       = useState('')
   const [view, setView]           = useState<ViewMode>('grid')
   const [status, setStatus]       = useState<FilterStatus>('ALL')
@@ -125,11 +128,11 @@ export function ProjectsClient() {
       {/* Header */}
       <div className="flex items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-white">Projects</h1>
-          <p className="text-sm text-white/40 mt-0.5">{filtered.length} of {projects.length} projects</p>
+          <h1 className="text-2xl font-bold text-white">{t('projectsTitle')}</h1>
+          <p className="text-sm text-white/40 mt-0.5">{filtered.length} / {projects.length}</p>
         </div>
         <Button onClick={() => setNewOpen(true)} variant="glow" leftIcon={<Plus className="w-4 h-4" />}>
-          New Project
+          {t('newProject')}
         </Button>
       </div>
 
@@ -147,7 +150,7 @@ export function ProjectsClient() {
               : 'bg-white/[0.03] border-white/[0.08] text-white/45 hover:text-white/70 hover:bg-white/[0.06]'
           )}
         >
-          All clients
+          {t('allClients')}
         </button>
 
         {/* Per company */}
@@ -184,7 +187,7 @@ export function ProjectsClient() {
       <div className="flex items-center gap-3 flex-wrap">
         <div className="flex-1 min-w-[200px] max-w-sm">
           <Input
-            placeholder="Search projects..."
+            placeholder={t('searchProjects')}
             leftIcon={<Search className="w-4 h-4" />}
             value={search}
             onChange={e => setSearch(e.target.value)}
@@ -202,7 +205,7 @@ export function ProjectsClient() {
                 status === s ? 'bg-primary/20 text-primary' : 'text-white/50 hover:text-white/70'
               )}
             >
-              {s === 'ALL' ? 'All' : s.charAt(0) + s.slice(1).toLowerCase()}
+              {s === 'ALL' ? t('all') : t(s.toLowerCase())}
             </button>
           ))}
         </div>
@@ -216,7 +219,7 @@ export function ProjectsClient() {
               : 'bg-white/[0.04] border-white/[0.08] text-white/50 hover:text-white/70 hover:bg-white/[0.06]'
           )}
         >
-          <SlidersHorizontal className="w-3.5 h-3.5" /> Filters
+          <SlidersHorizontal className="w-3.5 h-3.5" /> {t('filters')}
         </button>
 
         {/* View toggle */}
@@ -232,7 +235,7 @@ export function ProjectsClient() {
 
       {filtersOpen && (
         <div className="glass-card p-4 flex items-center gap-4 flex-wrap">
-          <span className="text-xs text-white/35 font-medium uppercase tracking-wider">Priority</span>
+          <span className="text-xs text-white/35 font-medium uppercase tracking-wider">{t('priority')}</span>
           {(['ALL', 'CRITICAL', 'HIGH', 'MEDIUM', 'LOW'] as FilterPriority[]).map(p => (
             <button
               key={p}
@@ -244,14 +247,14 @@ export function ProjectsClient() {
                   : 'bg-white/[0.03] border-white/[0.08] text-white/45 hover:text-white/70'
               )}
             >
-              {p === 'ALL' ? 'All priorities' : p.charAt(0) + p.slice(1).toLowerCase()}
+              {p === 'ALL' ? t('allPriorities') : p.charAt(0) + p.slice(1).toLowerCase()}
             </button>
           ))}
           <button
             onClick={() => { setSearch(''); setStatus('ALL'); setCompany('ALL'); setPriority('ALL') }}
             className="ml-auto text-xs text-white/35 hover:text-white/70 transition-colors"
           >
-            Limpar filtros
+            {t('clearFilters')}
           </button>
         </div>
       )}
@@ -282,8 +285,8 @@ export function ProjectsClient() {
             <div className="w-16 h-16 rounded-2xl bg-white/[0.04] flex items-center justify-center mb-4 text-3xl">
               {company !== 'ALL' ? COMPANIES[company as CompanyKey].flag : '🔍'}
             </div>
-            <p className="text-white/50 font-medium">No projects found</p>
-            <p className="text-white/30 text-sm mt-1">Try adjusting your search or filters</p>
+            <p className="text-white/50 font-medium">{t('noProjectsFound')}</p>
+            <p className="text-white/30 text-sm mt-1">{t('adjustFilters')}</p>
           </div>
         )}
       </motion.div>
@@ -297,7 +300,7 @@ export function ProjectsClient() {
             <div className="flex items-center justify-between px-5 py-4 border-b border-white/[0.08]">
               <div className="flex items-center gap-2">
                 <AlertTriangle className="w-4 h-4 text-red-300" />
-                <span className="text-sm font-semibold text-white/90">Excluir projeto</span>
+                <span className="text-sm font-semibold text-white/90">{t('deleteProject')}</span>
               </div>
               <button onClick={() => setDeleteTarget(null)} className="p-1 rounded-lg text-white/35 hover:text-white hover:bg-white/[0.06]">
                 <X className="w-4 h-4" />
@@ -320,7 +323,7 @@ export function ProjectsClient() {
                 leftIcon={<Trash2 className="w-4 h-4" />}
                 onClick={deleteProject}
               >
-                Confirmar exclusao
+                {t('confirmDeleteProject')}
               </Button>
             </div>
           </div>
@@ -331,6 +334,8 @@ export function ProjectsClient() {
 }
 
 function NewProjectModal({ onClose, onCreate }: { onClose: () => void; onCreate: (project: Project) => void }) {
+  useI18nStore(s => s.locale)
+  const t = useI18nStore(s => s.t)
   const [name, setName] = useState('')
   const [description, setDescription] = useState('')
   const [clientName, setClientName] = useState<CompanyKey>('Concept-USA')
@@ -368,14 +373,14 @@ function NewProjectModal({ onClose, onCreate }: { onClose: () => void; onCreate:
       <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={onClose} />
       <div className="relative w-full max-w-lg dropdown-panel overflow-hidden">
         <div className="flex items-center justify-between px-5 py-4 border-b border-white/[0.08]">
-          <span className="text-sm font-semibold text-white/90">Novo projeto</span>
+          <span className="text-sm font-semibold text-white/90">{t('newProject')}</span>
           <button onClick={onClose} className="p-1 rounded-lg text-white/35 hover:text-white hover:bg-white/[0.06]">
             <X className="w-4 h-4" />
           </button>
         </div>
         <div className="p-5 space-y-4">
-          <input value={name} onChange={e => setName(e.target.value)} className={inputCls} placeholder="Nome do projeto" autoFocus />
-          <textarea value={description} onChange={e => setDescription(e.target.value)} className={cn(inputCls, 'resize-none')} rows={3} placeholder="Descricao" />
+          <input value={name} onChange={e => setName(e.target.value)} className={inputCls} placeholder={t('projectName')} autoFocus />
+          <textarea value={description} onChange={e => setDescription(e.target.value)} className={cn(inputCls, 'resize-none')} rows={3} placeholder={t('description')} />
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
             <select value={clientName} onChange={e => setClientName(e.target.value as CompanyKey)} className={inputCls}>
               {(Object.keys(COMPANIES) as CompanyKey[]).map(key => <option key={key} value={key}>{COMPANIES[key].label}</option>)}
@@ -386,8 +391,8 @@ function NewProjectModal({ onClose, onCreate }: { onClose: () => void; onCreate:
             <input type="date" value={endDate} onChange={e => setEndDate(e.target.value)} className={cn(inputCls, '[color-scheme:dark]')} />
           </div>
           <div className="flex justify-end gap-3 pt-1">
-            <Button variant="outline" onClick={onClose}>Cancelar</Button>
-            <Button variant="glow" onClick={create} disabled={!name.trim()} leftIcon={<Plus className="w-4 h-4" />}>Criar projeto</Button>
+            <Button variant="outline" onClick={onClose}>{t('cancel')}</Button>
+            <Button variant="glow" onClick={create} disabled={!name.trim()} leftIcon={<Plus className="w-4 h-4" />}>{t('createProject')}</Button>
           </div>
         </div>
       </div>

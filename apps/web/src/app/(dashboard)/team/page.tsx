@@ -11,6 +11,7 @@ import { Avatar } from '@/components/ui/avatar'
 import { Button } from '@/components/ui/button'
 import { cn, formatDate } from '@/lib/utils'
 import { TEAM, COMPANY_CLIENTS, type TeamMember } from '@/lib/team-data'
+import { useI18nStore } from '@/store/i18n'
 import type { Role } from '@/types'
 
 type MemberForm = {
@@ -57,6 +58,8 @@ function formFromMember(member: TeamMember): MemberForm {
 }
 
 export default function TeamPage() {
+  useI18nStore(s => s.locale)
+  const t = useI18nStore(s => s.t)
   const [members, setMembers] = useState<TeamMember[]>(TEAM)
   const [hydrated, setHydrated] = useState(false)
   const [search, setSearch] = useState('')
@@ -185,15 +188,15 @@ export default function TeamPage() {
         className="flex items-center justify-between gap-4"
       >
         <div>
-          <h1 className="text-2xl font-bold text-white">Time</h1>
-          <p className="text-sm text-white/40 mt-0.5">Gestao dos membros ativos e historico de participacao</p>
+          <h1 className="text-2xl font-bold text-white">{t('teamTitle')}</h1>
+          <p className="text-sm text-white/40 mt-0.5">{t('teamSubtitle')}</p>
         </div>
         <Button
           variant="glow"
           leftIcon={<Plus className="w-4 h-4" />}
           onClick={() => { setEditing(null); setFormOpen(true) }}
         >
-          Novo membro
+          {t('newMember')}
         </Button>
       </motion.div>
 
@@ -204,10 +207,10 @@ export default function TeamPage() {
         className="grid grid-cols-2 lg:grid-cols-4 gap-4"
       >
         {[
-          { label: 'Membros ativos', value: activeMembers.length, icon: <Users className="w-4 h-4" />, color: '#06b6d4' },
-          { label: 'Clientes ativos', value: COMPANY_CLIENTS.length, icon: <Crown className="w-4 h-4" />, color: '#f59e0b' },
-          { label: 'Bugs resolvidos', value: members.reduce((a, m) => a + m.bugsResolved, 0), icon: <Bug className="w-4 h-4" />, color: '#ef4444' },
-          { label: 'Historico', value: offboardedMembers.length, icon: <Archive className="w-4 h-4" />, color: '#8b5cf6' },
+          { label: t('activeMembers'), value: activeMembers.length, icon: <Users className="w-4 h-4" />, color: '#06b6d4' },
+          { label: t('clients'), value: COMPANY_CLIENTS.length, icon: <Crown className="w-4 h-4" />, color: '#f59e0b' },
+          { label: t('resolved'), value: members.reduce((a, m) => a + m.bugsResolved, 0), icon: <Bug className="w-4 h-4" />, color: '#ef4444' },
+          { label: t('offboardHistory'), value: offboardedMembers.length, icon: <Archive className="w-4 h-4" />, color: '#8b5cf6' },
         ].map(({ label, value, icon, color }) => (
           <div key={label} className="glass-card p-4 flex items-center gap-3 border border-white/[0.07]">
             <div className="w-9 h-9 rounded-xl flex items-center justify-center shrink-0" style={{ backgroundColor: color + '20', color }}>
@@ -227,7 +230,7 @@ export default function TeamPage() {
           value={search}
           onChange={e => setSearch(e.target.value)}
           className="flex-1 bg-transparent outline-none text-sm text-white placeholder-white/25"
-          placeholder="Buscar por nome, funcao ou skill"
+          placeholder={t('searchTeam')}
         />
       </div>
 
@@ -267,14 +270,14 @@ export default function TeamPage() {
                   <button
                     onClick={() => { setEditing(member); setFormOpen(true) }}
                     className="p-1.5 rounded-lg text-white/35 hover:text-white hover:bg-white/[0.06] transition-colors"
-                    title="Editar membro"
+                    title={t('editMember')}
                   >
                     <Pencil className="w-3.5 h-3.5" />
                   </button>
                   <button
                     onClick={() => setOffboarding(member)}
                     className="p-1.5 rounded-lg text-white/35 hover:text-red-300 hover:bg-red-500/10 transition-colors"
-                    title="Desligar membro"
+                    title={t('offboardMember')}
                   >
                     <UserMinus className="w-3.5 h-3.5" />
                   </button>
@@ -285,8 +288,8 @@ export default function TeamPage() {
 
               <div className="grid grid-cols-3 gap-3">
                 {[
-                  { label: 'Projetos', value: member.projects, icon: <FolderKanban className="w-3 h-3" /> },
-                  { label: 'Bugs', value: member.bugsResolved, icon: <Bug className="w-3 h-3" /> },
+                  { label: t('projects'), value: member.projects, icon: <FolderKanban className="w-3 h-3" /> },
+                  { label: t('bugs'), value: member.bugsResolved, icon: <Bug className="w-3 h-3" /> },
                   { label: 'Sprints', value: member.sprintsCompleted, icon: <Zap className="w-3 h-3" /> },
                 ].map(({ label, value, icon }) => (
                   <div key={label} className="flex flex-col items-center gap-1 py-2.5 rounded-xl bg-white/[0.03] border border-white/[0.06]">
@@ -335,7 +338,7 @@ export default function TeamPage() {
         <section className="glass-card border border-white/[0.07] p-5">
           <div className="flex items-center gap-2 mb-4">
             <Archive className="w-4 h-4 text-white/40" />
-            <h3 className="text-sm font-semibold text-white/70">Historico de membros desligados</h3>
+            <h3 className="text-sm font-semibold text-white/70">{t('offboardedMembers')}</h3>
           </div>
           <div className="space-y-2">
             {offboardedMembers.map(member => (
@@ -356,7 +359,7 @@ export default function TeamPage() {
       <section className="glass-card border border-white/[0.07] p-6">
         <div className="flex items-center gap-2 mb-4">
           <Activity className="w-4 h-4 text-white/40" />
-          <h3 className="text-sm font-semibold text-white/70">Clientes atendidos</h3>
+          <h3 className="text-sm font-semibold text-white/70">{t('clientsServed')}</h3>
         </div>
         <div className="flex flex-wrap gap-3">
           {COMPANY_CLIENTS.map(client => (
@@ -371,7 +374,7 @@ export default function TeamPage() {
       {formOpen && (
         <MemberModal
           initial={editing ? formFromMember(editing) : emptyForm()}
-          title={editing ? 'Editar membro' : 'Novo membro'}
+          title={editing ? t('editMember') : t('newMember')}
           onClose={() => { setFormOpen(false); setEditing(null) }}
           onSave={saveMember}
         />
@@ -394,6 +397,8 @@ function MemberModal({ initial, title, onClose, onSave }: {
   onClose: () => void
   onSave: (form: MemberForm) => void
 }) {
+  useI18nStore(s => s.locale)
+  const t = useI18nStore(s => s.t)
   const [form, setForm] = useState<MemberForm>(initial)
   const inputCls = 'w-full px-3 py-2.5 rounded-lg text-sm bg-white/[0.04] border border-white/[0.08] text-white placeholder-white/25 outline-none focus:border-primary/50'
 
@@ -413,26 +418,26 @@ function MemberModal({ initial, title, onClose, onSave }: {
         </div>
         <div className="p-5 space-y-4">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            <input value={form.name} onChange={e => update('name', e.target.value)} className={inputCls} placeholder="Nome" autoFocus />
-            <input value={form.email} onChange={e => update('email', e.target.value)} className={inputCls} placeholder="E-mail" />
-            <input value={form.username} onChange={e => update('username', e.target.value)} className={inputCls} placeholder="Username" />
+            <input value={form.name} onChange={e => update('name', e.target.value)} className={inputCls} placeholder={t('name')} autoFocus />
+            <input value={form.email} onChange={e => update('email', e.target.value)} className={inputCls} placeholder={t('email')} />
+            <input value={form.username} onChange={e => update('username', e.target.value)} className={inputCls} placeholder={t('username')} />
             <select value={form.role} onChange={e => update('role', e.target.value as Role)} className={inputCls}>
               {(['ADMIN', 'PROJECT_MANAGER', 'QA_ANALYST', 'QA_ENGINEER', 'DEVELOPER', 'CLIENT_VIEWER'] as Role[]).map(role => (
                 <option key={role} value={role}>{role}</option>
               ))}
             </select>
           </div>
-          <input value={form.title} onChange={e => update('title', e.target.value)} className={inputCls} placeholder="Cargo / funcao" />
-          <textarea value={form.bio} onChange={e => update('bio', e.target.value)} className={cn(inputCls, 'resize-none')} rows={3} placeholder="Bio / contexto do membro" />
-          <input value={form.skills} onChange={e => update('skills', e.target.value)} className={inputCls} placeholder="Skills separadas por virgula" />
+          <input value={form.title} onChange={e => update('title', e.target.value)} className={inputCls} placeholder={t('titleRole')} />
+          <textarea value={form.bio} onChange={e => update('bio', e.target.value)} className={cn(inputCls, 'resize-none')} rows={3} placeholder={t('bioContext')} />
+          <input value={form.skills} onChange={e => update('skills', e.target.value)} className={inputCls} placeholder={t('skillsComma')} />
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <input value={form.github} onChange={e => update('github', e.target.value)} className={inputCls} placeholder="GitHub" />
             <input value={form.linkedin} onChange={e => update('linkedin', e.target.value)} className={inputCls} placeholder="LinkedIn" />
           </div>
           <div className="flex justify-end gap-3 pt-1">
-            <Button variant="outline" onClick={onClose}>Cancelar</Button>
+            <Button variant="outline" onClick={onClose}>{t('cancel')}</Button>
             <Button variant="glow" onClick={() => onSave(form)} disabled={!form.name.trim() || !form.email.trim() || !form.title.trim()}>
-              Salvar
+              {t('save')}
             </Button>
           </div>
         </div>
@@ -446,12 +451,14 @@ function ConfirmOffboarding({ member, onClose, onConfirm }: {
   onClose: () => void
   onConfirm: () => void
 }) {
+  useI18nStore(s => s.locale)
+  const t = useI18nStore(s => s.t)
   return (
     <div className="fixed inset-0 z-50 grid place-items-center p-4">
       <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={onClose} />
       <div className="relative w-full max-w-md dropdown-panel border border-red-500/20 overflow-hidden">
         <div className="flex items-center justify-between px-5 py-4 border-b border-white/[0.08]">
-          <span className="text-sm font-semibold text-white/90">Desligar membro</span>
+          <span className="text-sm font-semibold text-white/90">{t('offboardMember')}</span>
           <button onClick={onClose} className="p-1 rounded-lg text-white/35 hover:text-white hover:bg-white/[0.06]">
             <X className="w-4 h-4" />
           </button>
@@ -461,9 +468,9 @@ function ConfirmOffboarding({ member, onClose, onConfirm }: {
             {member.user.name} sairá dos cards de membros ativos, mas seus dados seguem preservados no historico e em registros passados.
           </p>
           <div className="flex justify-end gap-3">
-            <Button variant="outline" onClick={onClose}>Cancelar</Button>
+            <Button variant="outline" onClick={onClose}>{t('cancel')}</Button>
             <Button variant="destructive" onClick={onConfirm} leftIcon={<UserMinus className="w-4 h-4" />}>
-              Desligar
+              {t('offboardMember')}
             </Button>
           </div>
         </div>
