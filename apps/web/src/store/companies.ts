@@ -111,5 +111,5 @@ export const useCompaniesStore = create<CompaniesState>()(
 )
 
 export function useActiveCompanies() {
-  return useCompaniesStore(s => s.companies.filter(c => c.status !== 'finished'))
+  return useCompaniesStore(s => s.companies).filter(c => c.status !== 'finished')
 }

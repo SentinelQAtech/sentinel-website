@@ -1,5 +1,6 @@
 'use client'
 
+import { useMemo } from 'react'
 import Link from 'next/link'
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card'
 import { useI18nStore } from '@/store/i18n'
@@ -9,7 +10,11 @@ import { ArrowUpRight, FolderKanban } from 'lucide-react'
 export function ActiveProjects() {
   useI18nStore(s => s.locale)
   const t = useI18nStore(s => s.t)
-  const projects = useProjectsStore(s => s.projects.filter(project => project.status === 'ACTIVE'))
+  const allProjects = useProjectsStore(s => s.projects)
+  const projects = useMemo(
+    () => allProjects.filter(project => project.status === 'ACTIVE'),
+    [allProjects]
+  )
 
   return (
     <Card>
