@@ -2,21 +2,14 @@
 
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card'
 import { useI18nStore } from '@/store/i18n'
+import { useBugsStore } from '@/store/bugs'
 import Link from 'next/link'
 import { ArrowUpRight, AlertTriangle } from 'lucide-react'
-import type { BugSeverity, BugStatus } from '@/types'
-
-const bugs: {
-  id: string
-  bugId: string
-  title: string
-  severity: BugSeverity
-  status: BugStatus
-}[] = []
 
 export function CriticalBugs() {
   useI18nStore(s => s.locale)
   const t = useI18nStore(s => s.t)
+  const bugs = useBugsStore(s => s.bugs.filter(bug => bug.severity === 'CRITICAL' || bug.severity === 'HIGH'))
 
   return (
     <Card>

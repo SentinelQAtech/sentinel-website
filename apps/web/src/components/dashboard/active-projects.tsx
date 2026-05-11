@@ -3,13 +3,13 @@
 import Link from 'next/link'
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card'
 import { useI18nStore } from '@/store/i18n'
+import { useProjectsStore } from '@/store/projects'
 import { ArrowUpRight, FolderKanban } from 'lucide-react'
-
-const projects: { id: string; name: string }[] = []
 
 export function ActiveProjects() {
   useI18nStore(s => s.locale)
   const t = useI18nStore(s => s.t)
+  const projects = useProjectsStore(s => s.projects.filter(project => project.status === 'ACTIVE'))
 
   return (
     <Card>
@@ -35,6 +35,7 @@ export function ActiveProjects() {
               <p className="text-sm font-semibold text-white/90 truncate group-hover:text-white">
                 {p.name}
               </p>
+              <p className="mt-1 text-xs text-white/35 truncate">{p.description || 'Projeto ativo'}</p>
             </Link>
           ))
         )}

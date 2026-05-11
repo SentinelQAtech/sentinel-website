@@ -9,6 +9,9 @@ import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card'
 import { useCompaniesStore } from '@/store/companies'
 import { useNotificationsStore } from '@/store/notifications'
 import { useQAImporterStore } from '@/store/qa-importer'
+import { useProjectsStore } from '@/store/projects'
+import { useBugsStore } from '@/store/bugs'
+import { useKanbanStore } from '@/store/kanban'
 import { TEAM, TEAM_STORAGE_KEY, type TeamMember } from '@/lib/team-data'
 import { cn } from '@/lib/utils'
 
@@ -32,6 +35,9 @@ export function ReportsClient() {
   const qaItems = useQAImporterStore(s => s.items)
   const imports = useQAImporterStore(s => s.history)
   const notifications = useNotificationsStore(s => s.notifications)
+  const projects = useProjectsStore(s => s.projects)
+  const bugs = useBugsStore(s => s.bugs)
+  const tasks = useKanbanStore(s => s.tasks)
   const members = useRealTeam()
 
   const activeCompanies = companies.filter(company => company.status !== 'finished')
@@ -48,9 +54,9 @@ export function ReportsClient() {
   ], [activeCompanies.length, activeMembers.length, pendingQA.length, unreadNotifications.length])
 
   const operationalRows = [
-    { label: 'Projetos ativos', value: 0, note: 'Aguardando cadastro real em Projects' },
-    { label: 'Tasks no board', value: 0, note: 'Board limpo para uso real' },
-    { label: 'Bugs abertos', value: 0, note: 'Bug tracker limpo para novos registros' },
+    { label: 'Projetos ativos', value: projects.filter(project => project.status === 'ACTIVE').length, note: 'Projetos cadastrados manualmente' },
+    { label: 'Tasks no board', value: tasks.length, note: 'Inclui cards importados do QA Importer' },
+    { label: 'Bugs abertos', value: bugs.filter(bug => bug.status !== 'RESOLVED' && bug.status !== 'CLOSED').length, note: 'Bugs registrados e importados' },
     { label: 'Itens QA importados', value: qaItems.length, note: `${pendingQA.length} pendentes, ${sentQA.length} enviados ao Daily` },
   ]
 

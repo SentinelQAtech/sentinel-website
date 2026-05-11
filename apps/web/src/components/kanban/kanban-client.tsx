@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import {
   DndContext,
   DragEndEvent,
@@ -19,29 +19,17 @@ import { KanbanTaskPreviewDialog } from './kanban-task-preview-dialog'
 import { Plus, Settings2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import type { Task, TaskStatus } from '@/types'
-import type { KanbanColumnDefinition, NewKanbanTask } from './kanban-types'
-
-const INITIAL_COLUMNS: KanbanColumnDefinition[] = [
-  { id: 'BACKLOG',     label: 'Backlog',     color: '#475569', isDefault: true },
-  { id: 'TODO',        label: 'To Do',       color: '#3b82f6', isDefault: true },
-  { id: 'IN_PROGRESS', label: 'In Progress', color: '#8b5cf6', isDefault: true },
-  { id: 'QA_TESTING',  label: 'QA Testing',  color: '#06b6d4', isDefault: true },
-  { id: 'REVIEW',      label: 'Review',      color: '#f59e0b', isDefault: true },
-  { id: 'DONE',        label: 'Done',        color: '#10b981', isDefault: true },
-]
+import { useKanbanStore } from '@/store/kanban'
+import { useQAImporterStore } from '@/store/qa-importer'
 
 const COLUMN_COLORS = ['#14b8a6', '#ec4899', '#f97316', '#84cc16', '#0ea5e9', '#a855f7']
 
-const DEFAULT_CREATOR = {
-  id: '1', email: '', username: '', name: 'Raphael',
-  role: 'ADMIN' as const, isActive: true, createdAt: '',
-}
-
-const initialTasks: Task[] = []
-
 export function KanbanClient() {
-  const [columns, setColumns]       = useState<KanbanColumnDefinition[]>(INITIAL_COLUMNS)
-  const [tasks, setTasks]           = useState<Task[]>(initialTasks)
+  const columns = useKanbanStore(s => s.columns)
+  const tasks = useKanbanStore(s => s.tasks)
+  const setColumns = useKanbanStore(s => s.setColumns)
+  const setTasks = useKanbanStore(s => s.setTasks)
+  const addTaskToStore = useKanbanStore(s => s.addTask)
   const [selectedTask, setSelectedTask] = useState<Task | null>(null)
 
   // Dialog state
@@ -53,6 +41,11 @@ export function KanbanClient() {
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 4 } })
   )
+
+  useEffect(() => {
+    const importedItems = useQAImporterStore.getState().items
+    if (importedItems.length > 0) useKanbanStore.getState().importQAItems(importedItems)
+  }, [])
 
   const getTasksByColumn = (status: string) =>
     tasks.filter(t => t.status === status).sort((a, b) => a.order - b.order)
@@ -115,24 +108,7 @@ export function KanbanClient() {
     }
   }
 
-  const handleAddTask = (data: NewKanbanTask) => {
-    const colTasks = tasks.filter(t => t.status === data.status)
-    const newTask: Task = {
-      id:        `t${Date.now()}`,
-      title:     data.title,
-      status:    data.status as TaskStatus,
-      priority:  data.priority,
-      tags:      data.tags,
-      storyPoints: data.storyPoints,
-      projectId: '1',
-      creatorId: '1',
-      creator:   DEFAULT_CREATOR,
-      order:     colTasks.length,
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-    }
-    setTasks(prev => [...prev, newTask])
-  }
+  const handleAddTask = addTaskToStore
 
   // ── Drag & Drop handlers ────────────────────────────────────────
 

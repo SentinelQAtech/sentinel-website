@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { motion } from 'framer-motion'
 import { Plus, Search, Bug, X, Maximize2, Minimize2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
@@ -9,9 +9,9 @@ import { BugTable } from './bug-table'
 import { BugStats } from './bug-stats'
 import { cn } from '@/lib/utils'
 import { useI18nStore } from '@/store/i18n'
+import { useBugsStore } from '@/store/bugs'
+import { useQAImporterStore } from '@/store/qa-importer'
 import type { Bug as BugType, BugSeverity, BugStatus, Priority } from '@/types'
-
-export const initialBugs: BugType[] = []
 
 const defaultReporter = {
   id: '1',
@@ -48,11 +48,17 @@ export function BugsClient() {
   const [search, setSearch] = useState('')
   const [severity, setSeverity] = useState<SeverityFilter>('ALL')
   const [status, setStatus] = useState<StatusFilter>('ALL')
-  const [bugs, setBugs] = useState<BugType[]>(initialBugs)
+  const bugs = useBugsStore(s => s.bugs)
+  const addBugToStore = useBugsStore(s => s.addBug)
   const [reportOpen, setReportOpen] = useState(false)
   const [selectedBug, setSelectedBug] = useState<BugType | null>(null)
   const [fullscreen, setFullscreen] = useState(false)
   const [quickFilter, setQuickFilter] = useState<'total' | 'open' | 'critical' | 'resolved'>('total')
+
+  useEffect(() => {
+    const importedItems = useQAImporterStore.getState().items
+    if (importedItems.length > 0) useBugsStore.getState().importQAItems(importedItems)
+  }, [])
 
   const filtered = bugs.filter(b => {
     const matchSearch = b.title.toLowerCase().includes(search.toLowerCase()) ||
@@ -87,7 +93,7 @@ export function BugsClient() {
   }
 
   const addBug = (bug: BugType) => {
-    setBugs(current => [bug, ...current])
+    addBugToStore(bug)
     setReportOpen(false)
     applyQuickFilter('total')
   }

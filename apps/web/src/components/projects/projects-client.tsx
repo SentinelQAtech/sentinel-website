@@ -9,11 +9,10 @@ import { ProjectCard } from './project-card'
 import { cn } from '@/lib/utils'
 import { COMPANIES, type CompanyKey } from '@/lib/companies'
 import { useI18nStore } from '@/store/i18n'
+import { useProjectsStore } from '@/store/projects'
 import type { Priority, Project } from '@/types'
 
 const owner1 = { id: '1', email: 'rapha@sentinel.tech', username: 'raphacastilho', name: 'Raphael Castilho', role: 'ADMIN' as const, isActive: true, createdAt: '' }
-
-const initialProjects: Project[] = []
 
 type ViewMode = 'grid' | 'list'
 type FilterStatus = 'ALL' | 'ACTIVE' | 'PAUSED' | 'COMPLETED' | 'ARCHIVED'
@@ -28,7 +27,9 @@ export function ProjectsClient() {
   const [status, setStatus]       = useState<FilterStatus>('ALL')
   const [company, setCompany]     = useState<FilterCompany>('ALL')
   const [priority, setPriority]   = useState<FilterPriority>('ALL')
-  const [projects, setProjects]   = useState<Project[]>(initialProjects)
+  const projects = useProjectsStore(s => s.projects)
+  const addProjectToStore = useProjectsStore(s => s.addProject)
+  const deleteProjectFromStore = useProjectsStore(s => s.deleteProject)
   const [filtersOpen, setFiltersOpen] = useState(false)
   const [newOpen, setNewOpen]     = useState(false)
   const [deleteTarget, setDeleteTarget] = useState<Project | null>(null)
@@ -44,13 +45,13 @@ export function ProjectsClient() {
   })
 
   const addProject = (project: Project) => {
-    setProjects(current => [project, ...current])
+    addProjectToStore(project)
     setNewOpen(false)
   }
 
   const deleteProject = () => {
     if (!deleteTarget || confirmText !== deleteTarget.name) return
-    setProjects(current => current.filter(p => p.id !== deleteTarget.id))
+    deleteProjectFromStore(deleteTarget.id)
     setDeleteTarget(null)
     setConfirmText('')
   }

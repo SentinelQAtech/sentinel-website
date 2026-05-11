@@ -8,6 +8,9 @@ import { FolderKanban, Bug, CheckSquare, Zap, Users, TrendingUp, TrendingDown, M
 import { cn } from '@/lib/utils'
 import { useI18nStore } from '@/store/i18n'
 import { TEAM, TEAM_STORAGE_KEY, type TeamMember } from '@/lib/team-data'
+import { useProjectsStore } from '@/store/projects'
+import { useBugsStore } from '@/store/bugs'
+import { useKanbanStore } from '@/store/kanban'
 
 function useCounter(target: number, duration = 900, delay = 0) {
   const [value, setValue] = useState(0)
@@ -128,8 +131,17 @@ function AnimatedMetricCard({ item, index }: { item: MetricItem; index: number }
 
 export function DashboardMetrics() {
   const teamCount = useTeamCount()
+  const projectCount = useProjectsStore(s => s.projects.filter(project => project.status === 'ACTIVE').length)
+  const openBugs = useBugsStore(s => s.bugs.filter(bug => bug.status !== 'RESOLVED' && bug.status !== 'CLOSED').length)
+  const criticalBugs = useBugsStore(s => s.bugs.filter(bug => bug.severity === 'CRITICAL').length)
+  const tasksDone = useKanbanStore(s => s.tasks.filter(task => task.status === 'DONE').length)
   const metrics = METRICS.map(item =>
-    item.titleKey === 'dashboardMetricTeamMembers' ? { ...item, value: teamCount } : item
+    item.titleKey === 'dashboardMetricTeamMembers' ? { ...item, value: teamCount } :
+    item.titleKey === 'dashboardMetricActiveProjects' ? { ...item, value: projectCount } :
+    item.titleKey === 'dashboardMetricOpenBugs' ? { ...item, value: openBugs } :
+    item.titleKey === 'dashboardMetricCriticalBugs' ? { ...item, value: criticalBugs } :
+    item.titleKey === 'dashboardMetricTasksDone' ? { ...item, value: tasksDone } :
+    item
   )
 
   return (

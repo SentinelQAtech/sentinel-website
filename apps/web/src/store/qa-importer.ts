@@ -1,5 +1,6 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
+import { syncQAItemsToWorkspace } from '@/lib/workspace-sync'
 
 // ─── Types ────────────────────────────────────────────────────
 
@@ -101,6 +102,7 @@ export const useQAImporterStore = create<QAImporterStore>()(
       importItems: (raw, source) => {
         const ts = new Date().toISOString()
         let added = 0, updated = 0
+        const syncedItems: QAItem[] = []
 
         set(state => {
           const next = [...state.items]
@@ -116,9 +118,12 @@ export const useQAImporterStore = create<QAImporterStore>()(
 
             if (dupeIdx >= 0) {
               next[dupeIdx] = { ...next[dupeIdx], ...incoming, importedAt: ts }
+              syncedItems.push(next[dupeIdx])
               updated++
             } else {
-              next.push({ ...incoming, id: `qa-${Date.now()}-${added}`, source, importedAt: ts, sentToDaily: false })
+              const created = { ...incoming, id: `qa-${Date.now()}-${added}`, source, importedAt: ts, sentToDaily: false }
+              next.push(created)
+              syncedItems.push(created)
               added++
             }
           })
@@ -138,6 +143,7 @@ export const useQAImporterStore = create<QAImporterStore>()(
           }
         })
 
+        syncQAItemsToWorkspace(syncedItems)
         return { added, updated, total: raw.length, skipped: 0 }
       },
 
