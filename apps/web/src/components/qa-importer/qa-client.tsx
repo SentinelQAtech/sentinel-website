@@ -2,7 +2,7 @@
 
 import { useState, useMemo, useCallback } from 'react'
 import { motion } from 'framer-motion'
-import { Send, ChevronDown, ChevronUp, Layers, Upload } from 'lucide-react'
+import { Send, ChevronDown, ChevronUp, Layers, Upload, X, Maximize2, Minimize2, ExternalLink } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import {
   useQAImporterStore,
@@ -40,6 +40,8 @@ export function QAImporterClient() {
   const [importOpen,    setImportOpen]    = useState(false)
   const [groupBy,       setGroupBy]       = useState<'none' | 'client' | 'category' | 'priority'>('none')
   const [sentFeedback,  setSentFeedback]  = useState<string | null>(null)
+  const [detailItem,    setDetailItem]    = useState<QAItem | null>(null)
+  const [detailFull,    setDetailFull]    = useState(false)
 
   // ── Derived data ──────────────────────────────────────────────
 
@@ -296,6 +298,7 @@ export function QAImporterClient() {
                         onMarkDone={markDone}
                         onMarkBlocked={markBlocked}
                         onRemove={store.removeItem}
+                        onOpen={item => { setDetailItem(item); setDetailFull(false) }}
                       />
                     ))}
                   </div>
@@ -315,6 +318,7 @@ export function QAImporterClient() {
                   onMarkDone={markDone}
                   onMarkBlocked={markBlocked}
                   onRemove={store.removeItem}
+                  onOpen={item => { setDetailItem(item); setDetailFull(false) }}
                 />
               ))}
             </div>
@@ -367,6 +371,100 @@ export function QAImporterClient() {
         </div>
         )}
       </div>
+
+      {detailItem && (
+        <QADetailModal
+          item={detailItem}
+          fullscreen={detailFull}
+          onToggleFullscreen={() => setDetailFull(v => !v)}
+          onClose={() => setDetailItem(null)}
+        />
+      )}
+    </div>
+  )
+}
+
+function QADetailModal({
+  item,
+  fullscreen,
+  onToggleFullscreen,
+  onClose,
+}: {
+  item: QAItem
+  fullscreen: boolean
+  onToggleFullscreen: () => void
+  onClose: () => void
+}) {
+  return (
+    <div className="fixed inset-0 z-50 grid place-items-center p-4">
+      <div className="absolute inset-0 bg-black/65 backdrop-blur-sm" onClick={onClose} />
+      <div className={cn(
+        'relative dropdown-panel overflow-hidden',
+        fullscreen ? 'h-[calc(100vh-2rem)] w-[calc(100vw-2rem)]' : 'w-full max-w-3xl max-h-[calc(100vh-2rem)]'
+      )}>
+        <div className="flex items-start justify-between gap-4 border-b border-white/[0.08] px-5 py-4">
+          <div className="min-w-0">
+            <div className="mb-2 flex flex-wrap items-center gap-2">
+              {item.issueKey && <span className="font-mono text-xs font-bold text-primary">{item.issueKey}</span>}
+              <span className="rounded-full bg-white/[0.06] px-2 py-0.5 text-[10px] font-semibold text-white/55">{item.qaCategory}</span>
+              <span className="rounded-full bg-white/[0.06] px-2 py-0.5 text-[10px] font-semibold text-white/55">{item.priority}</span>
+              <span className="rounded-full bg-white/[0.06] px-2 py-0.5 text-[10px] font-semibold text-white/55">{item.source}</span>
+            </div>
+            <h2 className="text-base font-semibold leading-snug text-white">{item.title}</h2>
+          </div>
+          <div className="flex shrink-0 items-center gap-2">
+            {item.link && (
+              <a href={item.link} target="_blank" rel="noopener noreferrer" className="rounded-lg p-2 text-white/35 hover:bg-white/[0.06] hover:text-primary">
+                <ExternalLink className="h-4 w-4" />
+              </a>
+            )}
+            <button onClick={onToggleFullscreen} className="rounded-lg p-2 text-white/35 hover:bg-white/[0.06] hover:text-white">
+              {fullscreen ? <Minimize2 className="h-4 w-4" /> : <Maximize2 className="h-4 w-4" />}
+            </button>
+            <button onClick={onClose} className="rounded-lg p-2 text-white/35 hover:bg-white/[0.06] hover:text-white">
+              <X className="h-4 w-4" />
+            </button>
+          </div>
+        </div>
+
+        <div className="max-h-[calc(100vh-8rem)] overflow-y-auto p-5 space-y-5">
+          <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
+            <DetailInfo label="Cliente" value={item.client || '-'} />
+            <DetailInfo label="Projeto" value={item.project || '-'} />
+            <DetailInfo label="Sprint" value={item.sprint || '-'} />
+            <DetailInfo label="Responsavel" value={item.assignee || '-'} />
+            <DetailInfo label="Status" value={item.status || '-'} />
+            <DetailInfo label="Tipo" value={item.type || '-'} />
+            <DetailInfo label="Importado" value={new Date(item.importedAt).toLocaleString('pt-BR')} />
+            <DetailInfo label="Daily" value={item.sentToDaily ? 'Enviado' : 'Pendente'} />
+          </div>
+
+          <section>
+            <h3 className="mb-2 text-[10px] font-semibold uppercase tracking-wider text-white/30">Notas</h3>
+            <div className="rounded-xl border border-white/[0.06] bg-white/[0.03] p-4">
+              <p className="whitespace-pre-wrap text-sm leading-relaxed text-white/65">{item.notes || 'Nenhuma nota informada.'}</p>
+            </div>
+          </section>
+
+          {item.link && (
+            <section>
+              <h3 className="mb-2 text-[10px] font-semibold uppercase tracking-wider text-white/30">Link</h3>
+              <a href={item.link} target="_blank" rel="noopener noreferrer" className="block truncate rounded-xl border border-primary/20 bg-primary/10 p-3 text-sm text-primary hover:bg-primary/15">
+                {item.link}
+              </a>
+            </section>
+          )}
+        </div>
+      </div>
+    </div>
+  )
+}
+
+function DetailInfo({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="rounded-xl border border-white/[0.06] bg-white/[0.03] p-3">
+      <p className="mb-1 text-[10px] font-semibold uppercase tracking-wider text-white/30">{label}</p>
+      <p className="truncate text-sm text-white/70">{value}</p>
     </div>
   )
 }
