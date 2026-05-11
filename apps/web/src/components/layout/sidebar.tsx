@@ -48,10 +48,7 @@ const navGroups: NavGroup[] = [
       { labelKey: 'projects', href: '/projects', icon: FolderOpen },
       { labelKey: 'board',    href: '/kanban',   icon: Columns    },
       { labelKey: 'sprints',  href: '/sprints',  icon: Zap        },
-      {
-        labelKey: 'bugs', href: '/bugs', icon: Bug,
-        badge: { count: 6, cls: 'bg-red-500/20 text-red-400 border-red-500/30' },
-      },
+      { labelKey: 'bugs', href: '/bugs', icon: Bug },
     ],
   },
   {
@@ -71,10 +68,7 @@ const navGroups: NavGroup[] = [
 ]
 
 const bottomItems: NavItem[] = [
-  {
-    labelKey: 'notifications', href: '/notifications', icon: Bell,
-    badge: { count: 5, cls: 'bg-primary/20 text-primary border-primary/30' },
-  },
+  { labelKey: 'notifications', href: '/notifications', icon: Bell },
   { labelKey: 'settings', href: '/settings', icon: Settings },
 ]
 

@@ -1,7 +1,7 @@
 'use client'
 
 import { useMemo, useState } from 'react'
-import { Building2, Check, Edit3, Globe2, Map as MapIcon, Plus, Search, Trash2, X, XCircle } from 'lucide-react'
+import { BriefcaseBusiness, Bug, Building2, Check, CheckSquare, Edit3, Globe2, Map as MapIcon, Plus, Search, Trash2, X, XCircle } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { useCompaniesStore, type Company, type CompanyStatus } from '@/store/companies'
 import { WORLD_COUNTRY_PATHS } from '@/data/world-map-paths'
@@ -40,6 +40,7 @@ export default function CompaniesPage() {
   const [editingId, setEditingId] = useState<string | null>(null)
   const [form, setForm] = useState<Omit<Company, 'id'>>(EMPTY_FORM)
   const [mapOpen, setMapOpen] = useState(false)
+  const [formOpen, setFormOpen] = useState(false)
 
   const filtered = useMemo(() => {
     const q = query.toLowerCase()
@@ -54,11 +55,13 @@ export default function CompaniesPage() {
     setEditingId(company.id)
     const { id: _id, ...rest } = company
     setForm(rest)
+    setFormOpen(true)
   }
 
   const resetForm = () => {
     setEditingId(null)
     setForm(EMPTY_FORM)
+    setFormOpen(false)
   }
 
   const saveCompany = (e: React.FormEvent) => {
@@ -91,6 +94,13 @@ export default function CompaniesPage() {
 
         <div className="flex w-full flex-col gap-2 sm:flex-row lg:w-auto">
           <button
+            onClick={() => { setEditingId(null); setForm(EMPTY_FORM); setFormOpen(true) }}
+            className="flex h-10 items-center justify-center gap-2 rounded-xl bg-primary px-4 text-sm font-semibold text-white hover:bg-primary-600"
+          >
+            <Plus className="h-4 w-4" />
+            Novo cliente
+          </button>
+          <button
             onClick={() => setMapOpen(true)}
             className="flex h-10 items-center justify-center gap-2 rounded-xl border border-primary/30 bg-primary/15 px-4 text-sm font-semibold text-primary hover:bg-primary/25"
           >
@@ -109,8 +119,7 @@ export default function CompaniesPage() {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 gap-5 xl:grid-cols-[1fr_360px]">
-        <div className="grid grid-cols-1 gap-3 lg:grid-cols-2">
+      <div className="grid grid-cols-1 gap-3 lg:grid-cols-2 xl:grid-cols-3">
           {filtered.map(company => (
             <div key={company.id} className="glass-card p-4">
               <div className="flex items-start justify-between gap-3">
@@ -148,72 +157,25 @@ export default function CompaniesPage() {
                 <Info label="E-mail" value={company.contactEmail || 'Nao informado'} />
                 <Info label="Jira" value={company.jiraUrl || 'Nao informado'} />
               </div>
+              <div className="mt-3 grid grid-cols-3 gap-2">
+                <Metric icon={<BriefcaseBusiness className="h-3.5 w-3.5" />} label="Projetos" value="0" />
+                <Metric icon={<CheckSquare className="h-3.5 w-3.5" />} label="Tasks" value="0" />
+                <Metric icon={<Bug className="h-3.5 w-3.5" />} label="Bugs" value="0" />
+              </div>
               {company.notes && <p className="mt-3 rounded-lg bg-white/[0.03] p-3 text-xs text-white/45">{company.notes}</p>}
             </div>
           ))}
-        </div>
-
-        <form onSubmit={saveCompany} className="glass-card h-fit p-5">
-          <div className="mb-4 flex items-center justify-between">
-            <h2 className="text-sm font-semibold text-white/85">{editingId ? 'Editar cliente' : 'Novo cliente'}</h2>
-            {editingId && (
-              <button type="button" onClick={resetForm} className="rounded-lg p-1.5 text-white/30 hover:bg-white/[0.06] hover:text-white/60">
-                <XCircle className="h-4 w-4" />
-              </button>
-            )}
-          </div>
-
-          <div className="space-y-3">
-            <Field label="Nome" value={form.name} onChange={v => setForm({ ...form, name: v })} required />
-            <div className="grid grid-cols-2 gap-3">
-              <Field label="Sigla" value={form.shortName} onChange={v => setForm({ ...form, shortName: v })} />
-              <Field label="Inicio" type="date" value={form.startedAt} onChange={v => setForm({ ...form, startedAt: v })} />
-            </div>
-            <div className="grid grid-cols-2 gap-3">
-              <label className="space-y-1">
-                <span className="text-[10px] font-semibold uppercase tracking-wider text-white/30">Status</span>
-                <select
-                  value={form.status}
-                  onChange={e => setForm({ ...form, status: e.target.value as CompanyStatus })}
-                  className="h-10 w-full rounded-lg border border-white/[0.08] bg-white/[0.04] px-3 text-sm text-white outline-none"
-                >
-                  <option value="active">Ativa</option>
-                  <option value="paused">Pausada</option>
-                  <option value="finished">Finalizada</option>
-                </select>
-              </label>
-              <label className="space-y-1">
-                <span className="text-[10px] font-semibold uppercase tracking-wider text-white/30">Cor</span>
-                <input
-                  type="color"
-                  value={form.color}
-                  onChange={e => setForm({ ...form, color: e.target.value })}
-                  className="h-10 w-full rounded-lg border border-white/[0.08] bg-white/[0.04] p-1"
-                />
-              </label>
-            </div>
-            <Field label="Pais/regiao" value={form.country ?? ''} onChange={v => setForm({ ...form, country: v })} />
-            <Field label="Contato" value={form.contactName ?? ''} onChange={v => setForm({ ...form, contactName: v })} />
-            <Field label="E-mail" value={form.contactEmail ?? ''} onChange={v => setForm({ ...form, contactEmail: v })} />
-            <Field label="Jira/Board URL" value={form.jiraUrl ?? ''} onChange={v => setForm({ ...form, jiraUrl: v })} />
-            <label className="space-y-1">
-              <span className="text-[10px] font-semibold uppercase tracking-wider text-white/30">Notas</span>
-              <textarea
-                value={form.notes ?? ''}
-                onChange={e => setForm({ ...form, notes: e.target.value })}
-                rows={3}
-                className="w-full resize-none rounded-lg border border-white/[0.08] bg-white/[0.04] px-3 py-2 text-sm text-white outline-none placeholder:text-white/25"
-                placeholder="Contexto, contrato, observacoes..."
-              />
-            </label>
-          </div>
-
-          <button type="submit" className="mt-4 flex w-full items-center justify-center gap-2 rounded-xl bg-primary px-4 py-2.5 text-sm font-semibold text-white hover:bg-primary-600">
-            <Plus className="h-4 w-4" />
-            {editingId ? 'Salvar alteracoes' : 'Adicionar cliente'}
-          </button>
-        </form>
       </div>
+
+      {formOpen && (
+        <CompanyFormModal
+          editingId={editingId}
+          form={form}
+          setForm={setForm}
+          onClose={resetForm}
+          onSubmit={saveCompany}
+        />
+      )}
 
       {mapOpen && (
         <WorldMapModal
@@ -221,6 +183,101 @@ export default function CompaniesPage() {
           onClose={() => setMapOpen(false)}
         />
       )}
+    </div>
+  )
+}
+
+function Metric({ icon, label, value }: { icon: React.ReactNode; label: string; value: string }) {
+  return (
+    <div className="rounded-lg border border-white/[0.05] bg-white/[0.025] p-2">
+      <div className="flex items-center gap-1.5 text-white/30">
+        {icon}
+        <span className="text-[10px] uppercase tracking-wider">{label}</span>
+      </div>
+      <p className="mt-1 text-base font-bold text-white">{value}</p>
+    </div>
+  )
+}
+
+function CompanyFormModal({
+  editingId,
+  form,
+  setForm,
+  onClose,
+  onSubmit,
+}: {
+  editingId: string | null
+  form: Omit<Company, 'id'>
+  setForm: (form: Omit<Company, 'id'>) => void
+  onClose: () => void
+  onSubmit: (event: React.FormEvent) => void
+}) {
+  return (
+    <div className="fixed inset-0 z-50 grid place-items-center p-4">
+      <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={onClose} />
+      <form onSubmit={onSubmit} className="relative w-full max-w-xl dropdown-panel overflow-hidden">
+        <div className="flex items-center justify-between border-b border-white/[0.08] px-5 py-4">
+          <h2 className="text-sm font-semibold text-white/85">{editingId ? 'Editar cliente' : 'Novo cliente'}</h2>
+          <button type="button" onClick={onClose} className="rounded-lg p-1.5 text-white/30 hover:bg-white/[0.06] hover:text-white/60">
+            <XCircle className="h-4 w-4" />
+          </button>
+        </div>
+
+        <div className="max-h-[calc(100vh-10rem)] space-y-3 overflow-y-auto p-5">
+          <Field label="Nome" value={form.name} onChange={v => setForm({ ...form, name: v })} required />
+          <div className="grid grid-cols-2 gap-3">
+            <Field label="Sigla" value={form.shortName} onChange={v => setForm({ ...form, shortName: v })} />
+            <Field label="Inicio" type="date" value={form.startedAt} onChange={v => setForm({ ...form, startedAt: v })} />
+          </div>
+          <div className="grid grid-cols-2 gap-3">
+            <label className="space-y-1">
+              <span className="text-[10px] font-semibold uppercase tracking-wider text-white/30">Status</span>
+              <select
+                value={form.status}
+                onChange={e => setForm({ ...form, status: e.target.value as CompanyStatus })}
+                className="h-10 w-full rounded-lg border border-white/[0.08] bg-white/[0.04] px-3 text-sm text-white outline-none"
+              >
+                <option value="active">Ativa</option>
+                <option value="paused">Pausada</option>
+                <option value="finished">Finalizada</option>
+              </select>
+            </label>
+            <label className="space-y-1">
+              <span className="text-[10px] font-semibold uppercase tracking-wider text-white/30">Cor</span>
+              <input
+                type="color"
+                value={form.color}
+                onChange={e => setForm({ ...form, color: e.target.value })}
+                className="h-10 w-full rounded-lg border border-white/[0.08] bg-white/[0.04] p-1"
+              />
+            </label>
+          </div>
+          <Field label="Pais/regiao" value={form.country ?? ''} onChange={v => setForm({ ...form, country: v })} />
+          <Field label="Contato" value={form.contactName ?? ''} onChange={v => setForm({ ...form, contactName: v })} />
+          <Field label="E-mail" value={form.contactEmail ?? ''} onChange={v => setForm({ ...form, contactEmail: v })} />
+          <Field label="Jira/Board URL" value={form.jiraUrl ?? ''} onChange={v => setForm({ ...form, jiraUrl: v })} />
+          <label className="space-y-1">
+            <span className="text-[10px] font-semibold uppercase tracking-wider text-white/30">Notas</span>
+            <textarea
+              value={form.notes ?? ''}
+              onChange={e => setForm({ ...form, notes: e.target.value })}
+              rows={3}
+              className="w-full resize-none rounded-lg border border-white/[0.08] bg-white/[0.04] px-3 py-2 text-sm text-white outline-none placeholder:text-white/25"
+              placeholder="Contexto, contrato, observacoes..."
+            />
+          </label>
+        </div>
+
+        <div className="flex justify-end gap-3 border-t border-white/[0.08] px-5 py-4">
+          <button type="button" onClick={onClose} className="rounded-xl border border-white/[0.10] px-4 py-2 text-sm font-semibold text-white/70 hover:bg-white/[0.06]">
+            Cancelar
+          </button>
+          <button type="submit" className="flex items-center justify-center gap-2 rounded-xl bg-primary px-4 py-2 text-sm font-semibold text-white hover:bg-primary-600">
+            <Plus className="h-4 w-4" />
+            {editingId ? 'Salvar alteracoes' : 'Adicionar cliente'}
+          </button>
+        </div>
+      </form>
     </div>
   )
 }

@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useRef } from 'react'
+import type { ReactNode } from 'react'
 import { useRouter } from 'next/navigation'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Bell, Bug, Zap, FolderKanban, CheckCheck, X, AlertCircle, MessageSquare } from 'lucide-react'
@@ -8,17 +9,17 @@ import { cn } from '@/lib/utils'
 import { useNotificationsStore } from '@/store/notifications'
 import type { NotificationItem } from '@/store/notifications'
 
-const TYPE_ICON: Record<NotificationItem['type'], React.ReactNode> = {
-  bug:     <Bug         className="w-3.5 h-3.5" />,
-  sprint:  <Zap         className="w-3.5 h-3.5" />,
+const TYPE_ICON: Record<NotificationItem['type'], ReactNode> = {
+  bug:     <Bug className="w-3.5 h-3.5" />,
+  sprint:  <Zap className="w-3.5 h-3.5" />,
   project: <FolderKanban className="w-3.5 h-3.5" />,
   mention: <MessageSquare className="w-3.5 h-3.5" />,
   alert:   <AlertCircle className="w-3.5 h-3.5" />,
 }
 
 interface NotificationsPanelProps {
-  open:      boolean
-  onClose:   () => void
+  open: boolean
+  onClose: () => void
   anchorRef: React.RefObject<HTMLElement | null>
 }
 
@@ -60,11 +61,10 @@ export function NotificationsPanel({ open, onClose, anchorRef }: NotificationsPa
           transition={{ duration: 0.15, ease: 'easeOut' }}
           className="absolute right-0 top-full mt-2 w-80 dropdown-panel z-50 overflow-hidden"
         >
-          {/* Header */}
           <div className="flex items-center justify-between px-4 py-3 border-b border-white/[0.08]">
             <div className="flex items-center gap-2">
               <Bell className="w-4 h-4 text-white/50" />
-              <span className="text-sm font-semibold text-white/85">Notificações</span>
+              <span className="text-sm font-semibold text-white/85">Notificacoes</span>
               {unread > 0 && (
                 <span className="px-1.5 py-0.5 rounded-full text-[10px] font-semibold bg-primary/20 text-primary border border-primary/30">
                   {unread}
@@ -94,9 +94,12 @@ export function NotificationsPanel({ open, onClose, anchorRef }: NotificationsPa
             </div>
           </div>
 
-          {/* List */}
           <div className="max-h-96 overflow-y-auto scrollbar-hide">
-            {notifications.map(n => (
+            {notifications.length === 0 ? (
+              <div className="px-4 py-8 text-center text-sm text-white/35">
+                Nenhuma notificacao no momento.
+              </div>
+            ) : notifications.map(n => (
               <button
                 key={n.id}
                 onClick={() => openNotification(n)}
@@ -128,10 +131,12 @@ export function NotificationsPanel({ open, onClose, anchorRef }: NotificationsPa
             ))}
           </div>
 
-          {/* Footer */}
           <div className="px-4 py-2.5 border-t border-white/[0.06]">
-            <button className="w-full text-center text-xs text-primary hover:text-primary/80 transition-colors py-0.5">
-              Ver todas as notificações
+            <button
+              onClick={() => { onClose(); router.push('/notifications') }}
+              className="w-full text-center text-xs text-primary hover:text-primary/80 transition-colors py-0.5"
+            >
+              Ver todas as notificacoes
             </button>
           </div>
         </motion.div>

@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useMemo, useState } from 'react'
+import Link from 'next/link'
 import { motion } from 'framer-motion'
 import {
   Users, Mail, Github, Linkedin, Calendar, Shield,
@@ -10,7 +11,8 @@ import {
 import { Avatar } from '@/components/ui/avatar'
 import { Button } from '@/components/ui/button'
 import { cn, formatDate } from '@/lib/utils'
-import { TEAM, TEAM_STORAGE_KEY, COMPANY_CLIENTS, type TeamMember } from '@/lib/team-data'
+import { TEAM, TEAM_STORAGE_KEY, type TeamMember } from '@/lib/team-data'
+import { useCompaniesStore } from '@/store/companies'
 import { useI18nStore } from '@/store/i18n'
 import type { Role } from '@/types'
 
@@ -64,6 +66,7 @@ export default function TeamPage() {
   const [formOpen, setFormOpen] = useState(false)
   const [editing, setEditing] = useState<TeamMember | null>(null)
   const [offboarding, setOffboarding] = useState<TeamMember | null>(null)
+  const companies = useCompaniesStore(s => s.companies)
 
   useEffect(() => {
     try {
@@ -100,6 +103,16 @@ export default function TeamPage() {
       member.skills.some(skill => skill.toLowerCase().includes(query))
     )
   }, [activeMembers, search])
+
+  const activeCompanies = useMemo(
+    () => companies.filter(company => company.status !== 'finished'),
+    [companies]
+  )
+
+  const skillCount = useMemo(
+    () => new Set(activeMembers.flatMap(member => member.skills)).size,
+    [activeMembers]
+  )
 
   const saveMember = (form: MemberForm) => {
     if (!form.name.trim() || !form.email.trim() || !form.title.trim()) return
@@ -206,9 +219,9 @@ export default function TeamPage() {
       >
         {[
           { label: t('activeMembers'), value: activeMembers.length, icon: <Users className="w-4 h-4" />, color: '#06b6d4' },
-          { label: t('clients'), value: COMPANY_CLIENTS.length, icon: <Crown className="w-4 h-4" />, color: '#f59e0b' },
-          { label: t('resolved'), value: members.reduce((a, m) => a + m.bugsResolved, 0), icon: <Bug className="w-4 h-4" />, color: '#ef4444' },
+          { label: t('clients'), value: activeCompanies.length, icon: <Crown className="w-4 h-4" />, color: '#f59e0b' },
           { label: t('offboardHistory'), value: offboardedMembers.length, icon: <Archive className="w-4 h-4" />, color: '#8b5cf6' },
+          { label: 'Skills', value: skillCount, icon: <Zap className="w-4 h-4" />, color: '#22c55e' },
         ].map(({ label, value, icon, color }) => (
           <div key={label} className="glass-card p-4 flex items-center gap-3 border border-white/[0.07]">
             <div className="w-9 h-9 rounded-xl flex items-center justify-center shrink-0" style={{ backgroundColor: color + '20', color }}>
@@ -286,9 +299,9 @@ export default function TeamPage() {
 
               <div className="grid grid-cols-3 gap-3">
                 {[
-                  { label: t('projects'), value: member.projects, icon: <FolderKanban className="w-3 h-3" /> },
-                  { label: t('bugs'), value: member.bugsResolved, icon: <Bug className="w-3 h-3" /> },
-                  { label: 'Sprints', value: member.sprintsCompleted, icon: <Zap className="w-3 h-3" /> },
+                  { label: t('projects'), value: 0, icon: <FolderKanban className="w-3 h-3" /> },
+                  { label: t('bugs'), value: 0, icon: <Bug className="w-3 h-3" /> },
+                  { label: 'Sprints', value: 0, icon: <Zap className="w-3 h-3" /> },
                 ].map(({ label, value, icon }) => (
                   <div key={label} className="flex flex-col items-center gap-1 py-2.5 rounded-xl bg-white/[0.03] border border-white/[0.06]">
                     <span className="text-white/30">{icon}</span>
@@ -355,17 +368,25 @@ export default function TeamPage() {
       )}
 
       <section className="glass-card border border-white/[0.07] p-6">
-        <div className="flex items-center gap-2 mb-4">
-          <Activity className="w-4 h-4 text-white/40" />
-          <h3 className="text-sm font-semibold text-white/70">{t('clientsServed')}</h3>
+        <div className="flex items-center justify-between gap-3 mb-4">
+          <div className="flex items-center gap-2">
+            <Activity className="w-4 h-4 text-white/40" />
+            <h3 className="text-sm font-semibold text-white/70">{t('clientsServed')}</h3>
+          </div>
+          <Link href="/companies" className="text-xs font-medium text-primary hover:text-primary/80">
+            {t('clientsTitle')}
+          </Link>
         </div>
         <div className="flex flex-wrap gap-3">
-          {COMPANY_CLIENTS.map(client => (
+          {activeCompanies.map(client => (
             <div key={client.name} className="flex items-center gap-2.5 px-4 py-2.5 rounded-xl border" style={{ backgroundColor: client.color + '10', borderColor: client.color + '30' }}>
-              <span className="text-xs font-bold text-white/45">{client.flag}</span>
+              <span className="text-xs font-bold text-white/45">{client.shortName}</span>
               <span className="text-sm font-medium" style={{ color: client.color }}>{client.name}</span>
             </div>
           ))}
+          {activeCompanies.length === 0 && (
+            <p className="text-sm text-white/35">Nenhum cliente ativo cadastrado.</p>
+          )}
         </div>
       </section>
 
@@ -429,8 +450,14 @@ function MemberModal({ initial, title, onClose, onSave }: {
           <textarea value={form.bio} onChange={e => update('bio', e.target.value)} className={cn(inputCls, 'resize-none')} rows={3} placeholder={t('bioContext')} />
           <input value={form.skills} onChange={e => update('skills', e.target.value)} className={inputCls} placeholder={t('skillsComma')} />
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            <input value={form.github} onChange={e => update('github', e.target.value)} className={inputCls} placeholder="GitHub" />
-            <input value={form.linkedin} onChange={e => update('linkedin', e.target.value)} className={inputCls} placeholder="LinkedIn" />
+            <label className="space-y-1">
+              <span className="text-[10px] font-semibold uppercase tracking-wider text-white/30">GitHub</span>
+              <input value={form.github} onChange={e => update('github', e.target.value)} className={inputCls} placeholder="usuario-do-github" />
+            </label>
+            <label className="space-y-1">
+              <span className="text-[10px] font-semibold uppercase tracking-wider text-white/30">LinkedIn</span>
+              <input value={form.linkedin} onChange={e => update('linkedin', e.target.value)} className={inputCls} placeholder="slug-do-perfil" />
+            </label>
           </div>
           <div className="flex justify-end gap-3 pt-1">
             <Button variant="outline" onClick={onClose}>{t('cancel')}</Button>
