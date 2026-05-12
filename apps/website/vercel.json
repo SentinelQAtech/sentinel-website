@@ -3,6 +3,14 @@
   "outputDirectory": ".",
   "redirects": [
     {
+      "source": "/",
+      "has": [
+        { "type": "host", "value": "app.sentinelqa.tech" }
+      ],
+      "destination": "https://sentinelqa.tech/core",
+      "permanent": true
+    },
+    {
       "source": "/:path*",
       "has": [
         { "type": "host", "value": "app.sentinelqa.tech" }
@@ -12,6 +20,10 @@
     }
   ],
   "rewrites": [
+    {
+      "source": "/core",
+      "destination": "https://sentinel-core-iota.vercel.app/core"
+    },
     {
       "source": "/core/:path*",
       "destination": "https://sentinel-core-iota.vercel.app/core/:path*"
