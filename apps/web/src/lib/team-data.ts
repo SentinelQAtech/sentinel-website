@@ -1,6 +1,6 @@
 import type { User } from '@/types'
 
-export const TEAM_STORAGE_KEY = 'spm-team-members'
+export const TEAM_STORAGE_KEY = 'sentinel-core-team-members'
 
 export interface TeamMember {
   user: User

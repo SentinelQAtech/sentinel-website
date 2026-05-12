@@ -280,7 +280,7 @@ export const useDailyStore = create<DailyStore>()(
       }
     },
     {
-      name: 'spm-daily',
+      name: 'sentinel-core-daily',
       version: 2,
       migrate: (persistedState: unknown) => {
         const state = persistedState as Partial<DailyStore> | undefined

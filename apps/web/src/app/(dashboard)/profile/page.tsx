@@ -9,7 +9,7 @@ import { cn } from '@/lib/utils'
 
 const ROLE_LABEL: Record<string, string> = {
   ADMIN:          'Administrador',
-  PROJECT_MANAGER:'Project Manager',
+  PROJECT_MANAGER:'QA Ops Lead',
   QA_ANALYST:     'QA Analyst',
   QA_ENGINEER:    'QA Engineer',
   DEVELOPER:      'Developer',

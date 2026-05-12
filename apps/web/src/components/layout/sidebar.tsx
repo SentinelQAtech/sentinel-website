@@ -185,7 +185,7 @@ export function Sidebar({ collapsed = false, onToggle }: SidebarProps) {
                 className="overflow-hidden"
               >
                 <span className="text-sm font-bold text-white whitespace-nowrap">Sentinel</span>
-                <span className="text-xs text-white/40 block -mt-0.5 whitespace-nowrap">Project Manager</span>
+                <span className="text-xs text-white/40 block -mt-0.5 whitespace-nowrap">Sentinel Core</span>
               </motion.div>
             )}
           </AnimatePresence>

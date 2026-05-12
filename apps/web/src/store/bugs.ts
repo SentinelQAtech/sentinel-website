@@ -77,7 +77,7 @@ export const useBugsStore = create<BugsState>()(
           return { bugs: next }
         }),
     }),
-    { name: 'spm-bugs', version: 1 }
+    { name: 'sentinel-core-bugs', version: 1 }
   )
 )
 

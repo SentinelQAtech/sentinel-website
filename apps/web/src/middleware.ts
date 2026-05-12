@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 
 const ALLOWED_ORIGINS = [
-  'https://sentinel-project-manager-web.vercel.app',
+  'https://sentinel-core-web.vercel.app',
   'http://localhost:3000',
 ]
 

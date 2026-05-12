@@ -9,7 +9,7 @@ export const env = {
   // Public (available on client and server)
   apiUrl:   process.env.NEXT_PUBLIC_API_URL   ?? 'http://localhost:3001',
   wsUrl:    process.env.NEXT_PUBLIC_WS_URL    ?? 'http://localhost:3001',
-  appName:  process.env.NEXT_PUBLIC_APP_NAME  ?? 'Sentinel Project Manager',
+  appName:  process.env.NEXT_PUBLIC_APP_NAME  ?? 'Sentinel Core',
 
   isDev:  process.env.NODE_ENV === 'development',
   isProd: process.env.NODE_ENV === 'production',

@@ -115,7 +115,7 @@ export const useDashboardLayoutStore = create<DashboardLayoutState>()(
         })),
     }),
     {
-      name: 'spm-dashboard-layout',
+      name: 'sentinel-core-dashboard-layout',
       version: 5,
     }
   )

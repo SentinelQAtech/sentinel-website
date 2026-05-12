@@ -58,7 +58,7 @@ export default function LoginPage() {
             <div className="w-12 h-12 rounded-2xl bg-black/20 flex items-center justify-center shadow-glow-md ring-1 ring-white/10 mb-4">
               <img src="/brand/logo_icon.png" alt="Sentinel" className="h-9 w-9 object-contain" />
             </div>
-            <h1 className="text-xl font-bold text-white">Sentinel Project Manager</h1>
+            <h1 className="text-xl font-bold text-white">Sentinel Core</h1>
             <p className="text-sm text-white/40 mt-1">Faça login para continuar</p>
           </div>
 

@@ -24,7 +24,7 @@ export const useAuthStore = create<AuthState>()(
       setHasHydrated: (v)    => set({ _hasHydrated: v }),
     }),
     {
-      name: 'spm-auth',
+      name: 'sentinel-core-auth',
       partialize: state => ({ user: state.user, isAuthenticated: state.isAuthenticated }),
       onRehydrateStorage: () => (state) => {
         state?.setHasHydrated(true)

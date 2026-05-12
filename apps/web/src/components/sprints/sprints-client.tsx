@@ -24,7 +24,7 @@ const sprints = [
     status: 'ACTIVE' as SprintStatus,
     health: 'Risco moderado',
     goal: 'Fechar Dashboard, Calendar, Projects e ajustes finais de Board.',
-    project: 'Sentinel Project Manager',
+    project: 'Sentinel Core',
     startDate: '2026-04-28',
     endDate: '2026-05-11',
     planned: 42,

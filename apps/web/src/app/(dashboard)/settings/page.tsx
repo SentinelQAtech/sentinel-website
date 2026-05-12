@@ -181,7 +181,7 @@ export default function SettingsPage() {
         <SettingRow
           icon={LogOut}
           label="Sair da conta"
-          description="Encerrar sessão atual no SPM"
+          description="Encerrar sessão atual no Sentinel Core"
           danger
         >
           <button

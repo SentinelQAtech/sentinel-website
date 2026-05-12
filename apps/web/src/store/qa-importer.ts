@@ -190,7 +190,7 @@ export const useQAImporterStore = create<QAImporterStore>()(
       },
     }),
     {
-      name: 'spm-qa-importer',
+      name: 'sentinel-core-qa-importer',
       version: 2,
       migrate: () => ({ items: [], history: [], qaFilterEnabled: true }),
     }

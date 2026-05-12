@@ -1,6 +1,6 @@
 # Sentinel QA Sync — Chrome Extension
 
-Captura cards QA visíveis em boards Jira e sincroniza com o Sentinel Project Manager.
+Captura cards QA visíveis em boards Jira e sincroniza com o Sentinel Core.
 
 **Sem tokens Jira. Sem autenticação. Sem dados de senha.**  
 Lê apenas o que já está visível na tela.

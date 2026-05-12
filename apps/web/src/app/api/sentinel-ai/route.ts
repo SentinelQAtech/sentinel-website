@@ -16,7 +16,7 @@ function buildSystemPrompt(context: Record<string, unknown>): string {
     weekday: 'long', year: 'numeric', month: 'long', day: 'numeric',
   })
 
-  return `You are Sentinel AI, the operational intelligence layer of the Sentinel Project Manager.
+  return `You are Sentinel AI, the operational intelligence layer of the Sentinel Core.
 
 Today is ${today}.
 

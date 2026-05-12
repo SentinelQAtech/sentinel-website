@@ -1,6 +1,6 @@
-# Sentinel Project Manager (SPM)
+# Sentinel Core
 
-> Enterprise-grade project management platform focused on QA, Agile operations, and intelligent productivity.
+> Internal QA operations platform for Sentinel Tech - QA, focused on quality workflows, delivery visibility, and operational intelligence.
 
 ## Repositorio canonico
 
@@ -117,7 +117,7 @@ GET    /api/v1/reports/team-productivity?projectId=
 ```bash
 # Clone and install
 git clone <repo>
-cd sentinel-project-manager
+cd sentinel-core
 npm install
 
 # Start database
@@ -140,7 +140,7 @@ npm run dev
 ## Project Structure
 
 ```
-sentinel-project-manager/
+sentinel-core/
 ├── apps/
 │   ├── web/              # Next.js 15 frontend
 │   │   └── src/

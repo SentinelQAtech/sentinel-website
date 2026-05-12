@@ -28,8 +28,8 @@ async function bootstrap() {
 
   // Swagger
   const config = new DocumentBuilder()
-    .setTitle('Sentinel Project Manager API')
-    .setDescription('Enterprise-grade project management platform API')
+    .setTitle('Sentinel Core API')
+    .setDescription('Internal QA operations platform API')
     .setVersion('1.0')
     .addBearerAuth()
     .build()

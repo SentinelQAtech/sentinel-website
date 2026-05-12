@@ -95,7 +95,7 @@ export const useKanbanStore = create<KanbanState>()(
           return { tasks: next }
         }),
     }),
-    { name: 'spm-kanban', version: 1 }
+    { name: 'sentinel-core-kanban', version: 1 }
   )
 )
 

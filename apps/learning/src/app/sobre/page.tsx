@@ -7,7 +7,7 @@ const pillars = [
   { icon: Target,    title: 'Aprender fazendo',    desc: 'Cada conceito é ensinado com código real de produção. Sem exemplos genéricos — tudo que você aprende você já viu funcionando.' },
   { icon: Users,     title: 'Time primeiro',        desc: 'O Sentinel Learning foi criado para manter o time Sentinel Tech QA sempre atualizado e alinhado, independente do nível de cada um.' },
   { icon: Lightbulb, title: 'Progressivo',          desc: 'As trilhas respeitam o que você já sabe. Começa pelo TypeScript e vai até Inteligência Artificial — sem pular etapas.' },
-  { icon: BookOpen,  title: 'Sempre atualizado',    desc: 'O material é baseado no projeto vivo. Quando o SPM evolui, o conteúdo de aprendizado também evolui.' },
+  { icon: BookOpen,  title: 'Sempre atualizado',    desc: 'O material é baseado no projeto vivo. Quando o Sentinel Core evolui, o conteúdo de aprendizado também evolui.' },
 ]
 
 export default function Sobre() {
@@ -35,7 +35,7 @@ export default function Sobre() {
             O Sentinel Learning nasceu de uma necessidade real: manter os profissionais da Sentinel Tech QA atualizados com as tecnologias que usam no dia a dia — sem precisar recorrer a cursos genéricos que não têm nada a ver com o trabalho de verdade.
           </p>
           <p>
-            A ideia é simples: usar o <strong className="text-white/80">código real do Sentinel Project Manager</strong> como material de estudo. Cada trilha ensina uma tecnologia com exemplos dos arquivos que o time já conhece, já usa e já vê funcionando em produção.
+            A ideia é simples: usar o <strong className="text-white/80">código real do Sentinel Core</strong> como material de estudo. Cada trilha ensina uma tecnologia com exemplos dos arquivos que o time já conhece, já usa e já vê funcionando em produção.
           </p>
           <p>
             Nada de exemplos de <span className="font-mono text-white/40">todo list</span>. Aqui o exercício é abrir <span className="font-mono text-white/40">store/ai.ts</span> e entender como o Sentinel AI guarda as mensagens do chat.

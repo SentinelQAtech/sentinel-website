@@ -23,13 +23,13 @@ Pendente:
 
 ## Build atual
 
-O root `vercel.json` aponta para o Project Manager web atual:
+O root `vercel.json` aponta para o Sentinel Core web atual:
 
 ```json
 {
   "framework": "nextjs",
   "installCommand": "npm install",
-  "buildCommand": "npm run build --workspace @spm/web",
+  "buildCommand": "npm run build --workspace @sentinel-core/web",
   "outputDirectory": "apps/web/.next"
 }
 ```
@@ -61,7 +61,7 @@ npx.cmd vercel --prod --scope castilho-raphael-5448s-projects
 5. Validar que o build command continua:
 
 ```text
-npm run build --workspace @spm/web
+npm run build --workspace @sentinel-core/web
 ```
 
 6. Fazer um commit pequeno para testar deploy automatico.

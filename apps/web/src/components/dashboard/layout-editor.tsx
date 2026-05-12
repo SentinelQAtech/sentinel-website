@@ -281,7 +281,7 @@ export function LayoutEditor({ userId, open, onClose }: LayoutEditorProps) {
     const url     = URL.createObjectURL(blob)
     const a       = document.createElement('a')
     a.href     = url
-    a.download = `spm-dashboard-${userId}.json`
+    a.download = `sentinel-core-dashboard-${userId}.json`
     a.click()
     URL.revokeObjectURL(url)
   }

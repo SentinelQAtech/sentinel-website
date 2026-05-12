@@ -106,7 +106,7 @@ export const useCompaniesStore = create<CompaniesState>()(
           ),
         })),
     }),
-    { name: 'spm-companies', version: 1 }
+    { name: 'sentinel-core-companies', version: 1 }
   )
 )
 

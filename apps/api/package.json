@@ -1,5 +1,5 @@
 {
-  "name": "@spm/api",
+  "name": "@sentinel-core/api",
   "version": "0.1.0",
   "private": true,
   "scripts": {

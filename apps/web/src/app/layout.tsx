@@ -17,11 +17,11 @@ const jetbrains = JetBrains_Mono({
 
 export const metadata: Metadata = {
   title: {
-    default: 'Sentinel Project Manager',
-    template: '%s | SPM',
+    default: 'Sentinel Core',
+    template: '%s | Sentinel Core',
   },
-  description: 'Enterprise-grade project management platform focused on QA, Agile, and intelligent operations.',
-  keywords: ['project management', 'QA', 'bug tracking', 'agile', 'sprints', 'sentinel tech'],
+  description: 'Internal QA operations platform for Sentinel Tech - QA.',
+  keywords: ['QA operations', 'quality management', 'bug tracking', 'agile', 'sprints', 'sentinel tech'],
   authors: [{ name: 'Sentinel Tech' }],
   icons: {
     icon: '/brand/logo_icon.png',

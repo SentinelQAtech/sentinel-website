@@ -29,6 +29,6 @@ export const useProjectsStore = create<ProjectsState>()(
           ),
         })),
     }),
-    { name: 'spm-projects', version: 1 }
+    { name: 'sentinel-core-projects', version: 1 }
   )
 )

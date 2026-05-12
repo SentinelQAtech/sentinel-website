@@ -8,7 +8,7 @@ Este inventario registra o estado atual dos projetos locais que devem convergir 
 
 | Projeto | Caminho local | Tipo | Estado atual | Observacoes |
 | --- | --- | --- | --- | --- |
-| Sentinel Project Manager | `D:\DEV\Sentinel\sentinel-project-manager` | Monorepo com Next.js + NestJS | Ja conectado ao repo canonico | App web em `apps/web`; API em `apps/api`; deploy manual no Vercel funcionando. |
+| Sentinel Core | workspace atual | Monorepo com Next.js + NestJS | Ja conectado ao repo canonico | App web em `apps/web`; API em `apps/api`; deploy manual no Vercel funcionando. |
 | Sentinel Tech QA | `D:\DEV\Sentinel\sentinel-tech-qa` | Site estatico | Ainda fora do monorepo canonico | Contem `index.html`, `assets/css`, `assets/js` e logos. Bom candidato para virar o site publico em `sentinelqa.tech`. |
 | Sentinel Learning | `D:\DEV\Sentinel\sentinel-learning` | Next.js 15 | Ainda fora do monorepo canonico | Usa App Router, Tailwind, auth propria e porta local `3002`. Bom candidato para `learning.sentinelqa.tech`. |
 | Sentinel Extension | `D:\DEV\Sentinel\sentinel-extension` | Chrome Extension Manifest V3 | Ainda fora do monorepo canonico | Sem build step. Deve ser versionada e documentada dentro do monorepo, mas nao precisa de deploy Vercel. |
@@ -19,7 +19,7 @@ Curto prazo, para reduzir risco:
 
 ```text
 apps/
-  web/              # Project Manager atual, manter por enquanto
+  web/              # Sentinel Core atual, manter por enquanto
   api/              # API atual
   website/          # futuro site publico Sentinel Tech QA
   learning/         # futuro app Sentinel Learning
@@ -39,7 +39,7 @@ docs/
 | Produto | Dominio sugerido | Observacao |
 | --- | --- | --- |
 | Site institucional | `sentinelqa.tech` e `www.sentinelqa.tech` | Deve ser a entrada publica da Sentinel. |
-| Project Manager | `app.sentinelqa.tech` | Evita misturar app interno com site publico. |
+| Sentinel Core | `app.sentinelqa.tech` | Evita misturar app interno com site publico. |
 | Learning | `learning.sentinelqa.tech` | Mantem o produto de estudo separado. |
 | Extensao | `extension.sentinelqa.tech` ou pagina no site | A extensao em si nao roda no Vercel; o dominio pode hospedar docs/download. |
 

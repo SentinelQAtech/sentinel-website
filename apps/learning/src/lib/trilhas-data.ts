@@ -47,14 +47,14 @@ export const phases: TrilhaPhase[] = [
     prev: null,
     next: '02',
 
-    why: 'Você já sabe JavaScript. TypeScript é a mesma linguagem — com um diferencial: o editor lê o seu código e grita antes de você abrir o browser. No SPM, uma função que espera um objeto com title e status não vai aceitar silenciosamente um número. O TypeScript impede isso em tempo de desenvolvimento.',
+    why: 'Você já sabe JavaScript. TypeScript é a mesma linguagem — com um diferencial: o editor lê o seu código e grita antes de você abrir o browser. No Sentinel Core, uma função que espera um objeto com title e status não vai aceitar silenciosamente um número. O TypeScript impede isso em tempo de desenvolvimento.',
 
-    intro: 'Todo o SPM é escrito em TypeScript. Quando você abre qualquer arquivo .ts ou .tsx, você está vendo JavaScript com anotações de tipo. O compilador usa essas anotações para detectar erros que, em JS puro, só apareceriam em produção — ou no relatório de bug de um cliente.',
+    intro: 'Todo o Sentinel Core é escrito em TypeScript. Quando você abre qualquer arquivo .ts ou .tsx, você está vendo JavaScript com anotações de tipo. O compilador usa essas anotações para detectar erros que, em JS puro, só apareceriam em produção — ou no relatório de bug de um cliente.',
 
     concepts: [
       {
         title: 'interface — a "forma" de um objeto',
-        explanation: 'Uma interface descreve exatamente quais campos um objeto tem, e de que tipo é cada um. Se você tentar passar um objeto com campos diferentes, o TypeScript acusa erro antes de compilar. No SPM, cada mensagem do chat da IA segue a interface AIMessage.',
+        explanation: 'Uma interface descreve exatamente quais campos um objeto tem, e de que tipo é cada um. Se você tentar passar um objeto com campos diferentes, o TypeScript acusa erro antes de compilar. No Sentinel Core, cada mensagem do chat da IA segue a interface AIMessage.',
         code: {
           filename: 'src/store/ai.ts',
           code: `export interface AIMessage {
@@ -110,7 +110,7 @@ export const phases: TrilhaPhase[] = [
           code: `export const env = {
   anthropicApiKey: process.env.ANTHROPIC_API_KEY,
   apiUrl:   process.env.NEXT_PUBLIC_API_URL   ?? 'http://localhost:3001',
-  appName:  process.env.NEXT_PUBLIC_APP_NAME  ?? 'Sentinel Project Manager',
+  appName:  process.env.NEXT_PUBLIC_APP_NAME  ?? 'Sentinel Core',
   isDev:    process.env.NODE_ENV === 'development',
   isProd:   process.env.NODE_ENV === 'production',
 } as const`,
@@ -119,7 +119,7 @@ export const phases: TrilhaPhase[] = [
       },
       {
         title: 'Tipagem de contexto complexo',
-        explanation: 'No SPM, a interface SentinelContext descreve tudo que é enviado ao Claude. É um objeto aninhado — cada campo interno também tem sua própria forma definida. Isso garante que o modelo sempre receba dados no formato esperado.',
+        explanation: 'No Sentinel Core, a interface SentinelContext descreve tudo que é enviado ao Claude. É um objeto aninhado — cada campo interno também tem sua própria forma definida. Isso garante que o modelo sempre receba dados no formato esperado.',
         code: {
           filename: 'src/lib/sentinelContextBuilder.ts',
           code: `export interface SentinelContext {
@@ -149,7 +149,7 @@ export const phases: TrilhaPhase[] = [
     ],
 
     exercise: {
-      prompt: 'Abra src/store/ai.ts no SPM. Leia a interface AIMessage e a interface AIStore.',
+      prompt: 'Abra src/store/ai.ts no Sentinel Core. Leia a interface AIMessage e a interface AIStore.',
       steps: [
         'Qual é o tipo do campo role na AIMessage? Quantos valores ele aceita?',
         'Encontre a função addMessage. O que é Omit<AIMessage, \'id\' | \'timestamp\'>?',
@@ -174,7 +174,7 @@ export const phases: TrilhaPhase[] = [
 
     why: 'Você sabe manipular o DOM com JavaScript puro. React inverte a lógica: em vez de você ir ao DOM e atualizar elemento por elemento, você descreve o estado atual (dados) e o React atualiza o DOM sozinho. Quando o estado muda, a tela atualiza. Sem querySelector, sem innerHTML.',
 
-    intro: 'No SPM, cada painel, botão e formulário é um componente React. Um componente é uma função que recebe dados (props) e retorna o HTML que deve aparecer. Quando algum dado muda, React chama a função de novo e a tela atualiza automaticamente.',
+    intro: 'No Sentinel Core, cada painel, botão e formulário é um componente React. Um componente é uma função que recebe dados (props) e retorna o HTML que deve aparecer. Quando algum dado muda, React chama a função de novo e a tela atualiza automaticamente.',
 
     concepts: [
       {
@@ -266,7 +266,7 @@ inputRef.current?.focus()`,
     ],
 
     exercise: {
-      prompt: 'Abra src/components/ai/ai-panel.tsx no SPM.',
+      prompt: 'Abra src/components/ai/ai-panel.tsx no Sentinel Core.',
       steps: [
         'Quantos useState existem no componente? Liste cada um com seu valor inicial.',
         'Encontre o useEffect que faz scroll automático. O que está no array de dependências?',
@@ -291,7 +291,7 @@ inputRef.current?.focus()`,
 
     why: "Você já fez APIs com Express ou similares — sabe o que são rotas e handlers. Next.js traz isso para o mesmo projeto que o frontend, eliminando servidores separados. Mais importante: no App Router, o servidor não é opcional. Componentes rodam no servidor por padrão, o que significa que chaves de API nunca chegam ao browser.",
 
-    intro: "No SPM, a pasta src/app/ é tudo. Cada subpasta vira uma URL, cada page.tsx é a página, cada route.ts é uma API, e cada layout.tsx envolve as páginas da pasta. É um sistema de convenção: o nome do arquivo determina o comportamento.",
+    intro: "No Sentinel Core, a pasta src/app/ é tudo. Cada subpasta vira uma URL, cada page.tsx é a página, cada route.ts é uma API, e cada layout.tsx envolve as páginas da pasta. É um sistema de convenção: o nome do arquivo determina o comportamento.",
 
     concepts: [
       {
@@ -385,7 +385,7 @@ export async function POST(req: NextRequest) {
     ],
 
     exercise: {
-      prompt: "Olhe a estrutura de pastas em src/app/ do SPM.",
+      prompt: "Olhe a estrutura de pastas em src/app/ do Sentinel Core.",
       steps: [
         "Por que a pasta (dashboard) tem parênteses? O que isso significa para a URL?",
         "Abra src/app/api/sentinel-ai/route.ts. Por que é seguro usar env.anthropicApiKey aqui?",
@@ -410,7 +410,7 @@ export async function POST(req: NextRequest) {
 
     why: "Você já usou useState — estado local de um componente. O problema: se dois componentes precisam do mesmo dado, você precisa elevar o estado para o pai e passar via props por cada nível. Zustand resolve isso com um store global: qualquer componente acessa e atualiza diretamente, sem prop drilling.",
 
-    intro: "No SPM, o Zustand gerencia o estado do chat da IA, a autenticação do usuário, as tarefas do daily, os itens de QA, e os eventos do calendário. Cada store é um objeto JavaScript com estado e funções para modificá-lo — qualquer componente pode usar esse store com um hook.",
+    intro: "No Sentinel Core, o Zustand gerencia o estado do chat da IA, a autenticação do usuário, as tarefas do daily, os itens de QA, e os eventos do calendário. Cada store é um objeto JavaScript com estado e funções para modificá-lo — qualquer componente pode usar esse store com um hook.",
 
     concepts: [
       {
@@ -496,7 +496,7 @@ export const useAuthStore = create<AuthState>()(
       logout: () => set({ user: null, isAuthenticated: false }),
     }),
     {
-      name: 'spm-auth',  // chave no localStorage
+      name: 'sentinel-core-auth',  // chave no localStorage
       partialize: state => ({
         user: state.user,
         isAuthenticated: state.isAuthenticated
@@ -517,7 +517,7 @@ export const useAuthStore = create<AuthState>()(
     ],
 
     exercise: {
-      prompt: "Abra src/store/ai.ts no SPM.",
+      prompt: "Abra src/store/ai.ts no Sentinel Core.",
       steps: [
         "Encontre a função addMessage. O que ela faz com _counter antes de criar o ID?",
         "Por que addMessage retorna string? Quem usa esse retorno?",
@@ -542,7 +542,7 @@ export const useAuthStore = create<AuthState>()(
 
     why: "Com CSS tradicional, você escreve classes em arquivos .css separados e aplica nos elementos. Com Tailwind, as classes são o CSS — cada classe aplica uma única propriedade CSS. Em vez de criar .card { display: flex; padding: 1rem; }, você escreve className='flex p-4' direto no JSX. O resultado é um código mais rápido de escrever e muito mais fácil de ler — você vê o estilo e o conteúdo juntos.",
 
-    intro: "O SPM tem um design system customizado em cima do Tailwind: cores surface-* (cinzas escuros), primary (índigo), e classes custom como glass e glow definidas no globals.css. Entender Tailwind é entender como cada elemento do SPM foi construído.",
+    intro: "O Sentinel Core tem um design system customizado em cima do Tailwind: cores surface-* (cinzas escuros), primary (índigo), e classes custom como glass e glow definidas no globals.css. Entender Tailwind é entender como cada elemento do Sentinel Core foi construído.",
 
     concepts: [
       {
@@ -585,9 +585,9 @@ export const useAuthStore = create<AuthState>()(
       },
       {
         title: 'Cores e transparência',
-        explanation: "Tailwind tem paletas de cores (blue, indigo, violet...) com shades de 50 a 950. A barra / adiciona transparência: bg-primary/10 é o fundo primary com 10% de opacidade. O SPM usa muito isso para o efeito glass.",
+        explanation: "Tailwind tem paletas de cores (blue, indigo, violet...) com shades de 50 a 950. A barra / adiciona transparência: bg-primary/10 é o fundo primary com 10% de opacidade. O Sentinel Core usa muito isso para o efeito glass.",
         code: {
-          filename: 'src/styles/globals.css (padrão do SPM)',
+          filename: 'src/styles/globals.css (padrão do Sentinel Core)',
           code: `/* Classe glass — definida no globals.css */
 .glass {
   background: rgba(255, 255, 255, 0.03);
@@ -608,7 +608,7 @@ export const useAuthStore = create<AuthState>()(
         title: 'Estados: hover, focus, disabled',
         explanation: "Prefixos como hover: e focus: aplicam estilos condicionais. disabled: aplica quando o elemento está desabilitado. Você combina com qualquer classe utilitária.",
         code: {
-          filename: 'Exemplo de botão do SPM',
+          filename: 'Exemplo de botão do Sentinel Core',
           code: `<button
   disabled={loading}
   className="
@@ -629,8 +629,8 @@ export const useAuthStore = create<AuthState>()(
         },
       },
       {
-        title: 'Cores customizadas do SPM',
-        explanation: "O tailwind.config.ts do SPM define cores que não existem no Tailwind padrão: primary (baseado em índigo), surface-* (cinzas muito escuros para o dark theme), e shades específicas como primary-400, primary-600.",
+        title: 'Cores customizadas do Sentinel Core',
+        explanation: "O tailwind.config.ts do Sentinel Core define cores que não existem no Tailwind padrão: primary (baseado em índigo), surface-* (cinzas muito escuros para o dark theme), e shades específicas como primary-400, primary-600.",
         code: {
           filename: 'apps/web/tailwind.config.ts (trecho)',
           code: `theme: {
@@ -643,13 +643,13 @@ export const useAuthStore = create<AuthState>()(
       },
       surface: {
         900:  '#0f0f14',
-        950:  '#09090e',     // fundo principal do SPM
+        950:  '#09090e',     // fundo principal do Sentinel Core
         1000: '#050508',
       },
     },
   },
 }`,
-          note: "surface-950 é o fundo mais escuro do SPM — um preto azulado quase puro. Todas as classes surface-* são customizações que não existem no Tailwind padrão.",
+          note: "surface-950 é o fundo mais escuro do Sentinel Core — um preto azulado quase puro. Todas as classes surface-* são customizações que não existem no Tailwind padrão.",
         },
       },
     ],
@@ -662,7 +662,7 @@ export const useAuthStore = create<AuthState>()(
     ],
 
     exercise: {
-      prompt: "Abra qualquer componente do SPM (sugestão: src/components/ai/ai-floating-button.tsx).",
+      prompt: "Abra qualquer componente do Sentinel Core (sugestão: src/components/ai/ai-floating-button.tsx).",
       steps: [
         "Liste todas as classes do primeiro elemento. Separe: layout, espaçamento, cor, estado.",
         "Encontre uma classe com /. O que o número após a / representa?",
@@ -687,7 +687,7 @@ export const useAuthStore = create<AuthState>()(
 
     why: "Você sabe fazer requisições HTTP — fetch, POST, headers. Aqui vai além: como o servidor protege as chaves que não podem vazar, como o middleware intercepta cada requisição antes de chegar nas rotas, e o que acontece quando alguém tenta abusar da API. Segurança não é um módulo separado — está no design de cada rota.",
 
-    intro: "O SPM tem dois pontos de entrada para código externo: a API do Sentinel AI (que chama o Claude) e o middleware que inspeciona toda requisição. Analisar esses dois arquivos juntos dá uma visão completa de como uma aplicação Next.js se protege.",
+    intro: "O Sentinel Core tem dois pontos de entrada para código externo: a API do Sentinel AI (que chama o Claude) e o middleware que inspeciona toda requisição. Analisar esses dois arquivos juntos dá uma visão completa de como uma aplicação Next.js se protege.",
 
     concepts: [
       {
@@ -701,7 +701,7 @@ export const useAuthStore = create<AuthState>()(
 
   // Com NEXT_PUBLIC_: disponível no browser também
   apiUrl:  process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:3001',
-  appName: process.env.NEXT_PUBLIC_APP_NAME ?? 'Sentinel Project Manager',
+  appName: process.env.NEXT_PUBLIC_APP_NAME ?? 'Sentinel Core',
 } as const`,
           note: "Se você importar env.anthropicApiKey em um componente 'use client', o Next.js avisa com erro. ANTHROPIC_API_KEY ficaria undefined no browser de qualquer forma — mas o aviso previne o erro silencioso.",
         },
@@ -741,9 +741,9 @@ export async function POST(req: NextRequest) {
       },
       {
         title: 'Middleware — o porteiro de toda requisição',
-        explanation: "O arquivo middleware.ts roda antes de qualquer rota ou página. É onde o SPM verifica autenticação, aplica rate limiting, e pode bloquear requisições inválidas globalmente — sem repetir a lógica em cada rota individualmente.",
+        explanation: "O arquivo middleware.ts roda antes de qualquer rota ou página. É onde o Sentinel Core verifica autenticação, aplica rate limiting, e pode bloquear requisições inválidas globalmente — sem repetir a lógica em cada rota individualmente.",
         code: {
-          filename: 'src/middleware.ts (SPM)',
+          filename: 'src/middleware.ts (Sentinel Core)',
           code: `import { NextRequest, NextResponse } from 'next/server'
 
 const PUBLIC = ['/login', '/api/auth']
@@ -771,7 +771,7 @@ export async function middleware(req: NextRequest) {
         title: 'Status HTTP com significado',
         explanation: "Retornar o status correto não é formalidade — é comunicação. 401 diz 'você não está autenticado'. 403 diz 'você está autenticado mas não tem permissão'. 429 diz 'muitas requisições'. O cliente usa esses códigos para decidir o que fazer.",
         code: {
-          filename: 'Tabela de status usados no SPM',
+          filename: 'Tabela de status usados no Sentinel Core',
           code: `200 OK            → Requisição bem sucedida
 400 Bad Request   → Body inválido (JSON malformado, campos faltando)
 401 Unauthorized  → Token ausente ou expirado → redirecionar para login
@@ -791,7 +791,7 @@ export async function middleware(req: NextRequest) {
     ],
 
     exercise: {
-      prompt: "Abra src/app/api/sentinel-ai/route.ts no SPM.",
+      prompt: "Abra src/app/api/sentinel-ai/route.ts no Sentinel Core.",
       steps: [
         "Encontre a função sanitize. Que tipos de input malicioso ela remove?",
         "Por que o limite de 8.000 caracteres existe? O que aconteceria sem ele?",
@@ -816,12 +816,12 @@ export async function middleware(req: NextRequest) {
 
     why: "Você já sabe fazer um fetch para uma API e receber JSON. A IA generativa adiciona dois conceitos novos: o system prompt (que define a personalidade e o contexto do modelo) e o streaming (que envia a resposta palavra por palavra, em vez de esperar ela ficar pronta). Juntos, criam a experiência de uma IA que 'pensa em tempo real'.",
 
-    intro: "O Sentinel AI é construído em cima do Claude da Anthropic. O SPM envia o contexto atual do usuário (tarefas, QA items, reuniões) como parte do system prompt, fazendo o Claude responder com dados reais em vez de respostas genéricas. O streaming usa SSE (Server-Sent Events) para o texto aparecer token por token.",
+    intro: "O Sentinel AI é construído em cima do Claude da Anthropic. O Sentinel Core envia o contexto atual do usuário (tarefas, QA items, reuniões) como parte do system prompt, fazendo o Claude responder com dados reais em vez de respostas genéricas. O streaming usa SSE (Server-Sent Events) para o texto aparecer token por token.",
 
     concepts: [
       {
         title: 'System prompt — a identidade do modelo',
-        explanation: "O system prompt é uma instrução enviada antes de qualquer mensagem do usuário. Define a personalidade, o contexto, as capacidades e o comportamento do modelo. No SPM, o system prompt inclui quem é o Sentinel AI e todos os dados atuais do usuário.",
+        explanation: "O system prompt é uma instrução enviada antes de qualquer mensagem do usuário. Define a personalidade, o contexto, as capacidades e o comportamento do modelo. No Sentinel Core, o system prompt inclui quem é o Sentinel AI e todos os dados atuais do usuário.",
         code: {
           filename: 'src/app/api/sentinel-ai/route.ts',
           code: `function buildSystemPrompt(context: Record<string, unknown>): string {
@@ -830,7 +830,7 @@ export async function middleware(req: NextRequest) {
   })
 
   return \`You are Sentinel AI, the operational intelligence layer
-of the Sentinel Project Manager.
+of the Sentinel Core.
 
 Today is \${today}.
 
@@ -846,7 +846,7 @@ QA priorities, sprint goals.
 - Summarize Daily tasks and suggest execution order
 - Generate test scenarios, regression checklists\`
 }`,
-          note: "JSON.stringify(context, null, 2) serializa todo o estado atual do SPM (tarefas, QA, reuniões) em texto legível. O Claude lê esse JSON como contexto para suas respostas.",
+          note: "JSON.stringify(context, null, 2) serializa todo o estado atual do Sentinel Core (tarefas, QA, reuniões) em texto legível. O Claude lê esse JSON como contexto para suas respostas.",
         },
       },
       {
@@ -953,9 +953,9 @@ setStreaming(false)`,
     ],
 
     exercise: {
-      prompt: "Abra src/lib/sentinelContextBuilder.ts e src/app/api/sentinel-ai/route.ts no SPM.",
+      prompt: "Abra src/lib/sentinelContextBuilder.ts e src/app/api/sentinel-ai/route.ts no Sentinel Core.",
       steps: [
-        "No contextBuilder: quais dados do SPM são enviados ao Claude? Liste as categorias principais.",
+        "No contextBuilder: quais dados do Sentinel Core são enviados ao Claude? Liste as categorias principais.",
         "No route.ts: encontre onde o system prompt é construído. O contexto entra como string ou como objeto?",
         "Como o streaming funciona no nível mais simples? O que é um 'chunk'?",
         "Por que appendToMessage recebe o ID da mensagem em vez de só o texto?",

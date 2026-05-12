@@ -3,12 +3,12 @@ version: '3.9'
 services:
   postgres:
     image: postgres:16-alpine
-    container_name: spm_postgres
+    container_name: sentinel_core_postgres
     restart: unless-stopped
     environment:
-      POSTGRES_USER: spm_user
-      POSTGRES_PASSWORD: spm_pass
-      POSTGRES_DB: spm_db
+      POSTGRES_USER: sentinel_core_user
+      POSTGRES_PASSWORD: sentinel_core_pass
+      POSTGRES_DB: sentinel_core_db
     ports:
       - '5432:5432'
     volumes:
@@ -16,7 +16,7 @@ services:
 
   redis:
     image: redis:7-alpine
-    container_name: spm_redis
+    container_name: sentinel_core_redis
     restart: unless-stopped
     ports:
       - '6379:6379'
@@ -25,10 +25,10 @@ services:
     build:
       context: ./apps/api
       dockerfile: Dockerfile
-    container_name: spm_api
+    container_name: sentinel_core_api
     restart: unless-stopped
     environment:
-      DATABASE_URL: postgresql://spm_user:spm_pass@postgres:5432/spm_db
+      DATABASE_URL: postgresql://sentinel_core_user:sentinel_core_pass@postgres:5432/sentinel_core_db
       JWT_SECRET: your-jwt-secret-change-in-production
       JWT_REFRESH_SECRET: your-refresh-secret-change-in-production
       REDIS_URL: redis://redis:6379

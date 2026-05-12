@@ -1,11 +1,11 @@
-# Plano de Estudos — Sentinel Project Manager
+# Plano de Estudos — Sentinel Core
 > Aprender com o projeto real. Cada fase usa código que você já tem rodando.
 
 ---
 
 ## Como usar este plano
 
-1. Abra o VS Code no projeto (`d:/DEV/sentinel-project-manager/`)
+1. Abra o VS Code no projeto (`d:/DEV/sentinel-core/`)
 2. Leia o conceito da fase
 3. Abra os arquivos indicados e leia o código com calma
 4. Faça o exercício prático — pode errar, pode pedir ajuda ao Claude
@@ -20,7 +20,7 @@ Não precisa memorizar nada. O objetivo é **reconhecer** quando ver, e **saber 
 ### O que é
 TypeScript é JavaScript com tipos. Em vez de escrever `let nome = "Rapha"`, você escreve `let nome: string = "Rapha"`. Isso faz o editor avisar quando algo está errado antes de rodar.
 
-### Por que usamos no SPM
+### Por que usamos no Sentinel Core
 Com TypeScript, quando você passa um `QAItem` para um componente, o editor sabe exatamente quais campos existem. Sem TypeScript, você só descobriria o erro no browser.
 
 ### Arquivos para abrir agora
@@ -48,7 +48,7 @@ Responda: quais campos ela tem? Quais são obrigatórios? Algum é opcional (tem
 ### O que é
 React é a biblioteca que transforma código em tela. Cada "peça" da interface é um componente — uma função que retorna HTML (chamado JSX).
 
-### Por que usamos no SPM
+### Por que usamos no Sentinel Core
 Cada card do QA Importer, cada botão do painel da AI, cada linha do Daily — tudo é um componente React separado que recebe dados (props) e exibe algo na tela.
 
 ### Arquivos para abrir agora
@@ -77,7 +77,7 @@ Identifique: quantas quick actions existem? Como cada uma chega no componente? O
 ### O que é
 Next.js é o framework que organiza o React em páginas, rotas e APIs. A estrutura de pastas **é** a estrutura de URLs do site.
 
-### Por que usamos no SPM
+### Por que usamos no Sentinel Core
 `apps/web/src/app/dashboard/page.tsx` vira a URL `/dashboard`. O `(dashboard)/layout.tsx` envolve todas as páginas do painel com a sidebar e o header automaticamente.
 
 ### Arquivos para abrir agora
@@ -109,7 +109,7 @@ por que esse arquivo tem `'use server'` implícito? Por que a API key pode ficar
 ### O que é
 Zustand é a biblioteca que guarda o estado global da aplicação. Pense como uma "memória compartilhada" que qualquer componente pode ler ou modificar.
 
-### Por que usamos no SPM
+### Por que usamos no Sentinel Core
 Quando você adiciona um card no QA Importer, ele vai para o store do Zustand. Quando o Sentinel AI abre o painel, ele lê o store de QA para ter contexto. Os dados ficam disponíveis em qualquer tela sem precisar passar props.
 
 ### Arquivos para abrir agora
@@ -137,20 +137,20 @@ Depois encontre a função que atualiza o texto de uma mensagem em andamento (st
 ### O que é
 Tailwind é um sistema de classes CSS utilitárias. Em vez de criar um arquivo `.css` com `.meu-botao { background: blue; padding: 8px }`, você escreve `className="bg-blue-500 p-2"` diretamente no componente.
 
-### Por que usamos no SPM
+### Por que usamos no Sentinel Core
 Todo o visual dark, os efeitos glass, as animações — tudo é Tailwind. Facilita manter o padrão visual sem criar centenas de arquivos CSS.
 
 ### Arquivos para abrir agora
 ```
 apps/web/src/components/error-boundary.tsx  → classes simples de layout
 apps/web/src/components/ai/ai-panel.tsx     → classes de posicionamento fixo
-apps/web/tailwind.config.ts                 → onde as cores custom do SPM são definidas
+apps/web/tailwind.config.ts                 → onde as cores custom do Sentinel Core são definidas
 apps/web/src/styles/globals.css             → variáveis CSS e classes personalizadas
 ```
 
 ### Conceitos para identificar nesses arquivos
 - `flex`, `grid`, `h-screen`, `w-full` → layout
-- `bg-surface-950`, `text-white/70` → cores customizadas do SPM (definidas no tailwind.config)
+- `bg-surface-950`, `text-white/70` → cores customizadas do Sentinel Core (definidas no tailwind.config)
 - `p-4`, `px-6`, `mt-2` → espaçamento (padding e margin)
 - `rounded-lg`, `border`, `shadow` → visual
 - `hover:bg-white/10`, `transition-colors` → estados e animações
@@ -168,7 +168,7 @@ Inicie o dev server (`npx next dev -p 3000`) e provoque um erro para ver a mudan
 ### O que é
 Uma API Route no Next.js é uma função que roda no servidor e responde requisições HTTP. É o que separa código seguro (com chaves secretas) do código que vai para o browser.
 
-### Por que usamos no SPM
+### Por que usamos no Sentinel Core
 A chave da Anthropic (`ANTHROPIC_API_KEY`) nunca pode ir para o browser — qualquer um poderia roubá-la. Então criamos uma API Route no servidor que usa a chave e devolve só o resultado.
 
 ### Arquivos para abrir agora
@@ -199,7 +199,7 @@ O que o header `X-Sentinel-Forge` significa? (dica: está no `next.config.ts` co
 ### O que é
 O Sentinel AI usa a API da Anthropic (Claude) para responder perguntas. Em vez de esperar a resposta completa, usamos **streaming** — as palavras chegam em tempo real, como um chat.
 
-### Por que usamos no SPM
+### Por que usamos no Sentinel Core
 Respostas de IA podem demorar 5-10 segundos. Com streaming, o usuário vê as palavras aparecerem imediatamente, tornando a experiência muito mais fluída.
 
 ### Arquivos para abrir agora
@@ -215,12 +215,12 @@ apps/web/src/components/ai/ai-panel.tsx     → a interface do chat
 - `system prompt` → a "personalidade" e contexto que o Claude recebe
 - `ReadableStream` → fluxo de dados contínuo (o streaming)
 - `SSE (Server-Sent Events)` → protocolo para enviar dados em tempo real
-- `JSON.stringify(context)` → converte os dados do SPM em texto para o Claude entender
+- `JSON.stringify(context)` → converte os dados do Sentinel Core em texto para o Claude entender
 - `buildSentinelContext(...)` → agrega dados de Daily, QA e Calendar para o Claude
 
 ### Exercício
 Abra `apps/web/src/lib/sentinelContextBuilder.ts`.
-Quais dados do SPM são enviados para o Claude? O que está no `dailySummary`?
+Quais dados do Sentinel Core são enviados para o Claude? O que está no `dailySummary`?
 Agora abra o painel do Sentinel AI no browser e faça uma pergunta sobre suas tarefas do dia. Você consegue imaginar qual parte do contexto o Claude usou para responder?
 
 ---

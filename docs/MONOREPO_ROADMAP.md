@@ -7,7 +7,7 @@ Objetivo: concentrar os produtos Sentinel no repositorio `SentinelQAtech/sentine
 Status: em andamento.
 
 - [x] Alterar `origin` local para `SentinelQAtech/sentinel-website`.
-- [x] Publicar o Project Manager no repo canonico.
+- [x] Publicar o Sentinel Core no repo canonico.
 - [x] Configurar `vercel.json` para o app web atual.
 - [x] Criar projeto Vercel `sentinel-website`.
 - [x] Adicionar dominios `sentinelqa.tech` e `www.sentinelqa.tech` no Vercel.
@@ -20,7 +20,7 @@ Status: em andamento.
 Recomendacao:
 
 - `sentinelqa.tech`: site institucional.
-- `app.sentinelqa.tech`: Project Manager.
+- `app.sentinelqa.tech`: Sentinel Core.
 - `learning.sentinelqa.tech`: Sentinel Learning.
 - `extension.sentinelqa.tech`: pagina/download/docs da extensao, se necessario.
 
@@ -59,6 +59,6 @@ Quando a base estiver estavel:
 
 - Habilitar deploy automatico por push na branch `main`.
 - Usar preview deploys para PRs.
-- Definir uma rotina de backup/export dos dados reais do Project Manager.
+- Definir uma rotina de backup/export dos dados reais do Sentinel Core.
 - Manter changelog curto por release importante.
 - Revisar periodicamente dominios, DNS e permissoes GitHub/Vercel.

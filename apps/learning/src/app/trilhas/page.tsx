@@ -11,9 +11,9 @@ export default function Trilhas() {
 
       <div className="mb-12 text-center">
         <p className="mb-3 text-xs font-mono text-primary-400 uppercase tracking-widest">Trilha Principal</p>
-        <h1 className="text-4xl font-black tracking-tight">Desenvolvimento Web com o SPM</h1>
+        <h1 className="text-4xl font-black tracking-tight">Desenvolvimento Web com o Sentinel Core</h1>
         <p className="mt-3 text-white/40 max-w-xl mx-auto">
-          7 fases progressivas usando o código real do Sentinel Project Manager como material de estudo.
+          7 fases progressivas usando o código real do Sentinel Core como material de estudo.
         </p>
       </div>
 

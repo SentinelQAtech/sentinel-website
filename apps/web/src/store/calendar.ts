@@ -77,6 +77,6 @@ export const useCalendarStore = create<CalendarStore>()(
           .filter(e => e.date === date)
           .sort((a, b) => a.startTime.localeCompare(b.startTime)),
     }),
-    { name: 'spm-calendar' }
+    { name: 'sentinel-core-calendar' }
   )
 )

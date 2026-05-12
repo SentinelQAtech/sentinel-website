@@ -381,7 +381,7 @@ export const useI18nStore = create<I18nState>()(
       setLocale: locale => set({ locale }),
       t: key => dictionaries[get().locale][key] ?? dictionaries['pt-BR'][key] ?? key,
     }),
-    { name: 'spm-locale' }
+    { name: 'sentinel-core-locale' }
   )
 )
 

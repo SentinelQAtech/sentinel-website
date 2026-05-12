@@ -35,7 +35,7 @@ export default function RegisterPage() {
               <img src="/brand/logo_icon.png" alt="Sentinel" className="h-9 w-9 object-contain" />
             </div>
             <h1 className="text-xl font-bold text-white">Create your account</h1>
-            <p className="text-sm text-white/40 mt-1">Join Sentinel Project Manager</p>
+            <p className="text-sm text-white/40 mt-1">Join Sentinel Core</p>
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-4">

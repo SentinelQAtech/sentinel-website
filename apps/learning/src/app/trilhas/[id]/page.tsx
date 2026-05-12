@@ -99,7 +99,7 @@ export default async function TrilhaPage({ params }: Props) {
       {/* Files to explore */}
       <section className="mb-10">
         <h2 className="mb-4 flex items-center gap-2 text-sm font-semibold text-white/50 uppercase tracking-wide">
-          <FileCode2 className="h-4 w-4" /> Arquivos para explorar no SPM
+          <FileCode2 className="h-4 w-4" /> Arquivos para explorar no Sentinel Core
         </h2>
         <div className="grid sm:grid-cols-2 gap-3">
           {phase.files.map((f, i) => (
