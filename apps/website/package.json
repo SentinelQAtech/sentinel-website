@@ -1,0 +1,11 @@
+{
+  "name": "@sentinel/website",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "npx serve . -l 3003",
+    "build": "node -e \"console.log('Static website has no build step')\"",
+    "lint": "node -e \"console.log('No lint configured for static website')\"",
+    "type-check": "node -e \"console.log('No type-check for static website')\""
+  }
+}

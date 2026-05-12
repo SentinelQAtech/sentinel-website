@@ -11,6 +11,13 @@
     "build": "turbo run build",
     "lint": "turbo run lint",
     "type-check": "turbo run type-check",
+    "dev:web": "npm run dev --workspace @spm/web",
+    "build:web": "npm run build --workspace @spm/web",
+    "type-check:web": "npm run type-check --workspace @spm/web",
+    "dev:api": "npm run dev --workspace @spm/api",
+    "build:api": "npm run build --workspace @spm/api",
+    "type-check:api": "npm run type-check --workspace @spm/api",
+    "verify:web": "npm run type-check:web && npm run build:web",
     "db:generate": "cd apps/api && npx prisma generate",
     "db:migrate": "cd apps/api && npx prisma migrate dev",
     "db:studio": "cd apps/api && npx prisma studio"

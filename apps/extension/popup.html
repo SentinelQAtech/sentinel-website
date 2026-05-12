@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Sentinel QA Sync</title>
+  <link rel="stylesheet" href="popup.css" />
+</head>
+<body>
+
+  <!-- ── Header ─────────────────────────────────────── -->
+  <div class="header">
+    <div class="header-icon">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M9 11l3 3L22 4"/>
+        <path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/>
+      </svg>
+    </div>
+    <div>
+      <div class="header-title">Sentinel QA Sync</div>
+      <div class="header-sub">Jira Board → Sentinel</div>
+    </div>
+    <button class="header-gear" id="btn-toggle-settings" title="Configurações">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <circle cx="12" cy="12" r="3"/>
+        <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>
+      </svg>
+    </button>
+  </div>
+
+  <!-- ── Settings page ───────────────────────────────── -->
+  <div id="page-settings" class="page hidden">
+    <div class="field">
+      <label>Sentinel URL *</label>
+      <input id="input-url" type="url" placeholder="https://seu-sentinel.com" autocomplete="off" />
+      <div class="field-hint">URL do seu Sentinel Project Manager online.</div>
+    </div>
+
+    <div class="field">
+      <label>Sync Token (opcional)</label>
+      <input id="input-token" type="text" placeholder="Token secreto (configure em .env)" autocomplete="off" />
+      <div class="field-hint">
+        Defina <code style="color:#6366f1;font-size:10px">QA_SYNC_TOKEN</code> no Sentinel para proteger a rota de importação.
+      </div>
+    </div>
+
+    <button class="btn btn-primary" id="btn-save">Salvar configurações</button>
+    <button class="btn btn-secondary" id="btn-cancel-settings">Cancelar</button>
+  </div>
+
+  <!-- ── Sync page ────────────────────────────────────── -->
+  <div id="page-sync" class="page hidden">
+    <!-- Status card -->
+    <div class="status-card">
+      <div class="status-label">Sentinel conectado</div>
+      <div class="status-url" id="display-url">—</div>
+      <div class="divider"></div>
+      <div class="status-label">Página atual</div>
+      <div class="status-page" id="status-page">
+        <span class="dot dot-gray" id="page-dot"></span>
+        <span id="page-status-text">Verificando...</span>
+      </div>
+    </div>
+
+    <button class="btn btn-primary" id="btn-sync" disabled>
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+        <path d="M21 2v6h-6"/><path d="M3 12a9 9 0 0115-6.7L21 8"/>
+        <path d="M3 22v-6h6"/><path d="M21 12a9 9 0 01-15 6.7L3 16"/>
+      </svg>
+      <span id="btn-sync-label">Sincronizar cards QA</span>
+    </button>
+  </div>
+
+  <!-- ── Result page ──────────────────────────────────── -->
+  <div id="page-result" class="page hidden">
+    <div id="result-card" class="result-card success">
+      <div class="result-icon" id="result-icon">✅</div>
+      <div class="result-title" id="result-title">Cards sincronizados!</div>
+      <div class="result-count" id="result-count">0</div>
+      <div class="result-sub" id="result-sub">cards QA enviados para Sentinel</div>
+    </div>
+
+    <button class="btn btn-primary" id="btn-open-sentinel">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+        <path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6"/>
+        <polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/>
+      </svg>
+      Abrir QA Importer
+    </button>
+    <button class="btn btn-secondary" id="btn-sync-again">Sincronizar novamente</button>
+  </div>
+
+  <!-- ── Footer ───────────────────────────────────────── -->
+  <div class="footer">
+    Sentinel QA Sync v1.0 · Apenas lê cards visíveis no board
+  </div>
+
+  <script src="popup.js"></script>
+</body>
+</html>

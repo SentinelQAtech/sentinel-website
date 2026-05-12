@@ -1,0 +1,10 @@
+{
+  "name": "@sentinel/extension",
+  "version": "1.0.9",
+  "private": true,
+  "scripts": {
+    "build": "node -e \"console.log('Chrome extension has no build step')\"",
+    "lint": "node -e \"console.log('No lint configured for Chrome extension')\"",
+    "type-check": "node -e \"console.log('No type-check for Chrome extension')\""
+  }
+}

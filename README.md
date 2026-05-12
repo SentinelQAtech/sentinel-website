@@ -2,6 +2,19 @@
 
 > Enterprise-grade project management platform focused on QA, Agile operations, and intelligent productivity.
 
+## Repositorio canonico
+
+Este projeto agora usa como origem principal:
+
+`https://github.com/SentinelQAtech/sentinel-website`
+
+Documentacao operacional:
+
+- [Inventario dos projetos](docs/PROJECT_INVENTORY.md)
+- [Roadmap do monorepo](docs/MONOREPO_ROADMAP.md)
+- [Deploy Vercel](docs/VERCEL_DEPLOY.md)
+- [DNS do dominio](docs/DOMAIN_DNS.md)
+
 ---
 
 ## Stack

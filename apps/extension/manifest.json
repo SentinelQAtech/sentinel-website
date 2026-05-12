@@ -1,0 +1,34 @@
+{
+  "manifest_version": 3,
+  "name": "Sentinel QA Sync",
+  "version": "1.0.9",
+  "description": "Capture QA cards from visible Jira boards and sync to Sentinel Project Manager — sem tokens, sem autenticação.",
+
+  "permissions": ["activeTab", "storage", "scripting", "tabs"],
+
+  "host_permissions": [
+    "*://*.atlassian.net/*",
+    "*://*.jira.com/*",
+    "<all_urls>"
+  ],
+
+  "action": {
+    "default_popup": "popup.html",
+    "default_title": "Sentinel QA Sync"
+  },
+
+  "content_scripts": [
+    {
+      "matches": [
+        "*://*.atlassian.net/*",
+        "*://*.jira.com/*"
+      ],
+      "js": ["content-script.js"],
+      "run_at": "document_idle"
+    }
+  ],
+
+  "background": {
+    "service_worker": "background.js"
+  }
+}
