@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from 'next'
 import { Inter, JetBrains_Mono } from 'next/font/google'
 import '@/styles/globals.css'
 import { Providers } from './providers'
+import { brandLogoIcon } from '@/lib/routes'
 
 const inter = Inter({
   subsets: ['latin'],
@@ -24,9 +25,9 @@ export const metadata: Metadata = {
   keywords: ['QA operations', 'quality management', 'bug tracking', 'agile', 'sprints', 'sentinel tech'],
   authors: [{ name: 'Sentinel Tech' }],
   icons: {
-    icon: '/brand/logo_icon.png',
-    shortcut: '/brand/logo_icon.png',
-    apple: '/brand/logo_icon.png',
+    icon: brandLogoIcon,
+    shortcut: brandLogoIcon,
+    apple: brandLogoIcon,
   },
   robots: 'noindex, nofollow',
 }

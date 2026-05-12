@@ -20,9 +20,10 @@ Status: em andamento.
 Recomendacao:
 
 - `sentinelqa.tech`: site institucional.
-- `app.sentinelqa.tech`: Sentinel Core.
-- `learning.sentinelqa.tech`: Sentinel Learning.
-- `extension.sentinelqa.tech`: pagina/download/docs da extensao, se necessario.
+- `sentinelqa.tech/core`: Sentinel Core.
+- `sentinelqa.tech/learning`: Sentinel Learning.
+- `sentinelqa.tech/extension`: pagina/download/docs da extensao.
+- `app.sentinelqa.tech`: redirect para `sentinelqa.tech/core`.
 
 Essa separacao evita que o site publico e o produto operacional disputem a raiz do dominio.
 

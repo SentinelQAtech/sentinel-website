@@ -11,6 +11,7 @@ import {
   Activity, Columns, FolderOpen, Building2,
 } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
+import { brandLogoIcon } from '@/lib/routes'
 
 // ─── Types ─────────────────────────────────────────────────────
 
@@ -173,7 +174,7 @@ export function Sidebar({ collapsed = false, onToggle }: SidebarProps) {
         {/* Logo */}
         <div className="flex items-center gap-3 px-4 py-5 border-b border-white/[0.06]">
           <div className="w-8 h-8 rounded-lg bg-black/20 flex items-center justify-center shrink-0 shadow-glow-sm ring-1 ring-white/10">
-            <img src="/brand/logo_icon.png" alt="Sentinel" className="h-6 w-6 object-contain" />
+            <img src={brandLogoIcon} alt="Sentinel" className="h-6 w-6 object-contain" />
           </div>
           <AnimatePresence>
             {!collapsed && (

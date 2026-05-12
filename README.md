@@ -14,6 +14,7 @@ Documentacao operacional:
 - [Roadmap do monorepo](docs/MONOREPO_ROADMAP.md)
 - [Deploy Vercel](docs/VERCEL_DEPLOY.md)
 - [DNS do dominio](docs/DOMAIN_DNS.md)
+- [Estrategia de rotas](docs/ROUTING_STRATEGY.md)
 
 ---
 

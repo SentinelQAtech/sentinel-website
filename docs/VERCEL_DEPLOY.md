@@ -20,6 +20,19 @@ Pendente:
 - Liberar o Vercel GitHub App para acessar `SentinelQAtech/sentinel-website`.
 - Conectar o projeto Vercel ao repositorio para deploy automatico.
 - Aguardar propagacao DNS dos nameservers da Namecheap.
+- Separar o site publico na raiz e o Sentinel Core em `/core`.
+
+## Estrutura de rotas desejada
+
+```text
+sentinelqa.tech              Site publico
+sentinelqa.tech/core         Sentinel Core
+sentinelqa.tech/learning     Sentinel Learning
+sentinelqa.tech/extension    Sentinel Extension
+app.sentinelqa.tech          Redirect para sentinelqa.tech/core
+```
+
+Mais detalhes: [ROUTING_STRATEGY.md](ROUTING_STRATEGY.md).
 
 ## Build atual
 
@@ -32,6 +45,12 @@ O root `vercel.json` aponta para o Sentinel Core web atual:
   "buildCommand": "npm run build --workspace @sentinel-core/web",
   "outputDirectory": "apps/web/.next"
 }
+```
+
+Quando a separacao final for ativada, o site publico deve ser o projeto da raiz do dominio e o Core deve ser publicado como zona em `/core` com:
+
+```text
+NEXT_PUBLIC_BASE_PATH=/core
 ```
 
 ## Comandos uteis

@@ -1,4 +1,5 @@
 import axios from 'axios'
+import { withCoreBasePath } from './routes'
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:3001'
 
@@ -35,7 +36,7 @@ api.interceptors.response.use(
           return api(original)
         } catch {
           localStorage.clear()
-          window.location.href = '/login'
+          window.location.href = withCoreBasePath('/login')
         }
       }
     }

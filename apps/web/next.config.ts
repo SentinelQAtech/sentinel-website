@@ -1,6 +1,7 @@
 import type { NextConfig } from 'next'
 
 const isDev = process.env.NODE_ENV === 'development'
+const basePath = process.env.NEXT_PUBLIC_BASE_PATH?.trim() || undefined
 
 const securityHeaders = [
   { key: 'X-DNS-Prefetch-Control',  value: 'on' },
@@ -14,6 +15,7 @@ const securityHeaders = [
 
 const nextConfig: NextConfig = {
   reactStrictMode: true,
+  ...(basePath ? { basePath } : {}),
   images: {
     remotePatterns: [
       { protocol: 'https', hostname: 'avatars.githubusercontent.com' },

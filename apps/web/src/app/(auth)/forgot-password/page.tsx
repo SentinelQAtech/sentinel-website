@@ -6,6 +6,7 @@ import { Mail, ArrowRight, ArrowLeft, CheckCircle2 } from 'lucide-react'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import { motion, AnimatePresence } from 'framer-motion'
+import { brandLogoIcon } from '@/lib/routes'
 
 export default function ForgotPasswordPage() {
   const [sent, setSent] = useState(false)
@@ -34,7 +35,7 @@ export default function ForgotPasswordPage() {
         <div className="glass-card p-8 border border-white/[0.08]">
           <div className="flex flex-col items-center mb-8">
             <div className="w-12 h-12 rounded-2xl bg-black/20 flex items-center justify-center shadow-glow-md ring-1 ring-white/10 mb-4">
-              <img src="/brand/logo_icon.png" alt="Sentinel" className="h-9 w-9 object-contain" />
+              <img src={brandLogoIcon} alt="Sentinel" className="h-9 w-9 object-contain" />
             </div>
           </div>
 

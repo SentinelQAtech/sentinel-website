@@ -39,9 +39,11 @@ docs/
 | Produto | Dominio sugerido | Observacao |
 | --- | --- | --- |
 | Site institucional | `sentinelqa.tech` e `www.sentinelqa.tech` | Deve ser a entrada publica da Sentinel. |
-| Sentinel Core | `app.sentinelqa.tech` | Evita misturar app interno com site publico. |
-| Learning | `learning.sentinelqa.tech` | Mantem o produto de estudo separado. |
-| Extensao | `extension.sentinelqa.tech` ou pagina no site | A extensao em si nao roda no Vercel; o dominio pode hospedar docs/download. |
+| Site institucional | `sentinelqa.tech` | Entrada publica para clientes. |
+| Sentinel Core | `sentinelqa.tech/core` | Plataforma interna de operacoes QA. |
+| Learning | `sentinelqa.tech/learning` | Mantem o produto de estudo dentro do mesmo padrao. |
+| Extensao | `sentinelqa.tech/extension` | A extensao em si nao roda no Vercel; a rota hospeda docs/download. |
+| Alias interno | `app.sentinelqa.tech` | Redirect para `sentinelqa.tech/core`. |
 
 ## Cuidados antes de importar
 
