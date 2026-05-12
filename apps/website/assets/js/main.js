@@ -95,6 +95,6 @@
 (function initCopyright() {
   const copy = document.querySelector(".footer-copy");
   if (copy) {
-    copy.textContent = `© ${new Date().getFullYear()} Sentinel Tech - QA. All rights reserved.`;
+    copy.textContent = `\u00A9 ${new Date().getFullYear()} Sentinel Tech - QA. All rights reserved.`;
   }
 })();
