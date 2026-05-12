@@ -139,6 +139,23 @@ textarea {
   padding: 42px 0 28px;
 }
 
+.hero::before {
+  content: "";
+  position: absolute;
+  inset: 0 0 auto;
+  height: 62%;
+  background:
+    linear-gradient(90deg, rgba(247, 242, 251, 0.66), rgba(247, 242, 251, 0.88) 46%, rgba(247, 242, 251, 0.62)),
+    url("../brand/sentinel-circuit-bg.png") center -260px / min(960px, 84vw) auto no-repeat;
+  opacity: 0.14;
+  mix-blend-mode: multiply;
+  pointer-events: none;
+  mask-image:
+    linear-gradient(180deg, #000 0%, #000 64%, transparent 100%),
+    linear-gradient(90deg, transparent 0%, #000 12%, #000 88%, transparent 100%);
+  mask-composite: intersect;
+}
+
 .circuit-surface {
   background:
     radial-gradient(circle at 15% 18%, rgba(108, 43, 217, 0.13), transparent 24%),
@@ -246,9 +263,9 @@ p {
 .hero-card {
   position: relative;
   display: grid;
-  gap: 16px;
+  gap: 18px;
   justify-items: center;
-  padding: 26px;
+  padding: 30px;
   border: 1px solid rgba(108, 43, 217, 0.16);
   border-radius: 34px;
   background: rgba(255, 255, 255, 0.78);
@@ -265,8 +282,8 @@ p {
 }
 
 .hero-card::before {
-  inset: 16px;
-  border-radius: 24px;
+  inset: 15px;
+  border-radius: 25px;
 }
 
 .hero-card::after {
@@ -279,8 +296,8 @@ p {
 }
 
 .hero-logo {
-  width: 116px;
-  height: 116px;
+  width: 144px;
+  height: 144px;
   object-fit: contain;
   filter: drop-shadow(0 16px 24px rgba(82, 0, 214, 0.16));
 }
@@ -317,11 +334,40 @@ p {
   width: 100%;
 }
 
-.hero-metrics div {
+.hero-metrics a {
+  position: relative;
+  display: block;
   padding: 12px 16px;
   border: 1px solid var(--line);
   border-radius: 16px;
   background: rgba(255, 255, 255, 0.74);
+  transition: transform 160ms ease, border-color 160ms ease, box-shadow 160ms ease, background 160ms ease;
+}
+
+.hero-metrics a::after {
+  content: "→";
+  position: absolute;
+  top: 12px;
+  right: 16px;
+  color: var(--purple-700);
+  font-weight: 900;
+  opacity: 0;
+  transform: translateX(-4px);
+  transition: opacity 160ms ease, transform 160ms ease;
+}
+
+.hero-metrics a:hover,
+.hero-metrics a:focus-visible {
+  transform: translateY(-2px);
+  border-color: rgba(108, 43, 217, 0.34);
+  background: rgba(255, 255, 255, 0.92);
+  box-shadow: 0 14px 34px rgba(49, 16, 112, 0.1);
+}
+
+.hero-metrics a:hover::after,
+.hero-metrics a:focus-visible::after {
+  opacity: 1;
+  transform: translateX(0);
 }
 
 .hero-metrics strong,
@@ -378,6 +424,7 @@ p {
 }
 
 .service-card {
+  scroll-margin-top: 110px;
   min-height: 230px;
   padding: 28px;
   border: 1px solid var(--line);
@@ -391,6 +438,11 @@ p {
   transform: translateY(-4px);
   border-color: rgba(108, 43, 217, 0.28);
   box-shadow: var(--shadow);
+}
+
+.service-card:target {
+  border-color: rgba(108, 43, 217, 0.5);
+  box-shadow: 0 22px 64px rgba(82, 0, 214, 0.15);
 }
 
 .card-number {
@@ -671,6 +723,12 @@ p {
   .hero-card {
     max-width: 520px;
   }
+
+  .hero::before {
+    background-position: center -190px;
+    background-size: 760px auto;
+    opacity: 0.12;
+  }
 }
 
 @media (max-width: 760px) {
@@ -704,6 +762,12 @@ p {
 
   .hero {
     padding-top: 76px;
+  }
+
+  .hero::before {
+    background-position: center -120px;
+    background-size: 620px auto;
+    opacity: 0.1;
   }
 
   .service-grid,
