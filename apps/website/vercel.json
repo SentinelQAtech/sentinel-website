@@ -1,0 +1,20 @@
+{
+  "buildCommand": "npm run build",
+  "outputDirectory": ".",
+  "redirects": [
+    {
+      "source": "/:path*",
+      "has": [
+        { "type": "host", "value": "app.sentinelqa.tech" }
+      ],
+      "destination": "https://sentinelqa.tech/core/:path*",
+      "permanent": true
+    }
+  ],
+  "rewrites": [
+    {
+      "source": "/core/:path*",
+      "destination": "https://sentinel-core-iota.vercel.app/core/:path*"
+    }
+  ]
+}
