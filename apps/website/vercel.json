@@ -3,11 +3,21 @@
   "outputDirectory": ".",
   "redirects": [
     {
+      "source": "/core",
+      "destination": "/core/dashboard",
+      "permanent": false
+    },
+    {
+      "source": "/core/",
+      "destination": "/core/dashboard",
+      "permanent": false
+    },
+    {
       "source": "/",
       "has": [
         { "type": "host", "value": "app.sentinelqa.tech" }
       ],
-      "destination": "https://sentinelqa.tech/core",
+      "destination": "https://sentinelqa.tech/core/dashboard",
       "permanent": true
     },
     {
