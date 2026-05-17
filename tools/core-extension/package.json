@@ -1,5 +1,5 @@
 {
-  "name": "@sentinel/extension",
+  "name": "@sentinel-core/core-extension",
   "version": "1.0.9",
   "private": true,
   "scripts": {

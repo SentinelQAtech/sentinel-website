@@ -15,13 +15,13 @@ app.sentinelqa.tech          Redirect para sentinelqa.tech/core
 Usar Vercel Multi-Zones:
 
 - Um projeto Vercel para o site publico, servindo `apps/website`.
-- Um projeto Vercel para o Sentinel Core, servindo `apps/web` com `NEXT_PUBLIC_BASE_PATH=/core`.
+- Um projeto Vercel para o Sentinel Core, servindo `apps/core` com `NEXT_PUBLIC_BASE_PATH=/core`.
 - Um projeto Vercel para o Learning, servindo `apps/learning` com `NEXT_PUBLIC_BASE_PATH=/learning` quando ele for preparado para base path.
-- A extensao fica versionada em `apps/extension`; a rota `/extension` deve ser uma pagina publica de download/instrucoes.
+- A extensao fica versionada em `tools/core-extension`; a rota `/extension` deve ser uma pagina publica de download/instrucoes.
 
 ## Sentinel Core
 
-O app `apps/web` ja suporta base path via variavel:
+O app `apps/core` ja suporta base path via variavel:
 
 ```text
 NEXT_PUBLIC_BASE_PATH=/core
@@ -30,7 +30,7 @@ NEXT_PUBLIC_BASE_PATH=/core
 No projeto Vercel do Core:
 
 ```text
-Root Directory: apps/web
+Root Directory: apps/core
 Build Command: npm run build
 Output Directory: .next
 Environment Variable: NEXT_PUBLIC_BASE_PATH=/core

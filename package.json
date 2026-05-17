@@ -4,20 +4,25 @@
   "private": true,
   "workspaces": [
     "apps/*",
-    "packages/*"
+    "packages/*",
+    "tools/*"
   ],
   "scripts": {
     "dev": "turbo run dev",
     "build": "turbo run build",
     "lint": "turbo run lint",
     "type-check": "turbo run type-check",
-    "dev:web": "npm run dev --workspace @sentinel-core/web",
-    "build:web": "npm run build --workspace @sentinel-core/web",
-    "type-check:web": "npm run type-check --workspace @sentinel-core/web",
+    "dev:core": "npm run dev --workspace @sentinel-core/core",
+    "build:core": "npm run build --workspace @sentinel-core/core",
+    "type-check:core": "npm run type-check --workspace @sentinel-core/core",
+    "dev:web": "npm run dev:core",
+    "build:web": "npm run build:core",
+    "type-check:web": "npm run type-check:core",
     "dev:api": "npm run dev --workspace @sentinel-core/api",
     "build:api": "npm run build --workspace @sentinel-core/api",
     "type-check:api": "npm run type-check --workspace @sentinel-core/api",
-    "verify:web": "npm run type-check:web && npm run build:web",
+    "verify:core": "npm run type-check:core && npm run build:core",
+    "verify:web": "npm run verify:core",
     "db:generate": "cd apps/api && npx prisma generate",
     "db:migrate": "cd apps/api && npx prisma migrate dev",
     "db:studio": "cd apps/api && npx prisma studio"

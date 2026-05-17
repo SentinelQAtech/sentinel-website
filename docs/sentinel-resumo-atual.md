@@ -100,7 +100,7 @@ A extensao apoia a captura/importacao de informacoes de QA para dentro do fluxo 
 O projeto esta centralizado em:
 
 ```text
-D:\DEV\Sentinel\sentinel-project-manager
+D:\DEV\01_COMPANIES\SentinelQAtech\sentinel-website
 ```
 
 Estrutura principal:
@@ -118,7 +118,6 @@ packages/
 
 docs/
 prisma/
-vercel.json
 package.json
 turbo.json
 docker-compose.yml
@@ -128,9 +127,9 @@ README.md
 ### Apps
 
 - `apps/website`: site publico da Sentinel.
-- `apps/web`: Sentinel Core, plataforma interna em Next.js.
+- `apps/core`: Sentinel Core, plataforma interna em Next.js.
 - `apps/api`: backend em NestJS, com estrutura modular.
-- `apps/extension`: extensao Chrome para apoio ao processo de QA.
+- `tools/core-extension`: extensao Chrome para apoio ao processo de QA.
 - `apps/learning`: aplicacao de aprendizado.
 
 ### Backend

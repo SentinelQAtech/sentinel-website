@@ -8,7 +8,7 @@ Este inventario registra o estado atual dos projetos locais que devem convergir 
 
 | Projeto | Caminho local | Tipo | Estado atual | Observacoes |
 | --- | --- | --- | --- | --- |
-| Sentinel Core | workspace atual | Monorepo com Next.js + NestJS | Ja conectado ao repo canonico | App web em `apps/web`; API em `apps/api`; deploy manual no Vercel funcionando. |
+| Sentinel Core | workspace atual | Monorepo com Next.js + NestJS | Ja conectado ao repo canonico | App web em `apps/core`; API em `apps/api`; deploy manual no Vercel funcionando. |
 | Sentinel Tech QA | `D:\DEV\Sentinel\sentinel-tech-qa` | Site estatico | Ainda fora do monorepo canonico | Contem `index.html`, `assets/css`, `assets/js` e logos. Bom candidato para virar o site publico em `sentinelqa.tech`. |
 | Sentinel Learning | `D:\DEV\Sentinel\sentinel-learning` | Next.js 15 | Ainda fora do monorepo canonico | Usa App Router, Tailwind, auth propria e porta local `3002`. Bom candidato para `learning.sentinelqa.tech`. |
 | Sentinel Extension | `D:\DEV\Sentinel\sentinel-extension` | Chrome Extension Manifest V3 | Ainda fora do monorepo canonico | Sem build step. Deve ser versionada e documentada dentro do monorepo, mas nao precisa de deploy Vercel. |

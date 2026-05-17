@@ -194,7 +194,7 @@ Responsabilidade:
 Codigo:
 
 ```text
-apps/web
+apps/core
 ```
 
 Stack:
@@ -288,7 +288,7 @@ https://sentinelqa.tech/extension/
 Codigo:
 
 ```text
-apps/extension
+tools/core-extension
 ```
 
 Tipo:
@@ -314,13 +314,13 @@ https://github.com/SentinelQAtech/sentinel-website
 Diretorio local principal:
 
 ```text
-D:\DEV\Sentinel\sentinel-project-manager
+D:\DEV\01_COMPANIES\SentinelQAtech\sentinel-website
 ```
 
 Estrutura atual:
 
 ```text
-sentinel-project-manager/
+sentinel-website/
   apps/
     api/
     extension/
@@ -337,7 +337,6 @@ sentinel-project-manager/
   package.json
   package-lock.json
   turbo.json
-  vercel.json
   docker-compose.yml
   README.md
   LICENSE

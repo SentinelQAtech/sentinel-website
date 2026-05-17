@@ -1,6 +1,0 @@
-{
-  "framework": "nextjs",
-  "installCommand": "npm install",
-  "buildCommand": "npm run build --workspace @sentinel-core/web",
-  "outputDirectory": "apps/web/.next"
-}

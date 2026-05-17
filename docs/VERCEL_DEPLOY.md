@@ -1,90 +1,128 @@
-# Deploy Vercel - SentinelQATech
+# Deploy Vercel - Sentinel Tech - QA
 
-## Estado atual
+## Estado definido
 
-Projeto Vercel criado:
-
-`sentinel-website`
-
-Deploy manual validado:
-
-`https://sentinel-website-rho.vercel.app`
-
-Dominios adicionados:
-
-- `sentinelqa.tech`
-- `www.sentinelqa.tech`
-
-Pendente:
-
-- Liberar o Vercel GitHub App para acessar `SentinelQAtech/sentinel-website`.
-- Conectar o projeto Vercel ao repositorio para deploy automatico.
-- Aguardar propagacao DNS dos nameservers da Namecheap.
-- Separar o site publico na raiz e o Sentinel Core em `/core`.
-
-## Estrutura de rotas desejada
+O repositorio oficial continua sendo:
 
 ```text
-sentinelqa.tech              Site publico
-sentinelqa.tech/core         Sentinel Core
-sentinelqa.tech/learning     Sentinel Learning
-sentinelqa.tech/extension    Sentinel Extension
-app.sentinelqa.tech          Redirect para sentinelqa.tech/core
+SentinelQAtech/sentinel-website
 ```
 
-Mais detalhes: [ROUTING_STRATEGY.md](ROUTING_STRATEGY.md).
+A estrutura correta usa dois projetos Vercel principais:
 
-## Build atual
-
-O root `vercel.json` aponta para o Sentinel Core web atual:
-
-```json
-{
-  "framework": "nextjs",
-  "installCommand": "npm install",
-  "buildCommand": "npm run build --workspace @sentinel-core/web",
-  "outputDirectory": "apps/web/.next"
-}
+```text
+sentinel-website  -> apps/website
+sentinel-core     -> apps/core
 ```
 
-Quando a separacao final for ativada, o site publico deve ser o projeto da raiz do dominio e o Core deve ser publicado como zona em `/core` com:
+Nao fazer deploy pela raiz do monorepo. A raiz nao possui `vercel.json` propositalmente, para evitar publicar o projeto errado.
+
+## Projeto publico: sentinel-website
+
+Configuracao no Vercel:
+
+```text
+Project: sentinel-website
+Git Repository: SentinelQAtech/sentinel-website
+Production Branch: main
+Root Directory: apps/website
+Build Command: npm run build
+Output Directory: .
+```
+
+Dominios:
+
+```text
+sentinelqa.tech
+www.sentinelqa.tech
+app.sentinelqa.tech
+```
+
+Responsabilidades:
+
+- Servir a landing page publica.
+- Servir `/learning` e `/extension` como paginas publicas simples.
+- Redirecionar `app.sentinelqa.tech` para `sentinelqa.tech/core/dashboard`.
+- Reescrever `/core/*` para o projeto `sentinel-core`.
+
+O arquivo de configuracao deste projeto fica em:
+
+```text
+apps/website/vercel.json
+```
+
+## Projeto interno: sentinel-core
+
+Configuracao no Vercel:
+
+```text
+Project: sentinel-core
+Git Repository: SentinelQAtech/sentinel-website
+Production Branch: main
+Root Directory: apps/core
+Framework: Next.js
+Install Command: npm install
+Build Command: npm run build
+Output Directory: .next
+```
+
+Environment Variables:
 
 ```text
 NEXT_PUBLIC_BASE_PATH=/core
 ```
 
-## Comandos uteis
-
-Usar no PowerShell:
-
-```powershell
-$env:NODE_OPTIONS='--use-system-ca'
-npx.cmd vercel whoami
-npx.cmd vercel domains inspect sentinelqa.tech --scope castilho-raphael-5448s-projects
-npx.cmd vercel domains inspect www.sentinelqa.tech --scope castilho-raphael-5448s-projects
-```
-
-Deploy manual:
-
-```powershell
-$env:NODE_OPTIONS='--use-system-ca'
-npx.cmd vercel --prod --scope castilho-raphael-5448s-projects
-```
-
-## Quando liberar o GitHub App
-
-1. Abrir o projeto `sentinel-website` no Vercel.
-2. Entrar em Settings > Git.
-3. Conectar `SentinelQAtech/sentinel-website`.
-4. Confirmar branch de producao: `main`.
-5. Validar que o build command continua:
+O arquivo de configuracao deste projeto fica em:
 
 ```text
-npm run build --workspace @sentinel-core/web
+apps/core/vercel.json
 ```
 
-6. Fazer um commit pequeno para testar deploy automatico.
+## Rotas esperadas
 
-## Observacao importante
+```text
+https://sentinelqa.tech                    -> site publico
+https://sentinelqa.tech/core               -> redirect para /core/dashboard
+https://sentinelqa.tech/core/dashboard     -> Sentinel Core
+https://sentinelqa.tech/learning/          -> Sentinel Learning
+https://sentinelqa.tech/extension/         -> Sentinel Extension
+https://app.sentinelqa.tech                -> redirect para /core/dashboard
+```
 
-Enquanto o DNS propaga, o dominio pode alternar entre erro e sucesso. O prazo comum e de minutos a algumas horas, mas o provedor informa ate 48 horas.
+## Deploy manual, se necessario
+
+Site publico:
+
+```powershell
+cd D:\DEV\01_COMPANIES\SentinelQAtech\sentinel-website\apps\website
+npx.cmd vercel --prod
+```
+
+Core:
+
+```powershell
+cd D:\DEV\01_COMPANIES\SentinelQAtech\sentinel-website\apps\core
+npx.cmd vercel --prod
+```
+
+## Validacao antes de deploy
+
+Na raiz do repo:
+
+```powershell
+cd D:\DEV\01_COMPANIES\SentinelQAtech\sentinel-website
+npm.cmd run build --workspace @sentinel/website
+npm.cmd run build:core
+npm.cmd run build:api
+```
+
+Depois do deploy, validar:
+
+```powershell
+curl.exe -k -I https://sentinelqa.tech
+curl.exe -k -I https://sentinelqa.tech/core
+curl.exe -k -I https://sentinelqa.tech/core/dashboard
+curl.exe -k -I https://sentinelqa.tech/learning/
+curl.exe -k -I https://sentinelqa.tech/extension/
+curl.exe -k -I https://app.sentinelqa.tech
+```

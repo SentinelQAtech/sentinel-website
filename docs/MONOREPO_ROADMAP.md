@@ -8,7 +8,7 @@ Status: em andamento.
 
 - [x] Alterar `origin` local para `SentinelQAtech/sentinel-website`.
 - [x] Publicar o Sentinel Core no repo canonico.
-- [x] Configurar `vercel.json` para o app web atual.
+- [x] Configurar Vercel por app (`apps/website` e `apps/core`).
 - [x] Criar projeto Vercel `sentinel-website`.
 - [x] Adicionar dominios `sentinelqa.tech` e `www.sentinelqa.tech` no Vercel.
 - [x] Ajustar nameservers no Namecheap para Vercel DNS.
@@ -33,7 +33,7 @@ Ordem recomendada:
 
 1. Importar `sentinel-tech-qa` para `apps/website`.
 2. Importar `sentinel-learning` para `apps/learning`.
-3. Importar `sentinel-extension` para `apps/extension`.
+3. Importar `sentinel-extension` para `tools/core-extension`.
 
 Para cada importacao:
 

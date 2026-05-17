@@ -632,7 +632,7 @@ export const useAuthStore = create<AuthState>()(
         title: 'Cores customizadas do Sentinel Core',
         explanation: "O tailwind.config.ts do Sentinel Core define cores que não existem no Tailwind padrão: primary (baseado em índigo), surface-* (cinzas muito escuros para o dark theme), e shades específicas como primary-400, primary-600.",
         code: {
-          filename: 'apps/web/tailwind.config.ts (trecho)',
+          filename: 'apps/core/tailwind.config.ts (trecho)',
           code: `theme: {
   extend: {
     colors: {
@@ -655,8 +655,8 @@ export const useAuthStore = create<AuthState>()(
     ],
 
     files: [
-      { path: 'apps/web/tailwind.config.ts',   why: 'Cores customizadas do design system Sentinel' },
-      { path: 'apps/web/src/styles/globals.css', why: 'Classes .glass, .glow, .dot-grid e variáveis CSS' },
+      { path: 'apps/core/tailwind.config.ts',   why: 'Cores customizadas do design system Sentinel' },
+      { path: 'apps/core/src/styles/globals.css', why: 'Classes .glass, .glow, .dot-grid e variáveis CSS' },
       { path: 'src/components/navbar.tsx',     why: 'Layout flex, estados hover:, responsividade md:' },
       { path: 'src/app/login/page.tsx',        why: 'Uso extensivo de glass morphism e transparências' },
     ],

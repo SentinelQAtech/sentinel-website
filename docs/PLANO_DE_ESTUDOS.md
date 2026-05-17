@@ -25,9 +25,9 @@ Com TypeScript, quando você passa um `QAItem` para um componente, o editor sabe
 
 ### Arquivos para abrir agora
 ```
-apps/web/src/store/ai.ts           → veja os "type" e "interface" no topo
-apps/web/src/lib/env.ts            → veja "as const" e tipos simples
-apps/web/src/lib/sentinelContextBuilder.ts → veja interfaces complexas
+apps/core/src/store/ai.ts           → veja os "type" e "interface" no topo
+apps/core/src/lib/env.ts            → veja "as const" e tipos simples
+apps/core/src/lib/sentinelContextBuilder.ts → veja interfaces complexas
 ```
 
 ### Conceitos para identificar nesses arquivos
@@ -38,7 +38,7 @@ apps/web/src/lib/sentinelContextBuilder.ts → veja interfaces complexas
 - `Record<string, unknown>` — objeto com chaves string e valores desconhecidos
 
 ### Exercício
-Abra `apps/web/src/store/ai.ts`. Encontre a interface que descreve uma mensagem do chat.
+Abra `apps/core/src/store/ai.ts`. Encontre a interface que descreve uma mensagem do chat.
 Responda: quais campos ela tem? Quais são obrigatórios? Algum é opcional (tem `?`)?
 
 ---
@@ -53,10 +53,10 @@ Cada card do QA Importer, cada botão do painel da AI, cada linha do Daily — t
 
 ### Arquivos para abrir agora
 ```
-apps/web/src/components/qa-importer/qa-card.tsx    → componente simples com props
-apps/web/src/components/ai/ai-floating-button.tsx  → componente com estado (useState)
-apps/web/src/components/ai/ai-panel.tsx            → componente complexo com vários hooks
-apps/web/src/app/(dashboard)/layout.tsx            → useEffect para redirecionar
+apps/core/src/components/qa-importer/qa-card.tsx    → componente simples com props
+apps/core/src/components/ai/ai-floating-button.tsx  → componente com estado (useState)
+apps/core/src/components/ai/ai-panel.tsx            → componente complexo com vários hooks
+apps/core/src/app/(dashboard)/layout.tsx            → useEffect para redirecionar
 ```
 
 ### Conceitos para identificar nesses arquivos
@@ -67,7 +67,7 @@ apps/web/src/app/(dashboard)/layout.tsx            → useEffect para redirecion
 - JSX: o HTML dentro do JavaScript — `<div className="...">texto</div>`
 
 ### Exercício
-Abra `apps/web/src/components/ai/ai-quick-actions.tsx`.
+Abra `apps/core/src/components/ai/ai-quick-actions.tsx`.
 Identifique: quantas quick actions existem? Como cada uma chega no componente? O que acontece quando você clica em uma? Tente mudar o texto de uma delas e veja o resultado no browser.
 
 ---
@@ -78,15 +78,15 @@ Identifique: quantas quick actions existem? Como cada uma chega no componente? O
 Next.js é o framework que organiza o React em páginas, rotas e APIs. A estrutura de pastas **é** a estrutura de URLs do site.
 
 ### Por que usamos no Sentinel Core
-`apps/web/src/app/dashboard/page.tsx` vira a URL `/dashboard`. O `(dashboard)/layout.tsx` envolve todas as páginas do painel com a sidebar e o header automaticamente.
+`apps/core/src/app/dashboard/page.tsx` vira a URL `/dashboard`. O `(dashboard)/layout.tsx` envolve todas as páginas do painel com a sidebar e o header automaticamente.
 
 ### Arquivos para abrir agora
 ```
-apps/web/src/app/                          → olhe a estrutura de pastas
-apps/web/src/app/(dashboard)/layout.tsx   → layout compartilhado
-apps/web/src/app/dashboard/page.tsx       → página do dashboard
-apps/web/src/app/api/sentinel-ai/route.ts → API Route (roda no servidor)
-apps/web/src/app/login/page.tsx           → página sem layout do dashboard
+apps/core/src/app/                          → olhe a estrutura de pastas
+apps/core/src/app/(dashboard)/layout.tsx   → layout compartilhado
+apps/core/src/app/dashboard/page.tsx       → página do dashboard
+apps/core/src/app/api/sentinel-ai/route.ts → API Route (roda no servidor)
+apps/core/src/app/login/page.tsx           → página sem layout do dashboard
 ```
 
 ### Conceitos para identificar nesses arquivos
@@ -98,8 +98,8 @@ apps/web/src/app/login/page.tsx           → página sem layout do dashboard
 - `route.ts` → é uma API (não aparece na tela, responde JSON ou Stream)
 
 ### Exercício
-Olhe a pasta `apps/web/src/app/`. Encontre onde está a página de `/qa-importer`.
-Depois abra `apps/web/src/app/api/sentinel-ai/route.ts` e tente responder:
+Olhe a pasta `apps/core/src/app/`. Encontre onde está a página de `/qa-importer`.
+Depois abra `apps/core/src/app/api/sentinel-ai/route.ts` e tente responder:
 por que esse arquivo tem `'use server'` implícito? Por que a API key pode ficar aqui com segurança?
 
 ---
@@ -114,8 +114,8 @@ Quando você adiciona um card no QA Importer, ele vai para o store do Zustand. Q
 
 ### Arquivos para abrir agora
 ```
-apps/web/src/store/ai.ts           → store mais simples (só UI)
-apps/web/src/store/auth.ts         → store com persist (salva no localStorage)
+apps/core/src/store/ai.ts           → store mais simples (só UI)
+apps/core/src/store/auth.ts         → store com persist (salva no localStorage)
 ```
 
 ### Conceitos para identificar nesses arquivos
@@ -126,7 +126,7 @@ apps/web/src/store/auth.ts         → store com persist (salva no localStorage)
 - `useNomeDoStore()` — hook para usar o store em um componente
 
 ### Exercício
-Abra `apps/web/src/store/ai.ts`.
+Abra `apps/core/src/store/ai.ts`.
 Encontre a função que adiciona uma mensagem ao chat. O que ela recebe? O que ela retorna? Por que ela retorna um ID?
 Depois encontre a função que atualiza o texto de uma mensagem em andamento (streaming).
 
@@ -142,10 +142,10 @@ Todo o visual dark, os efeitos glass, as animações — tudo é Tailwind. Facil
 
 ### Arquivos para abrir agora
 ```
-apps/web/src/components/error-boundary.tsx  → classes simples de layout
-apps/web/src/components/ai/ai-panel.tsx     → classes de posicionamento fixo
-apps/web/tailwind.config.ts                 → onde as cores custom do Sentinel Core são definidas
-apps/web/src/styles/globals.css             → variáveis CSS e classes personalizadas
+apps/core/src/components/error-boundary.tsx  → classes simples de layout
+apps/core/src/components/ai/ai-panel.tsx     → classes de posicionamento fixo
+apps/core/tailwind.config.ts                 → onde as cores custom do Sentinel Core são definidas
+apps/core/src/styles/globals.css             → variáveis CSS e classes personalizadas
 ```
 
 ### Conceitos para identificar nesses arquivos
@@ -157,8 +157,8 @@ apps/web/src/styles/globals.css             → variáveis CSS e classes persona
 - `fixed`, `absolute`, `z-50` → posicionamento
 
 ### Exercício
-Abra `apps/web/tailwind.config.ts`. Encontre onde a cor `surface-950` está definida.
-Agora abra `apps/web/src/components/error-boundary.tsx` e mude `bg-surface-950` para `bg-red-950`.
+Abra `apps/core/tailwind.config.ts`. Encontre onde a cor `surface-950` está definida.
+Agora abra `apps/core/src/components/error-boundary.tsx` e mude `bg-surface-950` para `bg-red-950`.
 Inicie o dev server (`npx next dev -p 3000`) e provoque um erro para ver a mudança.
 
 ---
@@ -173,11 +173,11 @@ A chave da Anthropic (`ANTHROPIC_API_KEY`) nunca pode ir para o browser — qual
 
 ### Arquivos para abrir agora
 ```
-apps/web/src/middleware.ts                   → o "porteiro" que filtra requests
-apps/web/src/app/api/sentinel-ai/route.ts   → a rota que usa a API key
-apps/web/src/lib/env.ts                      → acesso tipado às variáveis de ambiente
-apps/web/next.config.ts                      → headers de segurança + o easter egg RC∴0bfeeace
-apps/web/public/robots.txt                   → bloqueia buscadores
+apps/core/src/middleware.ts                   → o "porteiro" que filtra requests
+apps/core/src/app/api/sentinel-ai/route.ts   → a rota que usa a API key
+apps/core/src/lib/env.ts                      → acesso tipado às variáveis de ambiente
+apps/core/next.config.ts                      → headers de segurança + o easter egg RC∴0bfeeace
+apps/core/public/robots.txt                   → bloqueia buscadores
 ```
 
 ### Conceitos para identificar nesses arquivos
@@ -188,7 +188,7 @@ apps/web/public/robots.txt                   → bloqueia buscadores
 - Rate limiting: contar requests por IP para bloquear spam
 
 ### Exercício
-Abra `apps/web/src/middleware.ts`.
+Abra `apps/core/src/middleware.ts`.
 O que acontece se alguém fizer 16 requests em menos de 1 minuto?
 O que o header `X-Sentinel-Forge` significa? (dica: está no `next.config.ts` com um comentário)
 
@@ -204,11 +204,11 @@ Respostas de IA podem demorar 5-10 segundos. Com streaming, o usuário vê as pa
 
 ### Arquivos para abrir agora
 ```
-apps/web/src/lib/sentinelContextBuilder.ts  → monta o contexto (o que o Claude "sabe")
-apps/web/src/app/api/sentinel-ai/route.ts   → recebe a pergunta, chama a Anthropic, retorna stream
-apps/web/src/hooks/useSentinelAI.ts         → no browser, lê o stream e atualiza a tela
-apps/web/src/components/ai/ai-message.tsx   → renderiza markdown das respostas
-apps/web/src/components/ai/ai-panel.tsx     → a interface do chat
+apps/core/src/lib/sentinelContextBuilder.ts  → monta o contexto (o que o Claude "sabe")
+apps/core/src/app/api/sentinel-ai/route.ts   → recebe a pergunta, chama a Anthropic, retorna stream
+apps/core/src/hooks/useSentinelAI.ts         → no browser, lê o stream e atualiza a tela
+apps/core/src/components/ai/ai-message.tsx   → renderiza markdown das respostas
+apps/core/src/components/ai/ai-panel.tsx     → a interface do chat
 ```
 
 ### Conceitos para identificar nesses arquivos
@@ -219,7 +219,7 @@ apps/web/src/components/ai/ai-panel.tsx     → a interface do chat
 - `buildSentinelContext(...)` → agrega dados de Daily, QA e Calendar para o Claude
 
 ### Exercício
-Abra `apps/web/src/lib/sentinelContextBuilder.ts`.
+Abra `apps/core/src/lib/sentinelContextBuilder.ts`.
 Quais dados do Sentinel Core são enviados para o Claude? O que está no `dailySummary`?
 Agora abra o painel do Sentinel AI no browser e faça uma pergunta sobre suas tarefas do dia. Você consegue imaginar qual parte do contexto o Claude usou para responder?
 
