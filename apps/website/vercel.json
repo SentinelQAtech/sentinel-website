@@ -1,4 +1,5 @@
 {
+  "installCommand": "node -e \"console.log('No install required for static website')\"",
   "buildCommand": "npm run build",
   "outputDirectory": ".",
   "redirects": [
