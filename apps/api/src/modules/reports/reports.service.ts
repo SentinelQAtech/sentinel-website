@@ -1,6 +1,17 @@
 import { Injectable } from '@nestjs/common'
 import { PrismaService } from '../../prisma/prisma.service'
-import { subDays, startOfDay, endOfDay, format } from 'date-fns'
+
+const monthLabels = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
+
+const subDays = (date: Date, days: number) => {
+  const next = new Date(date)
+  next.setDate(next.getDate() - days)
+  return next
+}
+
+const startOfDay = (date: Date) => new Date(date.getFullYear(), date.getMonth(), date.getDate())
+const endOfDay = (date: Date) => new Date(date.getFullYear(), date.getMonth(), date.getDate(), 23, 59, 59, 999)
+const formatDay = (date: Date) => `${String(date.getDate()).padStart(2, '0')} ${monthLabels[date.getMonth()]}`
 
 @Injectable()
 export class ReportsService {
@@ -35,7 +46,7 @@ export class ReportsService {
         this.prisma.bug.count({ where: { resolvedAt: { gte: start, lte: end } } }),
       ])
 
-      points.push({ date: format(date, 'dd MMM'), opened, closed })
+      points.push({ date: formatDay(date), opened, closed })
     }
     return points
   }

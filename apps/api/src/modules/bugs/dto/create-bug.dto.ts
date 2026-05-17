@@ -6,24 +6,24 @@ export class CreateBugDto {
   @ApiProperty()
   @IsString()
   @MinLength(5)
-  title: string
+  title!: string
 
   @ApiProperty()
   @IsString()
   @MinLength(10)
-  description: string
+  description!: string
 
   @ApiProperty({ enum: BugSeverity })
   @IsEnum(BugSeverity)
-  severity: BugSeverity
+  severity!: BugSeverity
 
   @ApiProperty({ enum: Priority })
   @IsEnum(Priority)
-  priority: Priority
+  priority!: Priority
 
   @ApiProperty()
   @IsString()
-  projectId: string
+  projectId!: string
 
   @ApiPropertyOptional()
   @IsOptional()

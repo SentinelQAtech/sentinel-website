@@ -6,21 +6,21 @@ export class RegisterDto {
   @IsString()
   @MinLength(2)
   @MaxLength(80)
-  name: string
+  name!: string
 
   @ApiProperty()
   @IsString()
   @MinLength(3)
   @MaxLength(30)
   @Matches(/^[a-z0-9_-]+$/, { message: 'Username can only contain lowercase letters, numbers, underscores and hyphens' })
-  username: string
+  username!: string
 
   @ApiProperty()
   @IsEmail()
-  email: string
+  email!: string
 
   @ApiProperty()
   @IsString()
   @MinLength(8)
-  password: string
+  password!: string
 }

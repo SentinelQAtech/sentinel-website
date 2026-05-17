@@ -3,13 +3,13 @@ import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger'
 import { Priority, TaskStatus } from '@prisma/client'
 
 export class CreateTaskDto {
-  @ApiProperty() @IsString() @MinLength(3) title: string
+  @ApiProperty() @IsString() @MinLength(3) title!: string
   @ApiPropertyOptional() @IsOptional() @IsString() description?: string
-  @ApiProperty({ enum: Priority }) @IsEnum(Priority) priority: Priority
+  @ApiProperty({ enum: Priority }) @IsEnum(Priority) priority!: Priority
   @ApiPropertyOptional({ enum: TaskStatus }) @IsOptional() @IsEnum(TaskStatus) status?: TaskStatus
   @ApiPropertyOptional() @IsOptional() @IsInt() @Min(1) storyPoints?: number
   @ApiPropertyOptional() @IsOptional() @IsDateString() dueDate?: string
-  @ApiProperty() @IsString() projectId: string
+  @ApiProperty() @IsString() projectId!: string
   @ApiPropertyOptional() @IsOptional() @IsString() sprintId?: string
   @ApiPropertyOptional() @IsOptional() @IsString() assigneeId?: string
   @ApiPropertyOptional() @IsOptional() @IsString() parentId?: string

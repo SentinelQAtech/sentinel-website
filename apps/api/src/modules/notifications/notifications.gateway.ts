@@ -7,7 +7,7 @@ import { Logger } from '@nestjs/common'
 
 @WebSocketGateway({ cors: { origin: '*' }, namespace: '/ws' })
 export class NotificationsGateway implements OnGatewayConnection, OnGatewayDisconnect {
-  @WebSocketServer() server: Server
+  @WebSocketServer() server!: Server
 
   private readonly logger = new Logger(NotificationsGateway.name)
   private readonly userSockets = new Map<string, string[]>()
