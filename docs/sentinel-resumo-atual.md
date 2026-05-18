@@ -85,7 +85,12 @@ Area de aprendizado e conteudo em:
 
 `https://sentinelqa.tech/learning/`
 
-Hoje existe como parte do ecossistema, mas ainda pode evoluir em conteudo, apresentacao e integracao com a marca.
+Hoje existe em duas camadas:
+
+- `apps/website/learning`: pagina publica estatica de transicao em `https://sentinelqa.tech/learning/`.
+- `apps/learning`: app Next.js completo em desenvolvimento dentro do monorepo.
+
+A decisao de publicar o app completo de Learning fica para uma etapa posterior.
 
 ### Sentinel Extension
 
@@ -108,9 +113,8 @@ Estrutura principal:
 ```text
 apps/
   api/
-  extension/
   learning/
-  web/
+  core/
   website/
 
 packages/
@@ -162,7 +166,7 @@ Alguns documentos precisam de revisao porque ainda citam etapas antigas ou ja su
 
 ## 4. Estado Atual
 
-Status verificado em 17/05/2026:
+Status verificado em 18/05/2026:
 
 - `https://sentinelqa.tech` esta online.
 - `https://sentinelqa.tech/core` redireciona para `/core/dashboard`.
@@ -171,7 +175,7 @@ Status verificado em 17/05/2026:
 - `https://sentinelqa.tech/extension/` esta online.
 - `https://app.sentinelqa.tech` redireciona para o Core.
 
-O repositorio local esta limpo, sem alteracoes pendentes.
+O repositorio canonico local e `SentinelQAtech/sentinel-website`. O remote esperado e apenas `origin`; remotes legados devem ser removidos para evitar push/pull no repositorio errado.
 
 ## 5. Leitura Geral
 
@@ -196,6 +200,8 @@ O principal proximo passo e transformar essa base em rotina real de operacao: li
 - Limpar informacoes demo do Core;
 - Revisar documentacao antiga;
 - Corrigir encoding do README;
+- Garantir que commits locais estejam sincronizados com `origin/main`;
+- Manter `packageManager` no `package.json` raiz para o Turborepo resolver workspaces corretamente;
 - Evoluir Learning e Extension visualmente;
 - Consolidar persistencia real dos dados;
 - Definir melhor quais fluxos serao internos e quais poderao ser vistos por clientes no futuro;

@@ -102,6 +102,8 @@ export default function LoginPage() {
               <motion.div
                 initial={{ opacity: 0, y: -4 }}
                 animate={{ opacity: 1, y: 0 }}
+                role="alert"
+                data-testid="login-error"
                 className="flex items-center gap-2 px-3 py-2.5 rounded-lg bg-red-500/10 border border-red-500/25 text-red-400 text-sm"
               >
                 <AlertCircle className="w-4 h-4 shrink-0" />

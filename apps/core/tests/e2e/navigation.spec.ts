@@ -2,15 +2,15 @@ import { test, expect } from '@playwright/test'
 import { authenticate } from './helpers/auth'
 
 const ROUTES = [
-  { label: 'Dashboard',   path: '/dashboard' },
-  { label: 'Projects',    path: '/projects' },
-  { label: 'Bugs',        path: '/bugs' },
-  { label: 'Kanban',      path: '/kanban' },
-  { label: 'Sprints',     path: '/sprints' },
-  { label: 'Team',        path: '/team' },
-  { label: 'Reports',     path: '/reports' },
-  { label: 'Calendar',    path: '/calendar' },
-  { label: 'Settings',    path: '/settings' },
+  { label: 'Dashboard',     path: '/dashboard' },
+  { label: 'Projetos',      path: '/projects' },
+  { label: 'Bugs',          path: '/bugs' },
+  { label: 'Board',         path: '/kanban' },
+  { label: 'Sprints',       path: '/sprints' },
+  { label: 'Time',          path: '/team' },
+  { label: 'Relatórios',    path: '/reports' },
+  { label: 'Calendário',    path: '/calendar' },
+  { label: 'Configurações', path: '/settings' },
 ]
 
 test.describe('Navegação — Sidebar', () => {
@@ -22,7 +22,7 @@ test.describe('Navegação — Sidebar', () => {
 
   for (const { label, path } of ROUTES) {
     test(`navega para ${label} via sidebar`, async ({ page }) => {
-      await page.getByRole('link', { name: label }).click()
+      await page.getByRole('link', { name: label, exact: true }).click()
       await expect(page).toHaveURL(path, { timeout: 8_000 })
     })
   }

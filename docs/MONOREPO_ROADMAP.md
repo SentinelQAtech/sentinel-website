@@ -4,7 +4,7 @@ Objetivo: concentrar os produtos Sentinel no repositorio `SentinelQAtech/sentine
 
 ## Fase 1 - Base canonica
 
-Status: em andamento.
+Status: concluida como base operacional.
 
 - [x] Alterar `origin` local para `SentinelQAtech/sentinel-website`.
 - [x] Publicar o Sentinel Core no repo canonico.
@@ -12,8 +12,8 @@ Status: em andamento.
 - [x] Criar projeto Vercel `sentinel-website`.
 - [x] Adicionar dominios `sentinelqa.tech` e `www.sentinelqa.tech` no Vercel.
 - [x] Ajustar nameservers no Namecheap para Vercel DNS.
-- [ ] Liberar GitHub App do Vercel para o repo `SentinelQAtech/sentinel-website`.
-- [ ] Conectar deploy automatico do Vercel ao repo canonico.
+- [ ] Confirmar GitHub App do Vercel para deploy automatico do repo `SentinelQAtech/sentinel-website`.
+- [ ] Documentar o fluxo exato de preview deploy para PRs.
 
 ## Fase 2 - Separar publico vs interno
 
@@ -27,22 +27,23 @@ Recomendacao:
 
 Essa separacao evita que o site publico e o produto operacional disputem a raiz do dominio.
 
-## Fase 3 - Importar apps restantes
+## Fase 3 - Consolidar apps restantes
 
-Ordem recomendada:
+Status: importacao estrutural concluida; amadurecimento continua.
 
-1. Importar `sentinel-tech-qa` para `apps/website`.
-2. Importar `sentinel-learning` para `apps/learning`.
-3. Importar `sentinel-extension` para `tools/core-extension`.
+Estrutura atual:
 
-Para cada importacao:
+- `apps/website`: site publico e paginas estaticas de `/learning/` e `/extension/`.
+- `apps/core`: Sentinel Core.
+- `apps/api`: API NestJS.
+- `apps/learning`: app Next.js do Sentinel Learning, ainda nao publicado como experiencia completa.
+- `tools/core-extension`: extensao Chrome.
 
-- Copiar somente codigo fonte e assets.
-- Remover artefatos locais e caches.
-- Ajustar `package.json` se for app com build.
-- Adicionar scripts no root quando necessario.
-- Rodar build local.
-- Fazer commit pequeno e descritivo.
+Proximos passos desta fase:
+
+1. Decidir quando `/learning/` deixara de ser pagina estatica e passara a servir o app `apps/learning`.
+2. Evoluir a pagina `/extension/` para documentacao/download mais completa.
+3. Garantir que todo app tenha README ou nota operacional minima.
 
 ## Fase 4 - Padronizacao
 
@@ -53,6 +54,8 @@ Depois que tudo estiver dentro do repo:
 - Criar checklists de release.
 - Criar documentacao para restaurar ambiente local do zero.
 - Avaliar pacote compartilhado `packages/ui` apenas se houver repeticao real de componentes.
+- Manter `AI_CONTEXT.md` como entrada curta para IAs e `MASTER_CURRENT_STATE-SENTINEL-2026.md` como fonte mestre.
+- Manter o E2E do Core isolado de caches locais usando `apps/core/scripts/clean-next-cache.mjs`.
 
 ## Fase 5 - Operacao diaria
 

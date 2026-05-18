@@ -2,6 +2,7 @@
   "name": "sentinel-core",
   "version": "0.1.0",
   "private": true,
+  "packageManager": "npm@11.9.0",
   "workspaces": [
     "apps/*",
     "packages/*",
@@ -23,6 +24,7 @@
     "type-check:api": "npm run type-check --workspace @sentinel-core/api",
     "verify:core": "npm run type-check:core && npm run build:core",
     "verify:web": "npm run verify:core",
+    "test:e2e:core": "npm run test:e2e --workspace @sentinel-core/core --",
     "db:generate": "cd apps/api && npx prisma generate",
     "db:migrate": "cd apps/api && npx prisma migrate dev",
     "db:studio": "cd apps/api && npx prisma studio"

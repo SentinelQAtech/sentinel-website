@@ -33,7 +33,7 @@ test.describe('Auth — Login', () => {
     await page.getByPlaceholder('••••••••').fill('senhaerrada')
     await page.getByRole('button', { name: 'Entrar' }).click()
 
-    await expect(page.getByText('E-mail ou senha incorretos.')).toBeVisible({ timeout: 5_000 })
+    await expect(page.getByTestId('login-error')).toContainText('E-mail ou senha incorretos.', { timeout: 5_000 })
     await expect(page).toHaveURL('/login')
   })
 
