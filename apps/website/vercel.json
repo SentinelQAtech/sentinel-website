@@ -4,7 +4,7 @@
   "outputDirectory": ".",
   "headers": [
     {
-      "source": "/(.*)",
+      "source": "/((?!core).*)",
       "headers": [
         {
           "key": "Content-Security-Policy",
