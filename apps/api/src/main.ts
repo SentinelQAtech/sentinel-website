@@ -10,10 +10,35 @@ async function bootstrap() {
   // Global prefix
   app.setGlobalPrefix('api/v1')
 
-  // CORS
+  // Security headers (helmet-equivalent, no extra dependency)
+  app.use((_req: any, res: any, next: () => void) => {
+    res.setHeader('X-Content-Type-Options', 'nosniff')
+    res.setHeader('X-Frame-Options', 'DENY')
+    res.setHeader('X-XSS-Protection', '0')
+    res.setHeader('Strict-Transport-Security', 'max-age=31536000; includeSubDomains; preload')
+    res.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin')
+    res.setHeader('Permissions-Policy', 'camera=(), microphone=(), geolocation=()')
+    next()
+  })
+
+  // CORS — explicit origin validation, methods and headers allowlist
+  const allowedOrigins = (process.env.CORS_ORIGINS ?? 'http://localhost:3000')
+    .split(',')
+    .map((o) => o.trim())
+    .filter(Boolean)
+
   app.enableCors({
-    origin: process.env.CORS_ORIGINS?.split(',') ?? ['http://localhost:3000'],
+    origin: (origin, callback) => {
+      if (!origin || allowedOrigins.includes(origin)) {
+        callback(null, true)
+      } else {
+        callback(new Error('Not allowed by CORS'))
+      }
+    },
     credentials: true,
+    methods: ['GET', 'POST', 'PATCH', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization'],
+    maxAge: 86400,
   })
 
   // Global validation pipe
@@ -38,8 +63,8 @@ async function bootstrap() {
 
   const port = process.env.PORT ?? 3001
   await app.listen(port)
-  logger.log(`🚀 API running on http://localhost:${port}`)
-  logger.log(`📚 Swagger: http://localhost:${port}/api/docs`)
+  logger.log(`API running on http://localhost:${port}`)
+  logger.log(`Swagger: http://localhost:${port}/api/docs`)
 }
 
 bootstrap()

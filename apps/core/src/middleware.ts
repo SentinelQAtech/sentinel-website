@@ -1,9 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server'
 
-const ALLOWED_ORIGINS = [
-  'https://sentinel-core-web.vercel.app',
-  'http://localhost:3000',
-]
+const ALLOWED_ORIGINS = (
+  process.env.NEXT_PUBLIC_ALLOWED_ORIGINS ??
+  'https://sentinel-core-web.vercel.app,http://localhost:3000'
+)
+  .split(',')
+  .map((o) => o.trim())
+  .filter(Boolean)
 
 // In-memory rate limit — persists per Edge worker instance
 // Not globally shared across nodes, but adds meaningful friction
