@@ -1,0 +1,648 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>English for Developers — Dashboard</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../css/reset.css">
+  <link rel="stylesheet" href="../css/tokens.css">
+  <link rel="stylesheet" href="../css/global.css">
+  <link rel="stylesheet" href="../css/english.css">
+  <style>
+    /* ── Achievement toast ────────────────────────────────── */
+    .ach-toast-container {
+      position: fixed;
+      top: 20px; right: 20px;
+      z-index: 9999;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      pointer-events: none;
+    }
+    .ach-toast {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      padding: 14px 18px;
+      background: #13172A;
+      border: 1px solid;
+      border-radius: 12px;
+      min-width: 280px;
+      max-width: 340px;
+      box-shadow: 0 8px 32px rgba(0,0,0,.5);
+      animation: toastSlide .35s cubic-bezier(.4,0,.2,1) forwards;
+      pointer-events: auto;
+    }
+    .ach-toast.fade-out {
+      animation: toastFade .3s ease forwards;
+    }
+    @keyframes toastSlide {
+      from { opacity: 0; transform: translateX(40px); }
+      to   { opacity: 1; transform: translateX(0); }
+    }
+    @keyframes toastFade {
+      to { opacity: 0; transform: translateX(40px); }
+    }
+    .ach-toast-icon {
+      font-size: 24px;
+      width: 40px; height: 40px;
+      display: flex; align-items: center; justify-content: center;
+      border-radius: 10px;
+      border: 1px solid;
+      flex-shrink: 0;
+    }
+    .ach-toast-body { flex: 1; }
+    .ach-toast-label {
+      font-size: 9px;
+      font-family: var(--font-code);
+      text-transform: uppercase;
+      letter-spacing: .1em;
+      opacity: .7;
+      display: block;
+      margin-bottom: 2px;
+    }
+    .ach-toast-name {
+      font-size: 13px;
+      font-weight: 700;
+      color: #fff;
+      display: block;
+      margin-bottom: 2px;
+    }
+    .ach-toast-desc {
+      font-size: 11px;
+      color: var(--text-secondary);
+    }
+    .ach-toast-xp {
+      font-family: var(--font-code);
+      font-size: 13px;
+      font-weight: 700;
+      white-space: nowrap;
+    }
+
+    /* ── Hero ─────────────────────────────────────────────── */
+    .eng-hero {
+      background: linear-gradient(135deg, rgba(53,244,255,.06) 0%, rgba(138,43,226,.06) 100%);
+      border: 1px solid rgba(53,244,255,.12);
+      border-radius: 16px;
+      padding: 28px 32px;
+      margin-bottom: 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 24px;
+      flex-wrap: wrap;
+    }
+    .hero-left h1 {
+      font-size: 22px; font-weight: 700;
+      background: linear-gradient(120deg, #fff 40%, var(--cyan) 100%);
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+      margin-bottom: 2px;
+    }
+    .hero-tagline {
+      font-size: 12px; color: var(--text-secondary);
+      font-family: var(--font-code);
+      letter-spacing: .04em;
+    }
+    .hero-stats { display: flex; gap: 14px; flex-wrap: wrap; }
+    .hero-stat {
+      text-align: center;
+      padding: 12px 18px;
+      background: rgba(255,255,255,.03);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      min-width: 74px;
+    }
+    .hero-stat-val {
+      display: block;
+      font-family: var(--font-code);
+      font-size: 20px; font-weight: 700;
+      color: var(--cyan); line-height: 1;
+    }
+    .hero-stat-label {
+      display: block; font-size: 10px;
+      color: var(--text-secondary);
+      margin-top: 4px; letter-spacing: .04em;
+    }
+
+    /* ── XP Bar ───────────────────────────────────────────── */
+    .xp-bar-wrap { margin-bottom: 24px; }
+    .xp-bar-header {
+      display: flex; align-items: center;
+      justify-content: space-between;
+      margin-bottom: 6px;
+    }
+    .xp-label { font-size: 11px; font-family: var(--font-code); color: var(--text-secondary); text-transform: uppercase; letter-spacing: .07em; }
+    .xp-value { font-size: 12px; font-family: var(--font-code); color: var(--cyan); }
+    .xp-track { height: 5px; background: rgba(255,255,255,.06); border-radius: 99px; overflow: hidden; }
+    .xp-fill  { height: 100%; background: linear-gradient(90deg, var(--purple), var(--cyan)); border-radius: 99px; transition: width .6s cubic-bezier(.4,0,.2,1); }
+
+    /* ── Continue CTA ─────────────────────────────────────── */
+    .continue-cta {
+      background: var(--bg-panel); border: 1px solid var(--border);
+      border-left: 3px solid var(--cyan); border-radius: 10px;
+      padding: 16px 20px;
+      display: flex; align-items: center; justify-content: space-between; gap: 16px;
+      margin-bottom: 28px;
+      cursor: pointer; transition: border-color .2s, background .2s;
+      text-decoration: none;
+    }
+    .continue-cta:hover { border-color: var(--cyan); background: rgba(53,244,255,.03); }
+    .continue-cta-left { flex: 1; }
+    .continue-cta-tag { font-size: 10px; font-family: var(--font-code); color: var(--cyan); text-transform: uppercase; letter-spacing: .1em; display: block; margin-bottom: 4px; }
+    .continue-cta-title { font-size: 15px; font-weight: 600; color: var(--text-primary); display: block; margin-bottom: 2px; }
+    .continue-cta-sub { font-size: 12px; color: var(--text-secondary); display: block; }
+    .btn-continue {
+      display: inline-flex; align-items: center; gap: 6px;
+      padding: 10px 20px;
+      background: var(--cyan); color: #0B0E1A;
+      font-size: 13px; font-weight: 700;
+      border-radius: 8px; border: none; cursor: pointer;
+      white-space: nowrap; transition: opacity .2s; text-decoration: none;
+    }
+    .btn-continue:hover { opacity: .85; }
+
+    /* ── Quick actions ───────────────────────────────────── */
+    .quick-actions {
+      display: flex; gap: 10px; flex-wrap: wrap;
+      margin-bottom: 24px;
+    }
+    .quick-action-btn {
+      display: flex; align-items: center; gap: 8px;
+      background: var(--bg-secondary);
+      border: 1px solid var(--border);
+      border-radius: 8px; padding: 10px 16px;
+      font-size: 12px; font-weight: 500; color: var(--text-secondary);
+      text-decoration: none; cursor: pointer;
+      transition: all .2s;
+    }
+    .quick-action-btn:hover { border-color: var(--cyan); color: var(--cyan); }
+    .quick-action-icon { font-size: 14px; }
+
+    /* ── Two-col layout (journey + sidebar) ───────────────── */
+    .dashboard-grid {
+      display: grid;
+      grid-template-columns: 1fr 240px;
+      gap: 24px;
+      align-items: start;
+    }
+    @media (max-width: 820px) {
+      .dashboard-grid { grid-template-columns: 1fr; }
+    }
+
+    /* ── Section heading ──────────────────────────────────── */
+    .section-heading {
+      font-size: 11px; font-family: var(--font-code);
+      color: var(--text-secondary); text-transform: uppercase;
+      letter-spacing: .1em; margin-bottom: 14px;
+    }
+
+    /* ── Level cards (journey map) ────────────────────────── */
+    .levels-stack { display: flex; flex-direction: column; gap: 10px; }
+    .level-card {
+      background: var(--bg-panel);
+      border: 1px solid var(--border);
+      border-radius: 12px; overflow: hidden;
+      transition: border-color .2s;
+    }
+    .level-card.level-locked { opacity: .5; }
+    .level-header {
+      display: flex; align-items: center; gap: 14px;
+      padding: 14px 20px; cursor: pointer; user-select: none;
+    }
+    .level-header:hover .level-title { color: var(--cyan); }
+    .level-badge {
+      font-family: var(--font-code); font-size: 11px; font-weight: 700;
+      padding: 3px 9px; border-radius: 5px; white-space: nowrap;
+    }
+    .level-badge-A1 { background: rgba(53,244,255,.1);  color: #35F4FF; border: 1px solid rgba(53,244,255,.25); }
+    .level-badge-B1 { background: rgba(138,43,226,.1); color: #8A2BE2; border: 1px solid rgba(138,43,226,.25); }
+    .level-badge-B2 { background: rgba(224,35,78,.1);  color: #E0234E; border: 1px solid rgba(224,35,78,.25); }
+    .level-badge-C1 { background: rgba(255,215,0,.1);  color: #FFD700; border: 1px solid rgba(255,215,0,.25); }
+    .level-info { flex: 1; }
+    .level-title { font-size: 13px; font-weight: 600; color: var(--text-primary); transition: color .2s; display: block; margin-bottom: 1px; }
+    .level-desc { font-size: 11px; color: var(--text-secondary); }
+    .level-progress-wrap { display: flex; align-items: center; gap: 8px; }
+    .level-progress-bar { width: 70px; height: 3px; background: rgba(255,255,255,.06); border-radius: 99px; overflow: hidden; }
+    .level-progress-fill { height: 100%; border-radius: 99px; transition: width .4s; }
+    .level-pct { font-family: var(--font-code); font-size: 10px; color: var(--text-secondary); min-width: 28px; text-align: right; }
+    .level-toggle { font-size: 15px; color: var(--text-secondary); transition: transform .25s; user-select: none; }
+    .level-card.open .level-toggle { transform: rotate(90deg); }
+
+    /* ── Module list ──────────────────────────────────────── */
+    .modules-list { display: none; padding: 0 16px 14px; gap: 6px; flex-direction: column; }
+    .level-card.open .modules-list { display: flex; }
+    .module-row {
+      display: flex; align-items: center; gap: 10px;
+      padding: 10px 12px;
+      background: rgba(255,255,255,.02);
+      border: 1px solid var(--border); border-radius: 8px;
+      cursor: pointer; transition: border-color .2s, background .2s;
+      text-decoration: none;
+    }
+    .module-row.mod-locked { cursor: not-allowed; opacity: .45; }
+    .module-row:not(.mod-locked):hover { border-color: rgba(53,244,255,.25); background: rgba(53,244,255,.03); }
+    .module-row.mod-complete { border-color: rgba(53,244,255,.18); }
+    .mod-num { font-family: var(--font-code); font-size: 10px; color: var(--text-secondary); min-width: 26px; }
+    .mod-info { flex: 1; min-width: 0; }
+    .mod-title { font-size: 12px; font-weight: 500; color: var(--text-primary); display: block; margin-bottom: 1px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .mod-meta { font-size: 10px; color: var(--text-secondary); }
+    .mod-prog-bar { width: 44px; height: 2px; background: rgba(255,255,255,.06); border-radius: 99px; overflow: hidden; flex-shrink: 0; }
+    .mod-prog-fill { height: 100%; background: linear-gradient(90deg, var(--purple), var(--cyan)); border-radius: 99px; }
+    .mod-status { font-size: 10px; font-family: var(--font-code); white-space: nowrap; padding: 2px 7px; border-radius: 99px; flex-shrink: 0; }
+    .mod-status.done   { color: var(--cyan); background: rgba(53,244,255,.08); border: 1px solid rgba(53,244,255,.2); }
+    .mod-status.active { color: #fff; background: rgba(138,43,226,.2); border: 1px solid rgba(138,43,226,.4); }
+    .mod-status.avail  { color: var(--text-secondary); background: transparent; border: 1px solid var(--border); }
+    .mod-status.locked { color: var(--text-secondary); background: transparent; border: 1px solid var(--border); opacity: .5; }
+
+    /* ── Right sidebar ────────────────────────────────────── */
+    .dash-sidebar { display: flex; flex-direction: column; gap: 16px; }
+
+    /* ── Recent activity ──────────────────────────────────── */
+    .sidebar-card {
+      background: var(--bg-panel); border: 1px solid var(--border);
+      border-radius: 12px; padding: 16px;
+    }
+    .sidebar-card-title {
+      font-size: 10px; font-family: var(--font-code);
+      color: var(--text-secondary); text-transform: uppercase;
+      letter-spacing: .09em; margin-bottom: 14px;
+    }
+    .activity-list { display: flex; flex-direction: column; gap: 10px; }
+    .activity-item {
+      display: flex; align-items: flex-start; gap: 10px;
+    }
+    .activity-dot {
+      width: 6px; height: 6px; border-radius: 50%;
+      background: var(--cyan); margin-top: 5px; flex-shrink: 0;
+    }
+    .activity-body { flex: 1; min-width: 0; }
+    .activity-title { font-size: 12px; color: var(--text-primary); display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .activity-meta { font-size: 10px; color: var(--text-secondary); display: flex; gap: 8px; margin-top: 1px; }
+    .activity-xp { color: #FFD700; font-family: var(--font-code); }
+    .activity-empty { font-size: 12px; color: var(--text-secondary); font-style: italic; }
+
+    /* ── Achievements sidebar ─────────────────────────────── */
+    .ach-grid { display: flex; flex-direction: column; gap: 8px; }
+    .ach-item {
+      display: flex; align-items: center; gap: 10px;
+      padding: 8px 10px;
+      border-radius: 8px;
+      border: 1px solid;
+    }
+    .ach-item.locked { opacity: .35; filter: grayscale(1); border-color: var(--border); }
+    .ach-icon-wrap {
+      width: 32px; height: 32px;
+      display: flex; align-items: center; justify-content: center;
+      border-radius: 7px; border: 1px solid;
+      font-size: 15px; flex-shrink: 0;
+    }
+    .ach-info { flex: 1; min-width: 0; }
+    .ach-name { font-size: 11px; font-weight: 600; color: var(--text-primary); display: block; }
+    .ach-rarity {
+      font-size: 9px; font-family: var(--font-code);
+      text-transform: uppercase; letter-spacing: .07em;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Achievement toast container -->
+  <div class="ach-toast-container" id="toastContainer"></div>
+
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-header">
+      <a href="../index.html" class="logo" style="text-decoration:none">
+        <span class="logo-icon">◈</span>
+        <span class="logo-text">SENTINEL LEARNING</span>
+      </a>
+      <button class="sidebar-toggle" id="sidebarToggle" aria-label="Collapse menu">
+        <span class="toggle-icon">‹</span>
+      </button>
+    </div>
+    <nav class="sidebar-nav">
+      <a href="../index.html#/dashboard" class="nav-item" data-label="Início">
+        <span class="nav-icon">⌂</span><span class="nav-label">Início</span>
+      </a>
+      <a href="../index.html#/modules" class="nav-item" data-label="Cursos">
+        <span class="nav-icon">⊡</span><span class="nav-label">Cursos</span>
+      </a>
+      <a href="../index.html#/journey" class="nav-item" data-label="Jornada">
+        <span class="nav-icon">◎</span><span class="nav-label">Jornada</span>
+      </a>
+      <a href="english-dashboard.html" class="nav-item active" data-label="English">
+        <span class="nav-icon">🇺🇸</span><span class="nav-label">English</span>
+      </a>
+      <a href="../index.html#/journey" class="nav-item" data-label="Progresso">
+        <span class="nav-icon">↗</span><span class="nav-label">Progresso</span>
+      </a>
+      <a href="../index.html#/settings" class="nav-item" data-label="Perfil">
+        <span class="nav-icon">◉</span><span class="nav-label">Perfil</span>
+      </a>
+    </nav>
+    <div class="sidebar-footer">
+      <div class="user-info">
+        <div class="user-avatar">R</div>
+        <div class="user-details">
+          <span class="user-name">Raphael</span>
+          <span class="user-level" id="sidebarLevel">English · A1</span>
+        </div>
+      </div>
+    </div>
+  </aside>
+
+  <main class="main-content" id="mainContent">
+
+    <!-- Hero -->
+    <div class="eng-hero">
+      <div class="hero-left">
+        <h1>English for Developers</h1>
+        <p class="hero-tagline">Learn the language of modern technology.</p>
+      </div>
+      <div class="hero-stats">
+        <div class="hero-stat">
+          <span class="hero-stat-val" id="heroXP">0</span>
+          <span class="hero-stat-label">Total XP</span>
+        </div>
+        <div class="hero-stat">
+          <span class="hero-stat-val" id="heroStreak">0</span>
+          <span class="hero-stat-label">Day Streak</span>
+        </div>
+        <div class="hero-stat">
+          <span class="hero-stat-val" id="heroPct">0%</span>
+          <span class="hero-stat-label">Complete</span>
+        </div>
+        <div class="hero-stat">
+          <span class="hero-stat-val" id="heroLevel">A1</span>
+          <span class="hero-stat-label">Level</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- XP Progress Bar -->
+    <div class="xp-bar-wrap">
+      <div class="xp-bar-header">
+        <span class="xp-label" id="xpBarFrom">A1 → A2</span>
+        <span class="xp-value" id="xpBarVal">0 / 250 XP</span>
+      </div>
+      <div class="xp-track">
+        <div class="xp-fill" id="xpFill" style="width:0%"></div>
+      </div>
+    </div>
+
+    <!-- Continue CTA -->
+    <a class="continue-cta" id="continueCta" href="#">
+      <div class="continue-cta-left">
+        <span class="continue-cta-tag" id="ctaTag">Level 1 · Foundations</span>
+        <span class="continue-cta-title" id="ctaTitle">Hello, World!</span>
+        <span class="continue-cta-sub" id="ctaSub">Your first professional introduction · 15 min · 75 XP</span>
+      </div>
+      <span class="btn-continue">Continue →</span>
+    </a>
+
+    <!-- Quick actions -->
+    <div class="quick-actions">
+      <a class="quick-action-btn" href="english-vocab.html">
+        <span class="quick-action-icon">📖</span>Vocabulary Bank
+      </a>
+      <a class="quick-action-btn" href="english-review.html">
+        <span class="quick-action-icon">🎯</span>Quiz Review
+      </a>
+    </div>
+
+    <!-- Two-col: journey map + sidebar -->
+    <div class="dashboard-grid">
+
+      <!-- Journey Map -->
+      <div>
+        <div class="section-heading">Your Journey</div>
+        <div class="levels-stack" id="levelsStack"></div>
+        <div style="margin-top:20px; text-align:center">
+          <a href="../index.html#/modules" style="font-size:12px;color:var(--text-secondary);text-decoration:none;border-bottom:1px solid var(--border);padding-bottom:2px">
+            ← All courses
+          </a>
+        </div>
+      </div>
+
+      <!-- Right sidebar -->
+      <div class="dash-sidebar">
+
+        <!-- Recent Activity -->
+        <div class="sidebar-card">
+          <div class="sidebar-card-title">Recent Activity</div>
+          <div class="activity-list" id="activityList"></div>
+        </div>
+
+        <!-- Achievements -->
+        <div class="sidebar-card">
+          <div class="sidebar-card-title">Achievements</div>
+          <div class="ach-grid" id="achGrid"></div>
+        </div>
+
+      </div>
+    </div>
+
+  </main>
+  <script src="../js/english-storage.js"></script>
+  <script src="../js/english-data.js"></script>
+  <script src="../js/english-sidebar.js"></script>
+  <script>
+  (function () {
+    var ES = window.EStorage;
+    var ED = window.ENGLISH_DATA;
+    var stats  = ES.getStats();
+    var lvData = ED.levels;
+
+    // ── Hero stats ─────────────────────────────────────────
+    var xpInfo = ES.xpToLevel(stats.xp);
+    document.getElementById('heroXP').textContent     = stats.xp;
+    document.getElementById('heroStreak').textContent = stats.streak;
+    document.getElementById('heroPct').textContent    = stats.overallPercent + '%';
+    document.getElementById('heroLevel').textContent  = xpInfo.label;
+    document.getElementById('sidebarLevel').textContent = 'English · ' + xpInfo.label;
+
+    // ── XP Bar ─────────────────────────────────────────────
+    var XP_TIERS = [
+      { from: 'A1', to: 'A2', min: 0,    max: 250  },
+      { from: 'A2', to: 'B1', min: 250,  max: 800  },
+      { from: 'B1', to: 'B2', min: 800,  max: 2000 },
+      { from: 'B2', to: 'C1', min: 2000, max: 3500 }
+    ];
+    var tier    = XP_TIERS[Math.min(xpInfo.tier - 1, XP_TIERS.length - 1)];
+    var xpInTier = Math.max(0, stats.xp - tier.min);
+    var xpPct   = Math.min(100, Math.round((xpInTier / (tier.max - tier.min)) * 100));
+    document.getElementById('xpBarFrom').textContent = tier.from + ' → ' + tier.to;
+    document.getElementById('xpBarVal').textContent  = stats.xp + ' / ' + tier.max + ' XP';
+    document.getElementById('xpFill').style.width   = xpPct + '%';
+
+    // ── Continue CTA ───────────────────────────────────────
+    var cl = stats.currentLevel, cm = stats.currentModule, cle = stats.currentLesson;
+    var nextLesson = ED.getLesson(cl, cm, cle);
+    var lv         = lvData[cl];
+    document.getElementById('ctaTag').textContent   = 'Level ' + cl + ' · ' + (lv ? lv.name : '');
+    document.getElementById('ctaTitle').textContent = nextLesson ? nextLesson.title : 'Module ' + cm + ' · Lesson ' + cle;
+    document.getElementById('ctaSub').textContent   = nextLesson
+      ? nextLesson.subtitle + ' · ' + (nextLesson.duration || 15) + ' min · ' + (nextLesson.xpReward || 75) + ' XP'
+      : '';
+    document.getElementById('continueCta').href =
+      'english-lesson.html?level=' + cl + '&module=' + cm + '&lesson=' + cle;
+
+    // ── Journey Map ────────────────────────────────────────
+    var stack = document.getElementById('levelsStack');
+    var BADGE_CLASS  = { 1: 'A1', 2: 'B1', 3: 'B2', 4: 'C1' };
+    var FILL_COLOR   = { 1: '#35F4FF', 2: '#8A2BE2', 3: '#E0234E', 4: '#FFD700' };
+
+    [1, 2, 3, 4].forEach(function (lvNum) {
+      var lv2     = lvData[lvNum];
+      var lvProg  = ES.getLevelProgress(lvNum);
+      var isLvLocked = lvNum > 1 && !ES.isUnlocked(lvNum, 1, 1);
+      var isOpen  = (lvNum === cl);
+
+      var card = document.createElement('div');
+      card.className = 'level-card' + (isOpen ? ' open' : '') + (isLvLocked ? ' level-locked' : '');
+
+      var hdr = document.createElement('div');
+      hdr.className = 'level-header';
+      hdr.innerHTML =
+        '<span class="level-badge level-badge-' + BADGE_CLASS[lvNum] + '">' + lv2.label + '</span>' +
+        '<div class="level-info">' +
+          '<span class="level-title">' + esc(lv2.name) + '</span>' +
+          '<span class="level-desc">' + esc(lv2.description.substring(0, 72)) + '...</span>' +
+        '</div>' +
+        '<div class="level-progress-wrap">' +
+          '<div class="level-progress-bar"><div class="level-progress-fill" style="width:' + lvProg.percent + '%;background:' + FILL_COLOR[lvNum] + '"></div></div>' +
+          '<span class="level-pct">' + lvProg.percent + '%</span>' +
+        '</div>' +
+        (isLvLocked ? '<span style="font-size:12px;color:var(--text-secondary)">🔒</span>' : '<span class="level-toggle">›</span>');
+      card.appendChild(hdr);
+
+      var modList = document.createElement('div');
+      modList.className = 'modules-list';
+
+      for (var modNum = 1; modNum <= 7; modNum++) {
+        var mod = lv2.modules[modNum];
+        var modProg   = ES.getModuleProgress(lvNum, modNum);
+        var isModLocked  = isLvLocked || !ES.isUnlocked(lvNum, modNum, 1);
+        var isModDone    = modProg.done >= modProg.total;
+        var isModActive  = !isModDone && !isModLocked && (lvNum === cl && modNum === cm);
+        var statusLabel  = isModDone ? '✓ done' : isModLocked ? 'locked' : isModActive ? 'active' : modProg.done > 0 ? modProg.done + '/5' : 'start';
+        var statusClass  = isModDone ? 'done' : isModLocked ? 'locked' : isModActive ? 'active' : 'avail';
+
+        var row = document.createElement('div');
+        row.className = 'module-row' + (isModLocked ? ' mod-locked' : '') + (isModDone ? ' mod-complete' : '');
+        row.innerHTML =
+          '<span class="mod-num">M' + modNum + '</span>' +
+          '<div class="mod-info"><span class="mod-title">' + esc(mod.title) + '</span><span class="mod-meta">' + lv2.label + ' · 5 lessons</span></div>' +
+          '<div class="mod-prog-bar"><div class="mod-prog-fill" style="width:' + modProg.percent + '%"></div></div>' +
+          '<span class="mod-status ' + statusClass + '">' + statusLabel + '</span>';
+
+        if (!isModLocked) {
+          (function (lv3, mo3) {
+            row.addEventListener('click', function () {
+              var startL = 1;
+              for (var le = 1; le <= 5; le++) {
+                if (!ES.isCompleted(lv3, mo3, le)) { startL = le; break; }
+              }
+              location.href = 'english-lesson.html?level=' + lv3 + '&module=' + mo3 + '&lesson=' + startL;
+            });
+          })(lvNum, modNum);
+        }
+        modList.appendChild(row);
+      }
+
+      card.appendChild(modList);
+
+      if (!isLvLocked) {
+        hdr.addEventListener('click', function () { card.classList.toggle('open'); });
+      }
+      stack.appendChild(card);
+    });
+
+    // ── Recent Activity ────────────────────────────────────
+    var actEl   = document.getElementById('activityList');
+    var activity = stats.recentActivity || [];
+    if (activity.length === 0) {
+      actEl.innerHTML = '<div class="activity-empty">No lessons completed yet.<br>Start your first lesson!</div>';
+    } else {
+      activity.forEach(function (act) {
+        var date = new Date(act.completedAt);
+        var dateStr = date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+        var item = document.createElement('div');
+        item.className = 'activity-item';
+        item.innerHTML =
+          '<div class="activity-dot"></div>' +
+          '<div class="activity-body">' +
+            '<span class="activity-title">' + esc(act.title) + '</span>' +
+            '<div class="activity-meta"><span class="activity-xp">+' + act.xp + ' XP</span><span>' + dateStr + '</span></div>' +
+          '</div>';
+        actEl.appendChild(item);
+      });
+    }
+
+    // ── Achievements ───────────────────────────────────────
+    var achGrid = document.getElementById('achGrid');
+    var earnedIds = stats.achievements || [];
+    ES.ACHIEVEMENTS.forEach(function (ach) {
+      var earned = earnedIds.indexOf(ach.id) !== -1;
+      var color  = earned ? (ES.RARITY_COLORS[ach.rarity] || '#fff') : 'var(--border)';
+      var item   = document.createElement('div');
+      item.className = 'ach-item' + (earned ? '' : ' locked');
+      item.style.borderColor = earned ? color + '30' : 'var(--border)';
+      item.style.background  = earned ? color + '08' : 'transparent';
+      item.innerHTML =
+        '<div class="ach-icon-wrap" style="border-color:' + color + '30;background:' + color + '10;color:' + color + '">' + ach.icon + '</div>' +
+        '<div class="ach-info">' +
+          '<span class="ach-name">' + esc(ach.name) + '</span>' +
+          '<span class="ach-rarity" style="color:' + color + '">' + ach.rarity + (earned ? '' : ' · locked') + '</span>' +
+        '</div>';
+      achGrid.appendChild(item);
+    });
+
+    // ── Achievement toast (from lesson completion) ─────────
+    function showToast(notif) {
+      var color = notif.color || '#fff';
+      var toast = document.createElement('div');
+      toast.className = 'ach-toast';
+      toast.style.borderColor = color + '40';
+      toast.innerHTML =
+        '<div class="ach-toast-icon" style="border-color:' + color + '40;background:' + color + '10;color:' + color + '">' + notif.icon + '</div>' +
+        '<div class="ach-toast-body">' +
+          '<span class="ach-toast-label" style="color:' + color + '">Achievement Unlocked · ' + notif.rarity + '</span>' +
+          '<span class="ach-toast-name">' + esc(notif.name) + '</span>' +
+          '<span class="ach-toast-desc">' + esc(notif.description) + '</span>' +
+        '</div>' +
+        '<span class="ach-toast-xp" style="color:' + color + '">+' + notif.xpBonus + '</span>';
+
+      document.getElementById('toastContainer').appendChild(toast);
+      setTimeout(function () {
+        toast.classList.add('fade-out');
+        setTimeout(function () { toast.remove(); }, 320);
+      }, 4000);
+    }
+
+    // Check for pending notifications from previous lesson (queued — one at a time)
+    var dashToastQueue   = [];
+    var dashToastRunning = false;
+    function dequeueDashToast() {
+      if (!dashToastQueue.length) { dashToastRunning = false; return; }
+      dashToastRunning = true;
+      showToast(dashToastQueue.shift());
+      setTimeout(dequeueDashToast, 4400);
+    }
+    var notifs = ES.getAndClearNotifications();
+    notifs.forEach(function (n) { dashToastQueue.push(n); });
+    if (notifs.length) dequeueDashToast();
+
+    // ── Escape helper ──────────────────────────────────────
+    function esc(s) {
+      return s ? String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;') : '';
+    }
+
+  })();
+  </script>
+</body>
+</html>
+
+

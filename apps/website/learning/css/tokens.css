@@ -1,0 +1,234 @@
+/* ═══════════════════════════════════════════════════════
+   Sentinel Learning — Design Tokens
+   Default theme: dark. Override via [data-theme] on <html>.
+════════════════════════════════════════════════════════ */
+
+/* ─── Primitives — raw palette, never used in components ─── */
+:root {
+  --palette-purple-500: #6C63FF;
+  --palette-purple-600: #5a52e0;
+  --palette-teal-400:   #00D4AA;
+  --palette-teal-500:   #00b892;
+  --palette-coral-400:  #FF4D6D;
+  --palette-amber-400:  #FFB347;
+  --palette-sky-400:    #38BDF8;
+}
+
+/* ─── Brand ─── */
+:root {
+  --color-primary:        var(--palette-purple-500);
+  --color-primary-hover:  var(--palette-purple-600);
+  --color-primary-dim:    #6C63FF26;
+  --color-primary-subtle: #6C63FF33;
+
+  --color-accent:         var(--palette-teal-400);
+  --color-accent-hover:   var(--palette-teal-500);
+  --color-accent-dim:     #00D4AA26;
+}
+
+/* ─── Status ─── */
+:root {
+  --color-success:     var(--palette-teal-400);
+  --color-success-dim: #00D4AA1F;
+
+  --color-warning:     var(--palette-amber-400);
+  --color-warning-dim: #FFB34726;
+
+  --color-danger:      var(--palette-coral-400);
+  --color-danger-dim:  #FF4D6D26;
+
+  --color-info:        var(--palette-sky-400);
+  --color-info-dim:    #38BDF826;
+}
+
+/* ─── Dark theme surfaces & text (default) ─── */
+:root {
+  --color-bg:            #0D0D1A;
+  --color-surface:       #12121F;
+  --color-surface-alt:   #1A1A2E;
+  --color-surface-raise: #1F1F33;
+
+  --color-border:        #2A2A45;
+  --color-border-subtle: #1E1E35;
+
+  --color-text:           #E8E8F0;
+  --color-text-secondary: #9898B8;
+  --color-text-muted:     #7878A0;
+  --color-text-inverse:   #0D0D1A;
+  --color-on-primary:     #ffffff;
+
+  --sidebar-bg:           #0F0F1E;
+  --sidebar-border:       #1E1E35;
+  --header-bg:            #0F0F1E;
+  --header-border:        #1E1E35;
+
+  --skeleton-base:  #232340;
+  --skeleton-shine: #32325A;
+}
+
+/* ─── Sidebar/Header dimensions (theme-independent) ─── */
+:root {
+  --sidebar-width:     260px;
+  --sidebar-collapsed: 64px;
+  --header-height:     60px;
+}
+
+/* ─── Typography (theme-independent) ─── */
+:root {
+  --font-sans:    'Inter', 'Segoe UI', system-ui, sans-serif;
+  --font-display: 'Inter', 'Segoe UI', system-ui, sans-serif;
+  --font-mono:    'JetBrains Mono', 'Fira Code', monospace;
+
+  --text-xs:   0.75rem;
+  --text-sm:   0.875rem;
+  --text-base: 1rem;
+  --text-lg:   1.125rem;
+  --text-xl:   1.25rem;
+  --text-2xl:  1.5rem;
+  --text-3xl:  1.875rem;
+  --text-4xl:  2.5rem;
+
+  --weight-normal:   400;
+  --weight-medium:   500;
+  --weight-semibold: 600;
+  --weight-bold:     700;
+
+  /* Letter-spacing tokens */
+  --letter-brand:   0.18em;   /* SENTINEL LEARNING logo */
+  --letter-menu:    0.06em;   /* sidebar nav labels */
+  --letter-heading: 0.04em;   /* section headings */
+  --letter-tag:     0.08em;   /* badges, tags, labels uppercase */
+}
+
+/* ─── Spacing (theme-independent) ─── */
+:root {
+  --space-1:  0.25rem;
+  --space-2:  0.5rem;
+  --space-3:  0.75rem;
+  --space-4:  1rem;
+  --space-5:  1.25rem;
+  --space-6:  1.5rem;
+  --space-8:  2rem;
+  --space-10: 2.5rem;
+  --space-12: 3rem;
+  --space-16: 4rem;
+}
+
+/* ─── Radius (theme-independent) ─── */
+:root {
+  --radius-sm:   4px;
+  --radius-md:   8px;
+  --radius-lg:   12px;
+  --radius-xl:   16px;
+  --radius-2xl:  20px;
+  --radius-full: 9999px;
+}
+
+/* ─── Shadows ─── */
+:root {
+  --shadow-sm:           0 1px 3px rgba(0, 0, 0, 0.4);
+  --shadow-md:           0 4px 12px rgba(0, 0, 0, 0.5);
+  --shadow-lg:           0 8px 24px rgba(0, 0, 0, 0.6);
+  --shadow-card:         0 4px 20px rgba(0, 0, 0, 0.35);
+  --shadow-glow-primary: 0 0 16px rgba(108, 99, 255, 0.3);
+  --shadow-glow-accent:  0 0 16px rgba(0, 212, 170, 0.3);
+  --shadow-focus:        0 0 0 2px var(--color-bg), 0 0 0 4px var(--color-primary);
+}
+
+/* ─── Transitions ─── */
+:root {
+  --transition-fast: 150ms ease;
+  --transition-base: 250ms ease;
+  --transition-slow: 400ms ease;
+
+  --ease-progress:     cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  --duration-progress: 0.9s;
+  --duration-ring:     1s;
+}
+
+/* ─── Z-index (theme-independent) ─── */
+:root {
+  --z-sidebar:  100;
+  --z-header:   200;
+  --z-overlay:  300;
+  --z-modal:    400;
+  --z-toast:    500;
+}
+
+/* ─── V1 English pages compatibility aliases ─── */
+/* Allows V1's English HTML pages to use new design tokens without a full rewrite */
+:root {
+  --bg-primary:    var(--color-bg);
+  --bg-secondary:  var(--color-surface);
+  --bg-panel:      var(--color-surface-alt);
+  --purple:        var(--color-primary);
+  --cyan:          var(--color-accent);
+  --text-primary:  var(--color-text);
+  --text-secondary: var(--color-text-secondary);
+  --border:        var(--color-border);
+  --font-main:     var(--font-sans);
+  --font-code:     var(--font-mono);
+}
+
+
+/* ═══════════════════════════════════════════════════════
+   Theme overrides
+════════════════════════════════════════════════════════ */
+
+[data-theme="dark"] {
+  --color-bg:            #0D0D1A;
+  --color-surface:       #12121F;
+  --color-surface-alt:   #1A1A2E;
+  --color-surface-raise: #1F1F33;
+  --color-border:        #2A2A45;
+  --color-border-subtle: #1E1E35;
+  --color-text:          #E8E8F0;
+  --color-text-secondary:#9898B8;
+  --color-text-muted:    #7878A0;
+  --color-text-inverse:  #0D0D1A;
+  --sidebar-bg:          #0F0F1E;
+  --sidebar-border:      #1E1E35;
+  --header-bg:           #0F0F1E;
+  --header-border:       #1E1E35;
+  --shadow-sm:           0 1px 3px rgba(0, 0, 0, 0.4);
+  --shadow-md:           0 4px 12px rgba(0, 0, 0, 0.5);
+  --shadow-lg:           0 8px 24px rgba(0, 0, 0, 0.6);
+  --shadow-card:         0 4px 20px rgba(0, 0, 0, 0.35);
+  --shadow-focus:        0 0 0 2px var(--color-bg), 0 0 0 4px var(--color-primary);
+  --skeleton-base:       #232340;
+  --skeleton-shine:      #32325A;
+}
+
+[data-theme="light"] {
+  --color-bg:            #F4F4FC;
+  --color-surface:       #FFFFFF;
+  --color-surface-alt:   #EEEEFC;
+  --color-surface-raise: #F8F8FF;
+  --color-border:        #D8D8F0;
+  --color-border-subtle: #E8E8F8;
+  --color-text:          #1A1A2E;
+  --color-text-secondary:#4A4A6A;
+  --color-text-muted:    #7878A0;
+  --color-text-inverse:  #F4F4FC;
+  --color-on-primary:    #FFFFFF;
+  --sidebar-bg:          #FAFAFF;
+  --sidebar-border:      #E0E0F0;
+  --header-bg:           #FAFAFF;
+  --header-border:       #E0E0F0;
+  --shadow-sm:           0 1px 3px rgba(0, 0, 0, 0.08);
+  --shadow-md:           0 4px 12px rgba(0, 0, 0, 0.10);
+  --shadow-lg:           0 8px 24px rgba(0, 0, 0, 0.12);
+  --shadow-card:         0 2px 12px rgba(0, 0, 0, 0.07);
+  --shadow-focus:        0 0 0 2px var(--color-bg), 0 0 0 4px var(--color-primary);
+  --skeleton-base:       #E4E4F4;
+  --skeleton-shine:      #F4F4FF;
+  /* V1 aliases — light theme overrides */
+  --bg-primary:    var(--color-bg);
+  --bg-secondary:  var(--color-surface);
+  --bg-panel:      var(--color-surface-alt);
+  --purple:        var(--color-primary);
+  --cyan:          var(--color-accent);
+  --text-primary:  var(--color-text);
+  --text-secondary: var(--color-text-secondary);
+  --border:        var(--color-border);
+}

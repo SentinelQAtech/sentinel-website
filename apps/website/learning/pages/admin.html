@@ -1,0 +1,632 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin Panel — Sentinel Learning</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../css/reset.css">
+  <link rel="stylesheet" href="../css/tokens.css">
+  <link rel="stylesheet" href="../css/global.css">
+  <link rel="stylesheet" href="../css/english.css">
+  <style>
+    body { background: #0A0D1A; color: #E2E8F0; font-family: 'Inter', sans-serif; margin: 0; padding: 0; min-height: 100vh; }
+
+    .admin-wrap {
+      max-width: 860px;
+      margin: 0 auto;
+      padding: 40px 24px 80px;
+    }
+
+    /* ── Header ──────────────────────────────────────────────── */
+    .admin-header {
+      display: flex; align-items: center; gap: 14px;
+      margin-bottom: 40px;
+      padding-bottom: 24px;
+      border-bottom: 1px solid rgba(255,255,255,.07);
+    }
+    .admin-logo {
+      font-size: 28px; font-weight: 800; letter-spacing: -.02em;
+      color: #35F4FF;
+    }
+    .admin-badge {
+      background: rgba(224,35,78,.15);
+      border: 1px solid rgba(224,35,78,.4);
+      color: #E0234E;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 10px; font-weight: 500;
+      letter-spacing: .1em;
+      padding: 3px 10px; border-radius: 99px;
+      text-transform: uppercase;
+    }
+    .admin-title {
+      font-size: 13px; color: #64748B;
+      font-family: 'JetBrains Mono', monospace;
+      margin-left: auto;
+    }
+
+    /* ── Profile card ────────────────────────────────────────── */
+    .profile-card {
+      background: linear-gradient(135deg, rgba(53,244,255,.06) 0%, rgba(138,43,226,.06) 100%);
+      border: 1px solid rgba(53,244,255,.2);
+      border-radius: 16px;
+      padding: 28px 32px;
+      margin-bottom: 32px;
+      display: flex; align-items: center; gap: 28px;
+      flex-wrap: wrap;
+    }
+    .profile-avatar {
+      width: 64px; height: 64px; border-radius: 50%;
+      background: linear-gradient(135deg, #35F4FF, #8A2BE2);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 26px; font-weight: 800; color: #0A0D1A;
+      flex-shrink: 0;
+    }
+    .profile-info { flex: 1; min-width: 160px; }
+    .profile-name {
+      font-size: 20px; font-weight: 700; color: #F1F5F9;
+      margin-bottom: 4px;
+    }
+    .profile-role {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px; color: #E0234E;
+      text-transform: uppercase; letter-spacing: .1em;
+    }
+    .profile-stats {
+      display: flex; gap: 28px; flex-wrap: wrap;
+    }
+    .pstat { display: flex; flex-direction: column; align-items: center; gap: 2px; }
+    .pstat-val {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 20px; font-weight: 700; color: #35F4FF;
+    }
+    .pstat-label { font-size: 10px; color: #64748B; text-transform: uppercase; letter-spacing: .08em; }
+
+    /* ── Status indicator ────────────────────────────────────── */
+    .status-bar {
+      display: flex; align-items: center; gap: 10px;
+      background: rgba(255,255,255,.03);
+      border: 1px solid rgba(255,255,255,.06);
+      border-radius: 10px;
+      padding: 12px 18px;
+      margin-bottom: 28px;
+      font-size: 13px;
+    }
+    .status-dot {
+      width: 8px; height: 8px; border-radius: 50%;
+      flex-shrink: 0;
+    }
+    .status-dot.active { background: #22C55E; box-shadow: 0 0 6px #22C55E; }
+    .status-dot.inactive { background: #E0234E; box-shadow: 0 0 6px #E0234E; }
+    .status-text { color: #94A3B8; }
+    .status-text strong { color: #F1F5F9; }
+
+    /* ── Section titles ──────────────────────────────────────── */
+    .section-label {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 10px; color: #35F4FF;
+      text-transform: uppercase; letter-spacing: .14em;
+      margin-bottom: 14px;
+    }
+
+    /* ── Action buttons ──────────────────────────────────────── */
+    .actions-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 12px;
+      margin-bottom: 32px;
+    }
+    .action-btn {
+      display: flex; align-items: center; gap: 12px;
+      padding: 16px 20px;
+      border-radius: 12px;
+      border: 1px solid transparent;
+      cursor: pointer; font-size: 14px; font-weight: 500;
+      transition: all .2s; text-align: left;
+      font-family: inherit;
+    }
+    .action-btn .action-icon { font-size: 20px; flex-shrink: 0; }
+    .action-btn .action-info { display: flex; flex-direction: column; gap: 2px; }
+    .action-btn .action-label { font-weight: 600; color: #F1F5F9; }
+    .action-btn .action-desc  { font-size: 11px; color: #64748B; }
+
+    .btn-activate {
+      background: rgba(53,244,255,.08);
+      border-color: rgba(53,244,255,.3);
+    }
+    .btn-activate:hover {
+      background: rgba(53,244,255,.14);
+      border-color: rgba(53,244,255,.5);
+      transform: translateY(-1px);
+    }
+
+    .btn-reset {
+      background: rgba(224,35,78,.07);
+      border-color: rgba(224,35,78,.25);
+    }
+    .btn-reset:hover {
+      background: rgba(224,35,78,.13);
+      border-color: rgba(224,35,78,.45);
+      transform: translateY(-1px);
+    }
+
+    .btn-partial {
+      background: rgba(138,43,226,.07);
+      border-color: rgba(138,43,226,.25);
+    }
+    .btn-partial:hover {
+      background: rgba(138,43,226,.13);
+      border-color: rgba(138,43,226,.45);
+      transform: translateY(-1px);
+    }
+
+    /* ── Module toggles ──────────────────────────────────────── */
+    .modules-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+      gap: 10px;
+      margin-bottom: 32px;
+    }
+    .mod-toggle {
+      background: rgba(255,255,255,.03);
+      border: 1px solid rgba(255,255,255,.08);
+      border-radius: 10px;
+      padding: 12px 14px;
+      display: flex; align-items: center; justify-content: space-between;
+      cursor: pointer;
+      transition: all .2s;
+    }
+    .mod-toggle:hover { border-color: rgba(53,244,255,.25); background: rgba(53,244,255,.04); }
+    .mod-toggle.done { border-color: rgba(53,244,255,.3); background: rgba(53,244,255,.06); }
+    .mod-toggle-info { display: flex; flex-direction: column; gap: 2px; }
+    .mod-toggle-label { font-size: 12px; font-weight: 600; color: #F1F5F9; }
+    .mod-toggle-meta  { font-family: 'JetBrains Mono', monospace; font-size: 10px; color: #64748B; }
+    .mod-toggle-check {
+      width: 20px; height: 20px; border-radius: 6px;
+      border: 1.5px solid rgba(255,255,255,.15);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 11px; flex-shrink: 0;
+      transition: all .2s;
+    }
+    .mod-toggle.done .mod-toggle-check {
+      background: #35F4FF; border-color: #35F4FF; color: #0A0D1A; font-weight: 700;
+    }
+
+    /* ── Quick links ─────────────────────────────────────────── */
+    .links-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+      gap: 10px;
+      margin-bottom: 32px;
+    }
+    .page-link {
+      display: flex; align-items: center; gap: 10px;
+      padding: 12px 16px;
+      background: rgba(255,255,255,.03);
+      border: 1px solid rgba(255,255,255,.07);
+      border-radius: 10px;
+      color: #94A3B8; font-size: 13px;
+      text-decoration: none;
+      transition: all .2s;
+    }
+    .page-link:hover {
+      background: rgba(53,244,255,.05);
+      border-color: rgba(53,244,255,.2);
+      color: #35F4FF;
+    }
+    .page-link .link-icon { font-size: 16px; }
+
+    /* ── Storage viewer ──────────────────────────────────────── */
+    .storage-viewer {
+      background: rgba(0,0,0,.3);
+      border: 1px solid rgba(255,255,255,.07);
+      border-radius: 12px;
+      padding: 16px;
+      margin-bottom: 32px;
+    }
+    .storage-viewer-head {
+      display: flex; align-items: center; justify-content: space-between;
+      margin-bottom: 12px;
+    }
+    .storage-viewer pre {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px; color: #64748B;
+      overflow-x: auto; margin: 0;
+      white-space: pre-wrap; word-break: break-all;
+      max-height: 220px; overflow-y: auto;
+    }
+    .storage-viewer pre .key   { color: #35F4FF; }
+    .storage-viewer pre .val   { color: #F1F5F9; }
+    .storage-viewer pre .str   { color: #A3E635; }
+    .storage-viewer pre .num   { color: #FB923C; }
+
+    .btn-small {
+      background: rgba(255,255,255,.06);
+      border: 1px solid rgba(255,255,255,.1);
+      color: #94A3B8; font-size: 11px;
+      padding: 4px 10px; border-radius: 6px;
+      cursor: pointer; font-family: inherit;
+      transition: all .18s;
+    }
+    .btn-small:hover { background: rgba(255,255,255,.1); color: #F1F5F9; }
+
+    /* ── Toast ───────────────────────────────────────────────── */
+    .admin-toast {
+      position: fixed; bottom: 32px; right: 32px;
+      background: #1E2638; border: 1px solid rgba(53,244,255,.3);
+      border-radius: 12px; padding: 14px 20px;
+      font-size: 13px; color: #F1F5F9;
+      display: flex; align-items: center; gap: 10px;
+      transform: translateY(80px); opacity: 0;
+      transition: all .3s cubic-bezier(.34,1.56,.64,1);
+      pointer-events: none; z-index: 999;
+      box-shadow: 0 8px 32px rgba(0,0,0,.4);
+    }
+    .admin-toast.show { transform: translateY(0); opacity: 1; }
+    .admin-toast.error { border-color: rgba(224,35,78,.4); }
+
+    /* ── Coming soon ─────────────────────────────────────────── */
+    .coming-soon {
+      background: rgba(255,255,255,.02);
+      border: 1px dashed rgba(255,255,255,.1);
+      border-radius: 12px;
+      padding: 20px 24px;
+      display: flex; align-items: center; gap: 14px;
+      margin-bottom: 32px;
+    }
+    .coming-soon-icon { font-size: 24px; opacity: .4; }
+    .coming-soon-text { font-size: 13px; color: #475569; }
+    .coming-soon-text strong { color: #64748B; }
+  </style>
+</head>
+<body>
+
+  <div class="admin-wrap">
+
+    <!-- Header -->
+    <div class="admin-header">
+      <span class="admin-logo">◈ SENTINEL</span>
+      <span class="admin-badge">ADMIN PANEL</span>
+      <span class="admin-title">local admin · file:// protocol</span>
+    </div>
+
+    <!-- Profile card -->
+    <div class="profile-card">
+      <div class="profile-avatar">R</div>
+      <div class="profile-info">
+        <div class="profile-name">Raphael Castilho</div>
+        <div class="profile-role">⬡ ADMIN_MASTER</div>
+      </div>
+      <div class="profile-stats">
+        <div class="pstat">
+          <span class="pstat-val" id="statXP">—</span>
+          <span class="pstat-label">XP</span>
+        </div>
+        <div class="pstat">
+          <span class="pstat-val" id="statLessons">—</span>
+          <span class="pstat-label">Lessons</span>
+        </div>
+        <div class="pstat">
+          <span class="pstat-val" id="statStreak">—</span>
+          <span class="pstat-label">Streak</span>
+        </div>
+        <div class="pstat">
+          <span class="pstat-val" id="statAch">—</span>
+          <span class="pstat-label">Achievements</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Status -->
+    <div class="status-bar" id="statusBar">
+      <div class="status-dot inactive" id="statusDot"></div>
+      <span class="status-text" id="statusText">Carregando estado...</span>
+    </div>
+
+    <!-- Actions -->
+    <div class="section-label">Perfis rápidos</div>
+    <div class="actions-grid">
+      <button class="action-btn btn-activate" onclick="activateMaster()">
+        <span class="action-icon">🔓</span>
+        <div class="action-info">
+          <span class="action-label">Ativar ADMIN_MASTER</span>
+          <span class="action-desc">Nível 1 completo · 3810 XP · 8 conquistas</span>
+        </div>
+      </button>
+      <button class="action-btn btn-partial" onclick="activateL1M1Only()">
+        <span class="action-icon">▷</span>
+        <div class="action-info">
+          <span class="action-label">Apenas M1 completo</span>
+          <span class="action-desc">5 aulas feitas · módulo 2 desbloqueado</span>
+        </div>
+      </button>
+      <button class="action-btn btn-partial" onclick="activateFreshStart()">
+        <span class="action-icon">◉</span>
+        <div class="action-info">
+          <span class="action-label">Fresh Start</span>
+          <span class="action-desc">Primeira aula disponível · zero progresso</span>
+        </div>
+      </button>
+      <button class="action-btn btn-reset" onclick="resetAll()">
+        <span class="action-icon">✕</span>
+        <div class="action-info">
+          <span class="action-label">Reset completo</span>
+          <span class="action-desc">Apaga todo o localStorage do English</span>
+        </div>
+      </button>
+    </div>
+
+    <!-- Module toggles -->
+    <div class="section-label">Módulos — Level 1</div>
+    <div class="modules-grid" id="modulesGrid"></div>
+
+    <!-- Quick links -->
+    <div class="section-label">Acesso rápido</div>
+    <div class="links-grid">
+      <a href="english-dashboard.html" class="page-link">
+        <span class="link-icon">⊟</span> Dashboard
+      </a>
+      <a href="english-lesson.html?level=1&module=1&lesson=1" class="page-link">
+        <span class="link-icon">▷</span> L1M1L1 — Hello
+      </a>
+      <a href="english-lesson.html?level=1&module=1&lesson=5" class="page-link">
+        <span class="link-icon">▷</span> L1M1L5 — Última
+      </a>
+      <a href="english-lesson.html?level=1&module=2&lesson=1" class="page-link">
+        <span class="link-icon">▷</span> L1M2L1
+      </a>
+      <a href="english-lesson.html?level=1&module=7&lesson=5" class="page-link">
+        <span class="link-icon">▷</span> L1M7L5 — Final L1
+      </a>
+      <a href="english-vocab.html" class="page-link">
+        <span class="link-icon">◫</span> Vocabulary Bank
+      </a>
+      <a href="english-review.html" class="page-link">
+        <span class="link-icon">✦</span> Quiz Review
+      </a>
+      <a href="english-lesson.html?level=2&module=1&lesson=1" class="page-link">
+        <span class="link-icon">🔒</span> L2 — Skeleton
+      </a>
+    </div>
+
+    <!-- Storage viewer -->
+    <div class="storage-viewer">
+      <div class="storage-viewer-head">
+        <span class="section-label" style="margin:0">localStorage · sentinel_learning_english_v1</span>
+        <div style="display:flex;gap:8px">
+          <button class="btn-small" onclick="refreshViewer()">↻ Refresh</button>
+          <button class="btn-small" onclick="copyStorage()">⎘ Copiar</button>
+        </div>
+      </div>
+      <pre id="storageViewer">Nenhum dado salvo.</pre>
+    </div>
+
+    <!-- QA Tracker (coming soon) -->
+    <div class="section-label">Integração futura</div>
+    <div class="coming-soon">
+      <span class="coming-soon-icon">⊛</span>
+      <div class="coming-soon-text">
+        <strong>Sentinel Learning QA Tracker</strong><br>
+        Integração com sentinel-learning.vercel.app — perfil ADMIN_MASTER unificado em breve.
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Toast -->
+  <div class="admin-toast" id="adminToast"></div>
+
+  <script>
+  (function () {
+    var KEY = 'sentinel_learning_english_v1';
+
+    var MODULES = [
+      { num: 1, title: 'Introductions' },
+      { num: 2, title: 'Daily Routine' },
+      { num: 3, title: 'Basic Tech Vocab' },
+      { num: 4, title: 'Frontend Basics' },
+      { num: 5, title: 'Talking Projects' },
+      { num: 6, title: 'Asking Questions' },
+      { num: 7, title: 'Simple Convos' },
+    ];
+
+    var ALL_LESSONS = (function () {
+      var ids = [];
+      for (var m = 1; m <= 7; m++) {
+        for (var l = 1; l <= 5; l++) {
+          ids.push('L1.M' + m + '.L' + l);
+        }
+      }
+      return ids;
+    })();
+
+    var RECENT_ACTIVITY = [
+      { id: 'L1.M7.L5', title: 'End of Sprint Celebration', xp: 75, completedAt: new Date().toISOString() },
+      { id: 'L1.M7.L4', title: 'Coffee Chat with Your Lead', xp: 75, completedAt: new Date().toISOString() },
+      { id: 'L1.M7.L3', title: 'Meeting New Teammates', xp: 75, completedAt: new Date().toISOString() },
+      { id: 'L1.M7.L2', title: 'On a Video Call', xp: 75, completedAt: new Date().toISOString() },
+      { id: 'L1.M7.L1', title: 'Small Talk at the Office', xp: 75, completedAt: new Date().toISOString() },
+    ];
+
+    var PROFILES = {
+      master: {
+        completedLessons: ALL_LESSONS.slice(),
+        xp: 3810,
+        streak: { count: 30, lastDate: new Date().toDateString() },
+        totalMinutes: 525,
+        achievements: ['first_words', 'module_1_done', 'ten_lessons', 'streak_7', 'twenty_five', 'xp_500', 'level_2_unlock', 'xp_1000'],
+        pendingNotifications: [],
+        recentActivity: RECENT_ACTIVITY
+      },
+      m1only: {
+        completedLessons: ['L1.M1.L1', 'L1.M1.L2', 'L1.M1.L3', 'L1.M1.L4', 'L1.M1.L5'],
+        xp: 410,
+        streak: { count: 3, lastDate: new Date().toDateString() },
+        totalMinutes: 75,
+        achievements: ['first_words', 'module_1_done'],
+        pendingNotifications: [],
+        recentActivity: [
+          { id: 'L1.M1.L5', title: 'Code Review Talk', xp: 100, completedAt: new Date().toISOString() },
+          { id: 'L1.M1.L4', title: 'The Daily Standup', xp: 75, completedAt: new Date().toISOString() }
+        ]
+      },
+      fresh: {
+        completedLessons: [],
+        xp: 0,
+        streak: { count: 0, lastDate: null },
+        totalMinutes: 0,
+        achievements: [],
+        pendingNotifications: [],
+        recentActivity: []
+      }
+    };
+
+    // ── Helpers ──────────────────────────────────────────────
+    function save(data) {
+      localStorage.setItem(KEY, JSON.stringify(data));
+    }
+
+    function load() {
+      try {
+        var raw = localStorage.getItem(KEY);
+        return raw ? JSON.parse(raw) : null;
+      } catch (e) { return null; }
+    }
+
+    function toast(msg, isError) {
+      var el = document.getElementById('adminToast');
+      el.textContent = msg;
+      el.className = 'admin-toast show' + (isError ? ' error' : '');
+      clearTimeout(el._t);
+      el._t = setTimeout(function () { el.classList.remove('show'); }, 3000);
+    }
+
+    // ── Status bar ───────────────────────────────────────────
+    function updateStatus() {
+      var data = load();
+      var dot  = document.getElementById('statusDot');
+      var txt  = document.getElementById('statusText');
+
+      if (!data) {
+        dot.className = 'status-dot inactive';
+        txt.innerHTML = '<strong>Nenhum dado salvo</strong> — localStorage está vazio';
+      } else {
+        var done = (data.completedLessons || []).length;
+        var ach  = (data.achievements || []).length;
+        var xp   = data.xp || 0;
+        dot.className = 'status-dot active';
+        txt.innerHTML =
+          'Estado ativo: <strong>' + done + '/35</strong> aulas · ' +
+          '<strong>' + xp + ' XP</strong> · ' +
+          '<strong>' + ach + '/8</strong> conquistas';
+      }
+
+      // Update profile stats
+      document.getElementById('statXP').textContent      = data ? data.xp || 0 : '—';
+      document.getElementById('statLessons').textContent = data ? (data.completedLessons || []).length : '—';
+      document.getElementById('statStreak').textContent  = data ? (data.streak ? data.streak.count : 0) + 'd' : '—';
+      document.getElementById('statAch').textContent     = data ? (data.achievements || []).length + '/8' : '—';
+
+      updateModuleGrid(data);
+      refreshViewer();
+    }
+
+    // ── Module grid ──────────────────────────────────────────
+    function updateModuleGrid(data) {
+      var grid = document.getElementById('modulesGrid');
+      var done = data ? (data.completedLessons || []) : [];
+
+      grid.innerHTML = '';
+      MODULES.forEach(function (mod) {
+        var modLessons = [];
+        for (var l = 1; l <= 5; l++) modLessons.push('L1.M' + mod.num + '.L' + l);
+        var completedCount = modLessons.filter(function (id) { return done.indexOf(id) !== -1; }).length;
+        var isDone = completedCount === 5;
+
+        var el = document.createElement('div');
+        el.className = 'mod-toggle' + (isDone ? ' done' : '');
+        el.innerHTML =
+          '<div class="mod-toggle-info">' +
+            '<span class="mod-toggle-label">M' + mod.num + ' ' + mod.title + '</span>' +
+            '<span class="mod-toggle-meta">' + completedCount + '/5 aulas</span>' +
+          '</div>' +
+          '<div class="mod-toggle-check">' + (isDone ? '✓' : '') + '</div>';
+
+        el.addEventListener('click', function () { toggleModule(mod.num, !isDone); });
+        grid.appendChild(el);
+      });
+    }
+
+    function toggleModule(modNum, unlock) {
+      var data = load() || PROFILES.fresh;
+      var completed = data.completedLessons || [];
+      for (var l = 1; l <= 5; l++) {
+        var id = 'L1.M' + modNum + '.L' + l;
+        var idx = completed.indexOf(id);
+        if (unlock && idx === -1) completed.push(id);
+        if (!unlock && idx !== -1) completed.splice(idx, 1);
+      }
+      data.completedLessons = completed;
+      save(data);
+      toast(unlock ? '✓ M' + modNum + ' desbloqueado' : '✕ M' + modNum + ' bloqueado');
+      updateStatus();
+    }
+
+    // ── Storage viewer ───────────────────────────────────────
+    window.refreshViewer = function () {
+      var pre  = document.getElementById('storageViewer');
+      var data = load();
+      if (!data) { pre.textContent = 'Nenhum dado salvo.'; return; }
+      pre.textContent = JSON.stringify(data, null, 2);
+    };
+
+    window.copyStorage = function () {
+      var raw = localStorage.getItem(KEY);
+      if (!raw) { toast('Nada para copiar', true); return; }
+      navigator.clipboard.writeText(raw).then(function () {
+        toast('✓ JSON copiado para o clipboard');
+      }).catch(function () {
+        toast('⚠ Clipboard não disponível em file://', true);
+      });
+    };
+
+    // ── Profile actions ──────────────────────────────────────
+    window.activateMaster = function () {
+      var p = JSON.parse(JSON.stringify(PROFILES.master));
+      p.streak.lastDate = new Date().toDateString();
+      p.recentActivity.forEach(function (a) { a.completedAt = new Date().toISOString(); });
+      save(p);
+      toast('🔓 ADMIN_MASTER ativado — 35 aulas, 3810 XP, 8 conquistas');
+      updateStatus();
+    };
+
+    window.activateL1M1Only = function () {
+      var p = JSON.parse(JSON.stringify(PROFILES.m1only));
+      p.streak.lastDate = new Date().toDateString();
+      save(p);
+      toast('▷ Perfil M1 ativado — módulo 2 desbloqueado');
+      updateStatus();
+    };
+
+    window.activateFreshStart = function () {
+      save(JSON.parse(JSON.stringify(PROFILES.fresh)));
+      toast('◉ Fresh Start ativado — zero progresso');
+      updateStatus();
+    };
+
+    window.resetAll = function () {
+      if (!confirm('Tem certeza? Isso apaga TODO o progresso do English for Developers.')) return;
+      localStorage.removeItem(KEY);
+      toast('✕ localStorage limpo completamente');
+      updateStatus();
+    };
+
+    // ── Init ─────────────────────────────────────────────────
+    updateStatus();
+  })();
+  </script>
+</body>
+</html>
+

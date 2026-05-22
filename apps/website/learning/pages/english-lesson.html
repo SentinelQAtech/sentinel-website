@@ -1,0 +1,1113 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>English for Developers — Lesson</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../css/reset.css">
+  <link rel="stylesheet" href="../css/tokens.css">
+  <link rel="stylesheet" href="../css/global.css">
+  <link rel="stylesheet" href="../css/english.css">
+  <style>
+    /* ── Layout ──────────────────────────────────────────── */
+    .lesson-wrap { max-width: 760px; }
+
+    /* ── Breadcrumb ──────────────────────────────────────── */
+    .breadcrumb {
+      display: flex; align-items: center; gap: 6px;
+      font-size: 12px; color: var(--text-secondary);
+      margin-bottom: 24px; flex-wrap: wrap;
+    }
+    .breadcrumb a { color: var(--text-secondary); text-decoration: none; transition: color .2s; }
+    .breadcrumb a:hover { color: var(--cyan); }
+    .breadcrumb-sep { opacity: .4; }
+
+    /* ── Lesson header ───────────────────────────────────── */
+    .lesson-tag {
+      font-family: var(--font-code); font-size: 10px;
+      color: var(--cyan); text-transform: uppercase;
+      letter-spacing: .12em; display: block; margin-bottom: 8px;
+    }
+    .lesson-h1 {
+      font-size: 26px; font-weight: 700; line-height: 1.2;
+      color: var(--text-primary); margin-bottom: 6px;
+    }
+    .lesson-subtitle { font-size: 14px; color: var(--text-secondary); margin-bottom: 20px; }
+
+    .lesson-meta-row {
+      display: flex; gap: 16px; flex-wrap: wrap;
+      font-family: var(--font-code); font-size: 11px;
+      color: var(--text-secondary); margin-bottom: 28px;
+    }
+    .lesson-meta-item { display: flex; align-items: center; gap: 5px; }
+    .meta-xp { color: #FFD700; }
+    .difficulty-badge {
+      font-family: var(--font-code); font-size: 9px; font-weight: 700;
+      text-transform: uppercase; letter-spacing: .08em;
+      padding: 2px 8px; border-radius: 99px; border: 1px solid;
+    }
+    .diff-beginner     { color: #35F4FF; border-color: rgba(53,244,255,.3); background: rgba(53,244,255,.07); }
+    .diff-intermediate { color: #8A2BE2; border-color: rgba(138,43,226,.3); background: rgba(138,43,226,.07); }
+    .diff-advanced     { color: #E0234E; border-color: rgba(224,35,78,.3);  background: rgba(224,35,78,.07); }
+    .diff-mastery      { color: #FFD700; border-color: rgba(255,215,0,.3);  background: rgba(255,215,0,.07); }
+
+    /* ── Achievement toast ────────────────────────────────── */
+    .ach-toast-container {
+      position: fixed; top: 20px; right: 20px;
+      z-index: 9999; display: flex; flex-direction: column; gap: 10px;
+      pointer-events: none;
+    }
+    .ach-toast {
+      display: flex; align-items: center; gap: 14px;
+      padding: 14px 18px; background: #13172A; border: 1px solid;
+      border-radius: 12px; min-width: 280px; max-width: 340px;
+      box-shadow: 0 8px 32px rgba(0,0,0,.5);
+      animation: toastSlideIn .35s cubic-bezier(.4,0,.2,1) forwards;
+      pointer-events: auto;
+    }
+    .ach-toast.fade-out { animation: toastFadeOut .3s ease forwards; }
+    @keyframes toastSlideIn { from { opacity:0; transform:translateX(40px); } to { opacity:1; transform:translateX(0); } }
+    @keyframes toastFadeOut { to   { opacity:0; transform:translateX(40px); } }
+    .ach-toast-icon { font-size:22px; width:38px; height:38px; display:flex; align-items:center; justify-content:center; border-radius:9px; border:1px solid; flex-shrink:0; }
+    .ach-toast-body { flex:1; }
+    .ach-toast-label { font-size:9px; font-family:var(--font-code); text-transform:uppercase; letter-spacing:.1em; opacity:.7; display:block; margin-bottom:2px; }
+    .ach-toast-name { font-size:13px; font-weight:700; color:#fff; display:block; margin-bottom:1px; }
+    .ach-toast-desc { font-size:11px; color:var(--text-secondary); }
+    .ach-toast-xp { font-family:var(--font-code); font-size:13px; font-weight:700; white-space:nowrap; }
+
+    /* ── Progress bar ────────────────────────────────────── */
+    .lesson-progress {
+      display: flex; align-items: center; gap: 10px;
+      margin-bottom: 36px;
+      padding: 12px 16px;
+      background: var(--bg-panel);
+      border: 1px solid var(--border); border-radius: 8px;
+    }
+    .lp-label { font-size: 11px; color: var(--text-secondary); white-space: nowrap; }
+    .lp-track {
+      flex: 1; height: 4px;
+      background: rgba(255,255,255,.07);
+      border-radius: 99px; overflow: hidden;
+    }
+    .lp-fill {
+      height: 100%;
+      background: linear-gradient(90deg, var(--purple), var(--cyan));
+      border-radius: 99px; transition: width .5s ease;
+    }
+    .lp-count { font-family: var(--font-code); font-size: 11px; color: var(--cyan); white-space: nowrap; }
+
+    /* ── Section wrappers ────────────────────────────────── */
+    .lesson-section { margin-bottom: 36px; }
+    .section-title {
+      font-size: 11px; font-family: var(--font-code);
+      text-transform: uppercase; letter-spacing: .1em;
+      color: var(--text-secondary); margin-bottom: 16px;
+      display: flex; align-items: center; gap: 8px;
+    }
+    .section-title::after {
+      content: '';
+      flex: 1; height: 1px;
+      background: var(--border);
+    }
+
+    /* ── Warmup ──────────────────────────────────────────── */
+    .warmup-box {
+      background: rgba(53,244,255,.04);
+      border: 1px solid rgba(53,244,255,.15);
+      border-left: 3px solid var(--cyan);
+      border-radius: 0 10px 10px 0;
+      padding: 20px 24px;
+    }
+    .warmup-prompt {
+      font-size: 15px; font-weight: 500;
+      color: var(--text-primary); line-height: 1.6;
+      margin-bottom: 12px;
+    }
+    .warmup-tip {
+      font-size: 12px; color: var(--text-secondary);
+      font-style: italic;
+    }
+
+    /* ── Vocabulary ──────────────────────────────────────── */
+    .vocab-grid { display: flex; flex-direction: column; gap: 10px; }
+    .vocab-card {
+      background: var(--bg-panel);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 16px 20px;
+      transition: border-color .2s;
+    }
+    .vocab-card:hover { border-color: rgba(138,43,226,.3); }
+    .vocab-word-row { display: flex; align-items: baseline; gap: 10px; margin-bottom: 6px; flex-wrap: wrap; }
+    .vocab-word {
+      font-size: 17px; font-weight: 700;
+      color: var(--text-primary);
+    }
+    .vocab-phonetic {
+      font-family: var(--font-code); font-size: 12px;
+      color: var(--cyan); opacity: .8;
+    }
+    .vocab-meaning { font-size: 13px; color: var(--text-secondary); margin-bottom: 6px; }
+    .vocab-example { font-size: 13px; color: var(--text-primary); font-style: italic; margin-bottom: 6px; }
+    .vocab-tech-note {
+      font-size: 11px; font-family: var(--font-code);
+      color: var(--purple); opacity: .9;
+      background: rgba(138,43,226,.06);
+      border-radius: 4px; padding: 4px 8px;
+      display: inline-block;
+    }
+
+    /* ── Explanation ─────────────────────────────────────── */
+    .explanation-box { line-height: 1.75; }
+    .explanation-box h3 {
+      font-size: 16px; font-weight: 700;
+      color: var(--text-primary); margin-bottom: 14px;
+    }
+    .explanation-box p { font-size: 14px; color: var(--text-secondary); margin-bottom: 12px; }
+    .explanation-box strong { color: var(--text-primary); font-weight: 600; }
+    .explanation-box em { color: var(--cyan); font-style: normal; }
+    .explanation-box ol, .explanation-box ul { margin: 0 0 12px 20px; }
+    .explanation-box li { font-size: 14px; color: var(--text-secondary); margin-bottom: 6px; }
+
+    /* ── Tech example (dialogue) ─────────────────────────── */
+    .tech-scenario {
+      font-size: 13px; color: var(--text-secondary);
+      margin-bottom: 16px; font-style: italic;
+    }
+    .dialogue { display: flex; flex-direction: column; gap: 10px; }
+    .dialogue-line {
+      display: flex; gap: 12px; align-items: flex-start;
+    }
+    .dialogue-line.you-line { flex-direction: row-reverse; }
+    .dialogue-avatar {
+      width: 32px; height: 32px;
+      border-radius: 50%;
+      background: rgba(138,43,226,.2);
+      border: 1px solid rgba(138,43,226,.3);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 12px; font-weight: 700; color: var(--purple);
+      flex-shrink: 0;
+    }
+    .you-line .dialogue-avatar {
+      background: rgba(53,244,255,.15);
+      border-color: rgba(53,244,255,.3);
+      color: var(--cyan);
+    }
+    .dialogue-bubble {
+      max-width: 80%; padding: 10px 14px;
+      border-radius: 10px;
+      background: rgba(255,255,255,.04);
+      border: 1px solid var(--border);
+    }
+    .you-line .dialogue-bubble {
+      background: rgba(53,244,255,.06);
+      border-color: rgba(53,244,255,.2);
+    }
+    .dialogue-speaker {
+      font-size: 10px; font-family: var(--font-code);
+      color: var(--text-secondary); margin-bottom: 4px;
+      text-transform: uppercase; letter-spacing: .06em;
+    }
+    .dialogue-text { font-size: 13px; color: var(--text-primary); line-height: 1.5; }
+    .dialogue-tip {
+      margin-top: 16px; padding: 10px 14px;
+      background: rgba(138,43,226,.06);
+      border: 1px solid rgba(138,43,226,.2);
+      border-radius: 8px;
+      font-size: 12px; color: var(--text-secondary);
+    }
+    .dialogue-tip strong { color: var(--purple); }
+
+    /* ── Speaking challenge ──────────────────────────────── */
+    .speaking-box {
+      background: rgba(138,43,226,.04);
+      border: 1px solid rgba(138,43,226,.2);
+      border-radius: 12px;
+      padding: 20px 24px;
+    }
+    .speaking-prompt {
+      font-size: 14px; font-weight: 500;
+      color: var(--text-primary); line-height: 1.6;
+      margin-bottom: 10px;
+    }
+    .speaking-tip {
+      font-size: 12px; color: var(--text-secondary);
+      margin-bottom: 14px;
+    }
+    .speaking-example {
+      font-size: 12px; color: var(--text-secondary);
+      background: rgba(255,255,255,.03);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 10px 12px;
+      margin-bottom: 14px;
+      font-style: italic;
+      white-space: pre-line;
+    }
+    .speaking-example strong { display: block; color: var(--cyan); font-style: normal; font-size: 10px; text-transform: uppercase; letter-spacing: .07em; margin-bottom: 4px; }
+    .speaking-textarea {
+      width: 100%; min-height: 110px;
+      background: rgba(255,255,255,.03);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 12px 14px;
+      color: var(--text-primary);
+      font-family: var(--font-main);
+      font-size: 14px;
+      line-height: 1.6;
+      resize: vertical;
+      transition: border-color .2s;
+      box-sizing: border-box;
+    }
+    .speaking-textarea:focus {
+      outline: none;
+      border-color: rgba(138,43,226,.5);
+    }
+    .speaking-feedback {
+      margin-top: 10px;
+      font-size: 12px;
+      color: var(--cyan);
+      display: none;
+    }
+
+    /* ── Quiz engine ─────────────────────────────────────── */
+    .quiz-questions { display: flex; flex-direction: column; gap: 20px; }
+    .quiz-question-card {
+      background: var(--bg-panel);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 18px 20px;
+    }
+    .quiz-q-num {
+      font-family: var(--font-code); font-size: 10px;
+      color: var(--text-secondary); text-transform: uppercase;
+      letter-spacing: .07em; margin-bottom: 8px;
+    }
+    .quiz-q-text {
+      font-size: 14px; font-weight: 600;
+      color: var(--text-primary); margin-bottom: 14px;
+      line-height: 1.5;
+    }
+    .quiz-options { display: flex; flex-direction: column; gap: 8px; }
+    .quiz-option {
+      display: flex; align-items: flex-start; gap: 10px;
+      padding: 10px 14px;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      cursor: pointer;
+      transition: border-color .15s, background .15s;
+      font-size: 13px;
+      color: var(--text-secondary);
+    }
+    .quiz-option:hover:not(.answered) {
+      border-color: rgba(138,43,226,.4);
+      background: rgba(138,43,226,.04);
+      color: var(--text-primary);
+    }
+    .quiz-option.selected { border-color: rgba(138,43,226,.6); background: rgba(138,43,226,.08); color: var(--text-primary); }
+    .quiz-option.correct  { border-color: rgba(53,244,255,.5);  background: rgba(53,244,255,.06); color: #35F4FF; }
+    .quiz-option.wrong    { border-color: rgba(255,80,80,.4);   background: rgba(255,80,80,.06);  color: #ff5050; text-decoration: line-through; }
+    .quiz-option.answered { cursor: default; }
+    .quiz-option-letter {
+      font-family: var(--font-code); font-size: 11px;
+      font-weight: 700;
+      width: 20px; flex-shrink: 0;
+      color: inherit;
+    }
+    .quiz-explanation {
+      margin-top: 10px;
+      padding: 10px 14px;
+      background: rgba(53,244,255,.05);
+      border: 1px solid rgba(53,244,255,.15);
+      border-radius: 6px;
+      font-size: 12px;
+      color: var(--text-secondary);
+      display: none;
+    }
+    .quiz-explanation.show { display: block; }
+    .quiz-check-btn {
+      margin-top: 12px;
+      padding: 8px 18px;
+      border: none;
+      border-radius: 6px;
+      background: var(--purple);
+      color: #fff;
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: opacity .2s;
+    }
+    .quiz-check-btn:hover { opacity: .85; }
+    .quiz-check-btn:disabled { opacity: .4; cursor: default; }
+
+    .quiz-score {
+      margin-top: 20px;
+      padding: 16px 20px;
+      background: rgba(53,244,255,.04);
+      border: 1px solid rgba(53,244,255,.15);
+      border-radius: 10px;
+      display: none;
+      text-align: center;
+    }
+    .quiz-score.show { display: block; }
+    .quiz-score-val {
+      font-family: var(--font-code);
+      font-size: 28px;
+      font-weight: 700;
+      color: var(--cyan);
+    }
+    .quiz-score-label { font-size: 13px; color: var(--text-secondary); margin-top: 4px; }
+    .quiz-retry-btn {
+      margin-top: 12px;
+      padding: 7px 16px;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      background: transparent;
+      color: var(--text-secondary);
+      font-size: 12px;
+      cursor: pointer;
+      transition: border-color .2s, color .2s;
+    }
+    .quiz-retry-btn:hover { border-color: var(--cyan); color: var(--cyan); }
+
+    /* ── Complete / XP reward ────────────────────────────── */
+    .complete-section {
+      margin-top: 40px;
+      padding-top: 32px;
+      border-top: 1px solid var(--border);
+    }
+    .xp-reward-box {
+      background: linear-gradient(135deg, rgba(255,215,0,.08), rgba(53,244,255,.06));
+      border: 1px solid rgba(255,215,0,.25);
+      border-radius: 14px;
+      padding: 28px 32px;
+      text-align: center;
+      margin-bottom: 20px;
+    }
+    .xp-reward-badge {
+      font-family: var(--font-code);
+      font-size: 40px;
+      font-weight: 700;
+      color: #FFD700;
+      display: block;
+      margin-bottom: 6px;
+    }
+    .xp-reward-label {
+      font-size: 14px;
+      color: var(--text-secondary);
+      margin-bottom: 6px;
+    }
+    .xp-reward-title {
+      font-size: 20px;
+      font-weight: 700;
+      color: var(--text-primary);
+    }
+
+    .nav-actions {
+      display: flex; gap: 12px; flex-wrap: wrap;
+      align-items: center;
+    }
+    .btn-complete {
+      flex: 1;
+      padding: 14px 24px;
+      background: linear-gradient(120deg, var(--purple), var(--cyan));
+      border: none; border-radius: 10px;
+      color: #0B0E1A;
+      font-size: 14px; font-weight: 700;
+      cursor: pointer;
+      transition: opacity .2s;
+      min-width: 200px;
+    }
+    .btn-complete:hover { opacity: .88; }
+    .btn-complete:disabled { opacity: .45; cursor: default; }
+    .btn-back {
+      padding: 14px 20px;
+      background: transparent;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      color: var(--text-secondary);
+      font-size: 13px;
+      cursor: pointer;
+      text-decoration: none;
+      transition: border-color .2s, color .2s;
+      white-space: nowrap;
+    }
+    .btn-back:hover { border-color: var(--cyan); color: var(--cyan); }
+
+    /* ── Already done banner ─────────────────────────────── */
+    .already-done-banner {
+      background: rgba(53,244,255,.06);
+      border: 1px solid rgba(53,244,255,.2);
+      border-radius: 8px;
+      padding: 10px 16px;
+      font-size: 12px;
+      color: var(--cyan);
+      text-align: center;
+      margin-bottom: 16px;
+      display: none;
+    }
+    .already-done-banner.show { display: block; }
+
+    /* ── Locked state ────────────────────────────────────── */
+    .locked-overlay {
+      text-align: center;
+      padding: 60px 20px;
+      display: none;
+    }
+    .locked-overlay.show { display: block; }
+    .locked-icon { font-size: 48px; margin-bottom: 16px; }
+    .locked-msg { font-size: 16px; font-weight: 600; color: var(--text-primary); margin-bottom: 8px; }
+    .locked-sub { font-size: 13px; color: var(--text-secondary); }
+
+    /* ── Module Completion Ceremony ──────────────────────── */
+    .ceremony-overlay {
+      display: none;
+      position: fixed; inset: 0;
+      background: rgba(11,14,26,.94);
+      z-index: 10000;
+      align-items: center; justify-content: center;
+    }
+    .ceremony-overlay.show { display: flex; }
+    .ceremony-card {
+      background: var(--bg-secondary);
+      border: 1px solid rgba(53,244,255,.25);
+      border-radius: 16px;
+      padding: 52px 44px;
+      max-width: 480px; width: 90%;
+      text-align: center;
+      position: relative; overflow: hidden;
+    }
+    .ceremony-card::before {
+      content: '';
+      position: absolute; inset: 0;
+      background: radial-gradient(ellipse at top, rgba(53,244,255,.07) 0%, transparent 65%);
+      pointer-events: none;
+    }
+    .ceremony-icon {
+      font-size: 60px; margin-bottom: 16px; display: block;
+      animation: ceremony-pop .5s cubic-bezier(.34,1.56,.64,1) both;
+    }
+    @keyframes ceremony-pop {
+      from { transform: scale(0); opacity: 0; }
+      to   { transform: scale(1); opacity: 1; }
+    }
+    .ceremony-label {
+      font-family: var(--font-code); font-size: 10px;
+      color: var(--cyan); text-transform: uppercase; letter-spacing: .15em;
+      margin-bottom: 10px;
+    }
+    .ceremony-title {
+      font-size: 24px; font-weight: 700; color: var(--text-primary);
+      margin-bottom: 4px; line-height: 1.2;
+    }
+    .ceremony-subtitle {
+      font-size: 13px; color: var(--text-secondary); margin-bottom: 32px;
+    }
+    .ceremony-stats {
+      display: flex; justify-content: center; gap: 28px;
+      margin-bottom: 36px;
+    }
+    .ceremony-stat {
+      display: flex; flex-direction: column; align-items: center; gap: 4px;
+    }
+    .ceremony-stat-value {
+      font-size: 24px; font-weight: 700;
+      color: var(--cyan); font-family: var(--font-code);
+    }
+    .ceremony-stat-label {
+      font-size: 11px; color: var(--text-secondary);
+    }
+    .ceremony-actions {
+      display: flex; flex-direction: column; gap: 12px; align-items: center;
+    }
+    .btn-ceremony-next {
+      background: var(--cyan); color: #0B0E1A;
+      border: none; border-radius: 8px;
+      padding: 13px 32px; font-size: 14px; font-weight: 700;
+      cursor: pointer; width: 100%; transition: opacity .2s;
+      letter-spacing: .02em;
+    }
+    .btn-ceremony-next:hover { opacity: .85; }
+    .btn-ceremony-dash {
+      font-size: 12px; color: var(--text-secondary);
+      text-decoration: none; transition: color .2s;
+    }
+    .btn-ceremony-dash:hover { color: var(--cyan); }
+  </style>
+</head>
+<body>
+
+  <!-- Achievement toast container -->
+  <div class="ach-toast-container" id="toastContainer"></div>
+
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-header">
+      <a href="../index.html" class="logo" style="text-decoration:none">
+        <span class="logo-icon">◈</span>
+        <span class="logo-text">SENTINEL LEARNING</span>
+      </a>
+      <button class="sidebar-toggle" id="sidebarToggle" aria-label="Collapse menu">
+        <span class="toggle-icon">‹</span>
+      </button>
+    </div>
+    <nav class="sidebar-nav">
+      <a href="../index.html#/dashboard" class="nav-item" data-label="Início">
+        <span class="nav-icon">⌂</span><span class="nav-label">Início</span>
+      </a>
+      <a href="../index.html#/modules" class="nav-item" data-label="Cursos">
+        <span class="nav-icon">⊡</span><span class="nav-label">Cursos</span>
+      </a>
+      <a href="english-dashboard.html" class="nav-item active" data-label="English">
+        <span class="nav-icon">🇺🇸</span><span class="nav-label">English</span>
+      </a>
+      <a href="../index.html#/journey" class="nav-item" data-label="Progresso">
+        <span class="nav-icon">↗</span><span class="nav-label">Progresso</span>
+      </a>
+      <a href="../index.html#/settings" class="nav-item" data-label="Perfil">
+        <span class="nav-icon">◉</span><span class="nav-label">Perfil</span>
+      </a>
+    </nav>
+    <div class="sidebar-footer">
+      <div class="user-info">
+        <div class="user-avatar">R</div>
+        <div class="user-details">
+          <span class="user-name">Raphael</span>
+          <span class="user-level" id="sidebarLevel">English · A1</span>
+        </div>
+      </div>
+    </div>
+  </aside>
+
+  <main class="main-content" id="mainContent">
+    <div class="lesson-wrap">
+
+      <!-- Locked state (shown if lesson not unlocked) -->
+      <div class="locked-overlay" id="lockedOverlay">
+        <div class="locked-icon">🔒</div>
+        <div class="locked-msg">Lesson Locked</div>
+        <div class="locked-sub">Complete the previous lesson to unlock this one.</div>
+        <br>
+        <a href="english-dashboard.html" class="btn-back">← Back to Dashboard</a>
+      </div>
+
+      <!-- Main lesson content -->
+      <div id="lessonContent">
+
+        <!-- Breadcrumb -->
+        <div class="breadcrumb" id="breadcrumb"></div>
+
+        <!-- Lesson header -->
+        <span class="lesson-tag" id="lessonTag"></span>
+        <h1 class="lesson-h1" id="lessonH1"></h1>
+        <p class="lesson-subtitle" id="lessonSubtitle"></p>
+
+        <div class="lesson-meta-row">
+          <span class="lesson-meta-item">⏱ <span id="metaDuration"></span> min</span>
+          <span class="lesson-meta-item meta-xp">★ <span id="metaXP"></span> XP</span>
+          <span class="lesson-meta-item" id="metaModInfo"></span>
+          <span class="lesson-meta-item"><span id="metaDifficulty"></span></span>
+        </div>
+
+        <!-- Progress indicator -->
+        <div class="lesson-progress" id="lessonProgress">
+          <span class="lp-label">Module progress</span>
+          <div class="lp-track">
+            <div class="lp-fill" id="lpFill" style="width:0%"></div>
+          </div>
+          <span class="lp-count" id="lpCount">0/5</span>
+        </div>
+
+        <!-- Already completed banner -->
+        <div class="already-done-banner" id="alreadyDone">
+          ✓ You've already completed this lesson. Great work! Review it or continue to the next one.
+        </div>
+
+        <!-- Sections container -->
+        <div id="sectionsContainer"></div>
+
+        <!-- Complete section -->
+        <div class="complete-section" id="completeSection">
+          <div class="xp-reward-box" id="xpRewardBox">
+            <span class="xp-reward-badge" id="xpBadge">+75 XP</span>
+            <div class="xp-reward-label">Lesson complete!</div>
+            <div class="xp-reward-title" id="xpRewardTitle"></div>
+          </div>
+          <div class="nav-actions">
+            <a href="english-dashboard.html" class="btn-back">← Dashboard</a>
+            <button class="btn-complete" id="completeBtn">Complete & Continue →</button>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </main>
+
+  <!-- Module completion ceremony overlay -->
+  <div class="ceremony-overlay" id="ceremonyOverlay">
+    <div class="ceremony-card">
+      <span class="ceremony-icon">⬡</span>
+      <div class="ceremony-label">Module Complete</div>
+      <h2 class="ceremony-title" id="ceremonyTitle">Module Finished!</h2>
+      <p class="ceremony-subtitle" id="ceremonySubtitle"></p>
+      <div class="ceremony-stats">
+        <div class="ceremony-stat">
+          <span class="ceremony-stat-value">5/5</span>
+          <span class="ceremony-stat-label">lessons</span>
+        </div>
+        <div class="ceremony-stat">
+          <span class="ceremony-stat-value" id="ceremonyXP">+375</span>
+          <span class="ceremony-stat-label">XP earned</span>
+        </div>
+        <div class="ceremony-stat">
+          <span class="ceremony-stat-value" id="ceremonyStreak">1</span>
+          <span class="ceremony-stat-label">day streak</span>
+        </div>
+      </div>
+      <div class="ceremony-actions">
+        <button class="btn-ceremony-next" id="ceremonyNextBtn">Next Module →</button>
+        <a href="english-dashboard.html" class="btn-ceremony-dash">Back to Dashboard</a>
+      </div>
+    </div>
+  </div>
+  <script src="../js/english-storage.js"></script>
+  <script src="../js/english-data.js"></script>
+  <script src="../js/english-sidebar.js"></script>
+  <script>
+  (function () {
+    // ── URL params ─────────────────────────────────────────
+    var params  = new URLSearchParams(window.location.search);
+    var level   = parseInt(params.get('level'),  10) || 1;
+    var module  = parseInt(params.get('module'), 10) || 1;
+    var lesson  = parseInt(params.get('lesson'), 10) || 1;
+
+    var ES = window.EStorage;
+    var ED = window.ENGLISH_DATA;
+
+    // ── Guard: check unlock ────────────────────────────────
+    if (!ES.isUnlocked(level, module, lesson)) {
+      document.getElementById('lockedOverlay').classList.add('show');
+      document.getElementById('lessonContent').style.display = 'none';
+      return;
+    }
+
+    // ── Load lesson data ───────────────────────────────────
+    var lessonData = ED.getLesson(level, module, lesson);
+    if (!lessonData) {
+      document.getElementById('lockedOverlay').classList.add('show');
+      document.getElementById('lockedOverlay').querySelector('.locked-msg').textContent = 'Lesson Not Found';
+      document.getElementById('lockedOverlay').querySelector('.locked-sub').textContent = 'This lesson content is coming soon.';
+      document.getElementById('lessonContent').style.display = 'none';
+      return;
+    }
+
+    // skeleton lesson guard
+    if (lessonData.skeleton) {
+      document.getElementById('lockedOverlay').classList.add('show');
+      document.getElementById('lockedOverlay').querySelector('.locked-msg').textContent = 'Coming Soon';
+      document.getElementById('lockedOverlay').querySelector('.locked-sub').textContent = 'This lesson is being prepared. Check back soon!';
+      document.getElementById('lessonContent').style.display = 'none';
+      return;
+    }
+
+    // ── Metadata ───────────────────────────────────────────
+    var lv     = ED.levels[level];
+    var mod    = ED.getModule(level, module);
+    var xpInfo = ES.xpToLevel(ES.load().xp);
+    var alreadyDone = ES.isCompleted(level, module, lesson);
+
+    document.title = lessonData.title + ' — English for Developers';
+    document.getElementById('sidebarLevel').textContent = 'English · ' + xpInfo.label;
+
+    // Breadcrumb
+    var bc = document.getElementById('breadcrumb');
+    bc.innerHTML =
+      '<a href="english-dashboard.html">English</a>' +
+      '<span class="breadcrumb-sep">›</span>' +
+      '<span>' + (lv ? lv.label : 'L' + level) + '</span>' +
+      '<span class="breadcrumb-sep">›</span>' +
+      '<span>' + (mod ? mod.title : 'Module ' + module) + '</span>' +
+      '<span class="breadcrumb-sep">›</span>' +
+      '<span style="color:var(--text-primary)">Lesson ' + lesson + '</span>';
+
+    // Header
+    document.getElementById('lessonTag').textContent    = 'Level ' + level + ' · Module ' + module + ' · Lesson ' + lesson;
+    document.getElementById('lessonH1').textContent     = lessonData.title;
+    document.getElementById('lessonSubtitle').textContent = lessonData.subtitle || '';
+    document.getElementById('metaDuration').textContent  = lessonData.duration || 15;
+    document.getElementById('metaXP').textContent        = lessonData.xpReward || 75;
+    document.getElementById('metaModInfo').textContent   = (mod ? mod.title : '');
+    var diff = lessonData.difficulty || 'beginner';
+    var diffEl = document.getElementById('metaDifficulty');
+    diffEl.textContent = diff;
+    diffEl.className = 'difficulty-badge diff-' + diff;
+
+    // Module progress bar
+    var modProg = ES.getModuleProgress(level, module);
+    document.getElementById('lpFill').style.width = modProg.percent + '%';
+    document.getElementById('lpCount').textContent = modProg.done + '/' + modProg.total + ' done';
+
+    // Already done banner
+    if (alreadyDone) {
+      document.getElementById('alreadyDone').classList.add('show');
+    }
+
+    // XP reward box
+    document.getElementById('xpBadge').textContent = '+' + (lessonData.xpReward || 75) + ' XP';
+    document.getElementById('xpRewardTitle').textContent = lessonData.title;
+
+    // ── Quiz state tracking ────────────────────────────────
+    var quizScores   = {};    // sectionIndex -> {correct, total}
+    var quizDone     = {};    // sectionIndex -> bool
+    var quizAnswered = {};    // sectionIndex -> number of answered questions
+
+    // ── Section renderer ───────────────────────────────────
+    var container = document.getElementById('sectionsContainer');
+    var sections  = lessonData.sections || [];
+
+    var LETTERS = ['A', 'B', 'C', 'D'];
+
+    sections.forEach(function (sec, si) {
+      var wrap = document.createElement('div');
+      wrap.className = 'lesson-section';
+
+      if (sec.type === 'warmup') {
+        wrap.innerHTML =
+          '<div class="section-title">Warm-up</div>' +
+          '<div class="warmup-box">' +
+            '<div class="warmup-prompt">' + esc(sec.prompt) + '</div>' +
+            (sec.tip ? '<div class="warmup-tip">💡 ' + esc(sec.tip) + '</div>' : '') +
+          '</div>';
+      }
+
+      else if (sec.type === 'vocabulary') {
+        var words = (sec.words || []).map(function (w) {
+          return '<div class="vocab-card">' +
+            '<div class="vocab-word-row">' +
+              '<span class="vocab-word">' + esc(w.word) + '</span>' +
+              (w.phonetic ? '<span class="vocab-phonetic">' + esc(w.phonetic) + '</span>' : '') +
+            '</div>' +
+            '<div class="vocab-meaning">' + esc(w.meaning) + '</div>' +
+            '<div class="vocab-example">"' + esc(w.example) + '"</div>' +
+            (w.techNote ? '<span class="vocab-tech-note">⚙ ' + esc(w.techNote) + '</span>' : '') +
+          '</div>';
+        }).join('');
+        wrap.innerHTML =
+          '<div class="section-title">Vocabulary</div>' +
+          '<div class="vocab-grid">' + words + '</div>';
+      }
+
+      else if (sec.type === 'explanation') {
+        wrap.innerHTML =
+          '<div class="section-title">Explanation</div>' +
+          '<div class="explanation-box">' +
+            (sec.title ? '<h3>' + esc(sec.title) + '</h3>' : '') +
+            (sec.content || '') +
+          '</div>';
+      }
+
+      else if (sec.type === 'tech-example') {
+        var dialogueLines = (sec.dialogue || []).map(function (line) {
+          var initial = (line.speaker || 'U')[0].toUpperCase();
+          return '<div class="dialogue-line' + (line.isYou ? ' you-line' : '') + '">' +
+            '<div class="dialogue-avatar">' + esc(initial) + '</div>' +
+            '<div class="dialogue-bubble">' +
+              '<div class="dialogue-speaker">' + esc(line.speaker || '') + '</div>' +
+              '<div class="dialogue-text">' + esc(line.text) + '</div>' +
+            '</div>' +
+          '</div>';
+        }).join('');
+        wrap.innerHTML =
+          '<div class="section-title">Tech Example</div>' +
+          (sec.title ? '<h3 style="font-size:14px;font-weight:600;color:var(--text-primary);margin-bottom:8px">' + esc(sec.title) + '</h3>' : '') +
+          (sec.scenario ? '<div class="tech-scenario">' + esc(sec.scenario) + '</div>' : '') +
+          '<div class="dialogue">' + dialogueLines + '</div>' +
+          (sec.tip ? '<div class="dialogue-tip"><strong>💡 Tip:</strong> ' + esc(sec.tip) + '</div>' : '');
+      }
+
+      else if (sec.type === 'speaking') {
+        var taId = 'speaking-' + si;
+        wrap.innerHTML =
+          '<div class="section-title">Speaking Challenge</div>' +
+          '<div class="speaking-box">' +
+            '<div class="speaking-prompt">' + esc(sec.prompt) + '</div>' +
+            (sec.tip ? '<div class="speaking-tip">💡 ' + esc(sec.tip) + '</div>' : '') +
+            (sec.example ? '<div class="speaking-example"><strong>Example</strong>' + esc(sec.example) + '</div>' : '') +
+            '<textarea class="speaking-textarea" id="' + taId + '" placeholder="Write your answer here in English..." aria-label="Speaking challenge answer"></textarea>' +
+            '<div class="speaking-feedback" id="speaking-fb-' + si + '">✓ Great! Your response has been saved.</div>' +
+          '</div>';
+
+        // Show feedback on blur if content present
+        setTimeout(function () {
+          var ta = document.getElementById(taId);
+          var fb = document.getElementById('speaking-fb-' + si);
+          if (ta && fb) {
+            ta.addEventListener('blur', function () {
+              if (ta.value.trim().length > 10) {
+                fb.style.display = 'block';
+              }
+            });
+          }
+        }, 50);
+      }
+
+      else if (sec.type === 'quiz') {
+        var questions = sec.questions || [];
+        var qNum = questions.length;
+        quizScores[si]   = { correct: 0, total: qNum };
+        quizDone[si]     = (qNum === 0);
+        quizAnswered[si] = 0;
+
+        var questionsHtml = questions.map(function (q, qi) {
+          var optHtml = q.options.map(function (opt, oi) {
+            return '<div class="quiz-option" data-si="' + si + '" data-qi="' + qi + '" data-oi="' + oi + '" data-correct="' + (opt.correct ? '1' : '0') + '">' +
+              '<span class="quiz-option-letter">' + LETTERS[oi] + '</span>' +
+              '<span>' + esc(opt.text) + '</span>' +
+            '</div>';
+          }).join('');
+
+          return '<div class="quiz-question-card" id="qqcard-' + si + '-' + qi + '">' +
+            '<div class="quiz-q-num">Question ' + (qi + 1) + ' of ' + qNum + '</div>' +
+            '<div class="quiz-q-text">' + esc(q.question) + '</div>' +
+            '<div class="quiz-options">' + optHtml + '</div>' +
+            '<div class="quiz-explanation" id="qexp-' + si + '-' + qi + '">' + esc(q.explanation || '') + '</div>' +
+            '<button class="quiz-check-btn" id="qbtn-' + si + '-' + qi + '" disabled data-si="' + si + '" data-qi="' + qi + '" data-qmax="' + qNum + '">Check Answer</button>' +
+          '</div>';
+        }).join('');
+
+        wrap.innerHTML =
+          '<div class="section-title">Quiz</div>' +
+          '<div class="quiz-questions">' + questionsHtml + '</div>' +
+          '<div class="quiz-score" id="quizscore-' + si + '">' +
+            '<div class="quiz-score-val" id="quizscore-val-' + si + '">0/' + qNum + '</div>' +
+            '<div class="quiz-score-label">correct answers</div>' +
+            '<button class="quiz-retry-btn" id="quiz-retry-' + si + '">↺ Try again</button>' +
+          '</div>';
+      }
+
+      container.appendChild(wrap);
+    });
+
+    // ── Quiz interactions (event delegation) ──────────────
+    container.addEventListener('click', function (e) {
+      // Option click
+      var opt = e.target.closest('.quiz-option');
+      if (opt && !opt.classList.contains('answered')) {
+        var si2 = opt.dataset.si;
+        var qi2 = opt.dataset.qi;
+        var card = document.getElementById('qqcard-' + si2 + '-' + qi2);
+        // Mark all in this question as selected-state
+        card.querySelectorAll('.quiz-option').forEach(function (o) { o.classList.remove('selected'); });
+        opt.classList.add('selected');
+        // Enable check button
+        var btn = document.getElementById('qbtn-' + si2 + '-' + qi2);
+        if (btn) btn.disabled = false;
+        return;
+      }
+
+      // Check button
+      var checkBtn = e.target.closest('.quiz-check-btn');
+      if (checkBtn && !checkBtn.disabled) {
+        var si3 = checkBtn.dataset.si;
+        var qi3 = parseInt(checkBtn.dataset.qi, 10);
+        var qmax = parseInt(checkBtn.dataset.qmax, 10);
+        var card2 = document.getElementById('qqcard-' + si3 + '-' + qi3);
+        var sel = card2.querySelector('.quiz-option.selected');
+        if (!sel) return;
+        var isCorrect = sel.dataset.correct === '1';
+
+        // Mark all options
+        card2.querySelectorAll('.quiz-option').forEach(function (o) {
+          o.classList.add('answered');
+          if (o.dataset.correct === '1') o.classList.add('correct');
+        });
+        if (!isCorrect) sel.classList.add('wrong');
+
+        // Show explanation
+        var exp = document.getElementById('qexp-' + si3 + '-' + qi3);
+        if (exp) exp.classList.add('show');
+
+        // Disable check btn
+        checkBtn.disabled = true;
+        if (isCorrect) quizScores[si3].correct++;
+        quizAnswered[si3] = (quizAnswered[si3] || 0) + 1;
+
+        // All questions in this section answered?
+        if (quizAnswered[si3] >= quizScores[si3].total) {
+          quizDone[si3] = true;
+          var scoreEl = document.getElementById('quizscore-' + si3);
+          if (scoreEl) {
+            scoreEl.classList.add('show');
+            document.getElementById('quizscore-val-' + si3).textContent =
+              quizScores[si3].correct + '/' + quizScores[si3].total;
+          }
+          checkCompleteEligibility();
+        }
+        return;
+      }
+
+      // Retry button
+      var retryBtn = e.target.closest('.quiz-retry-btn');
+      if (retryBtn) {
+        var si4 = retryBtn.id.replace('quiz-retry-', '');
+        retryQuiz(parseInt(si4, 10));
+        return;
+      }
+    });
+
+    function retryQuiz(si4) {
+      var scoreEl = document.getElementById('quizscore-' + si4);
+      if (scoreEl) scoreEl.classList.remove('show');
+      quizScores[si4].correct = 0;
+      quizAnswered[si4] = 0;
+      quizDone[si4] = false;
+      var questions = sections[si4] && sections[si4].questions || [];
+      questions.forEach(function (q, qi) {
+        var card = document.getElementById('qqcard-' + si4 + '-' + qi);
+        if (!card) return;
+        card.querySelectorAll('.quiz-option').forEach(function (o) {
+          o.classList.remove('answered', 'selected', 'correct', 'wrong');
+        });
+        var exp = document.getElementById('qexp-' + si4 + '-' + qi);
+        if (exp) exp.classList.remove('show');
+        var btn = document.getElementById('qbtn-' + si4 + '-' + qi);
+        if (btn) btn.disabled = true;
+      });
+      checkCompleteEligibility();
+    }
+
+    // ── Complete button eligibility ───────────────────────
+    var completeBtn = document.getElementById('completeBtn');
+
+    function checkCompleteEligibility() {
+      // Eligible if all quiz sections are done (or no quiz sections)
+      var quizSectionsDone = true;
+      Object.keys(quizDone).forEach(function (k) {
+        if (!quizDone[k]) quizSectionsDone = false;
+      });
+      completeBtn.disabled = !quizSectionsDone;
+    }
+
+    // Initial check (if lesson already done or no quizzes)
+    checkCompleteEligibility();
+
+    // If already completed, enable button
+    if (alreadyDone) {
+      completeBtn.disabled = false;
+      completeBtn.textContent = 'Next Lesson →';
+    }
+
+    // ── Toast queue (one at a time, no visual stacking) ───
+    var toastQueue    = [];
+    var toastRunning  = false;
+
+    function enqueueToasts(notifs) {
+      notifs.forEach(function (n) { toastQueue.push(n); });
+      if (!toastRunning) drainToastQueue();
+    }
+
+    function drainToastQueue() {
+      if (!toastQueue.length) { toastRunning = false; return; }
+      toastRunning = true;
+      showAchievementToast(toastQueue.shift());
+      setTimeout(drainToastQueue, 4400);
+    }
+
+    // ── Complete button action ─────────────────────────────
+    completeBtn.addEventListener('click', function () {
+      // Calculate next destination first
+      var nextL  = lesson + 1;
+      var nextM  = module;
+      var nextLv = level;
+      if (nextL > ES.SIZES.lessonsPerModule) { nextL = 1; nextM = module + 1; }
+      if (nextM > ES.SIZES.modulesPerLevel)  { nextM = 1; nextLv = level + 1; }
+      var courseComplete = nextLv > ES.SIZES.levels;
+
+      // If already done: skip ceremony, just navigate
+      if (alreadyDone) {
+        location.href = courseComplete
+          ? 'english-dashboard.html'
+          : 'english-lesson.html?level=' + nextLv + '&module=' + nextM + '&lesson=' + nextL;
+        return;
+      }
+
+      var data = ES.completeLesson(level, module, lesson, lessonData.xpReward, lessonData.duration, lessonData.title);
+
+      // Update progress bar
+      var modProg2 = ES.getModuleProgress(level, module);
+      document.getElementById('lpFill').style.width = modProg2.percent + '%';
+      document.getElementById('lpCount').textContent = modProg2.done + '/' + modProg2.total + ' done';
+
+      // Show achievement toasts (queued — one at a time)
+      enqueueToasts(ES.getAndClearNotifications());
+
+      // Module completion ceremony
+      if (modProg2.done === ES.SIZES.lessonsPerModule) {
+        var modObj = ED.getModule(level, module);
+        var modData = ED.levels[level] && ED.levels[level].modules[module];
+        var modXP = 0;
+        if (modData && modData.lessons) {
+          modData.lessons.forEach(function (l) { modXP += (l.xpReward || 75); });
+        }
+        document.getElementById('ceremonyTitle').textContent = (modObj ? modObj.title : 'Module ' + module) + ' — Complete!';
+        document.getElementById('ceremonySubtitle').textContent = 'Level ' + level + ' · Module ' + module + ' of ' + ES.SIZES.modulesPerLevel;
+        document.getElementById('ceremonyXP').textContent = '+' + modXP;
+        document.getElementById('ceremonyStreak').textContent = data.streak ? data.streak.count : 1;
+
+        var nextBtn = document.getElementById('ceremonyNextBtn');
+        nextBtn.textContent = courseComplete ? 'Back to Dashboard' : 'Next Module →';
+        nextBtn.onclick = function () {
+          location.href = courseComplete
+            ? 'english-dashboard.html'
+            : 'english-lesson.html?level=' + nextLv + '&module=' + nextM + '&lesson=' + nextL;
+        };
+        document.getElementById('ceremonyOverlay').classList.add('show');
+        return;
+      }
+
+      // Navigate to next lesson
+      location.href = courseComplete
+        ? 'english-dashboard.html'
+        : 'english-lesson.html?level=' + nextLv + '&module=' + nextM + '&lesson=' + nextL;
+    });
+
+    // ── Achievement toast ─────────────────────────────────
+    function showAchievementToast(notif) {
+      var color = notif.color || '#35F4FF';
+      var toast = document.createElement('div');
+      toast.className = 'ach-toast';
+      toast.style.borderColor = color + '40';
+      toast.innerHTML =
+        '<div class="ach-toast-icon" style="border-color:' + color + '40;background:' + color + '10;color:' + color + '">' + (notif.icon || '★') + '</div>' +
+        '<div class="ach-toast-body">' +
+          '<span class="ach-toast-label" style="color:' + color + '">Achievement · ' + (notif.rarity || '') + '</span>' +
+          '<span class="ach-toast-name">' + esc(notif.name) + '</span>' +
+          '<span class="ach-toast-desc">' + esc(notif.description) + '</span>' +
+        '</div>' +
+        '<span class="ach-toast-xp" style="color:' + color + '">+' + notif.xpBonus + '</span>';
+      document.getElementById('toastContainer').appendChild(toast);
+      setTimeout(function () {
+        toast.classList.add('fade-out');
+        setTimeout(function () { toast.remove(); }, 320);
+      }, 4000);
+    }
+
+    // ── Escape helper ──────────────────────────────────────
+    function esc(str) {
+      if (!str) return '';
+      return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
+    }
+
+  })();
+  </script>
+</body>
+</html>
+
+
