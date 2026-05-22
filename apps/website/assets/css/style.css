@@ -112,6 +112,29 @@ textarea {
   color: var(--purple-700);
 }
 
+.nav a:focus-visible {
+  outline: 2px solid var(--purple-600);
+  outline-offset: 4px;
+  border-radius: 4px;
+}
+
+.menu-toggle:focus-visible {
+  outline: 2px solid var(--purple-600);
+  outline-offset: 4px;
+  border-radius: 4px;
+}
+
+.btn:focus-visible {
+  outline: 2px solid var(--purple-600);
+  outline-offset: 4px;
+}
+
+.footer-links a:focus-visible {
+  outline: 2px solid var(--purple-600);
+  outline-offset: 4px;
+  border-radius: 4px;
+}
+
 .menu-toggle {
   display: none;
   width: 42px;
@@ -1193,6 +1216,34 @@ p {
   color: var(--purple-800);
   font-size: 0.9rem;
   font-weight: 700;
+}
+
+.form-status--success {
+  color: #1a7a4a;
+}
+
+.form-status--error {
+  color: #c0392b;
+}
+
+.form-group input[aria-invalid="true"],
+.form-group textarea[aria-invalid="true"] {
+  border-color: #c0392b;
+  box-shadow: 0 0 0 3px rgba(192, 57, 43, 0.15);
+  outline: none;
+}
+
+.field-error {
+  display: block;
+  margin-top: 4px;
+  color: #c0392b;
+  font-size: 0.8rem;
+  font-weight: 500;
+}
+
+.btn[disabled] {
+  opacity: 0.65;
+  cursor: not-allowed;
 }
 
 .footer {

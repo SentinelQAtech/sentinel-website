@@ -4,16 +4,44 @@
 
   if (!toggle || !nav) return;
 
-  toggle.addEventListener("click", () => {
-    const isOpen = nav.classList.toggle("active");
-    toggle.setAttribute("aria-expanded", String(isOpen));
+  function openMenu() {
+    nav.classList.add("active");
+    toggle.setAttribute("aria-expanded", "true");
+    toggle.setAttribute("aria-label", "Close menu");
+    var firstLink = nav.querySelector("a");
+    if (firstLink) firstLink.focus();
+  }
+
+  function closeMenu() {
+    nav.classList.remove("active");
+    toggle.setAttribute("aria-expanded", "false");
+    toggle.setAttribute("aria-label", "Open menu");
+    toggle.focus();
+  }
+
+  toggle.addEventListener("click", function () {
+    var isOpen = toggle.getAttribute("aria-expanded") === "true";
+    isOpen ? closeMenu() : openMenu();
   });
 
-  nav.querySelectorAll("a").forEach((link) => {
-    link.addEventListener("click", () => {
-      nav.classList.remove("active");
-      toggle.setAttribute("aria-expanded", "false");
-    });
+  document.addEventListener("keydown", function (e) {
+    if (e.key === "Escape" && toggle.getAttribute("aria-expanded") === "true") {
+      closeMenu();
+    }
+  });
+
+  document.addEventListener("click", function (e) {
+    if (
+      toggle.getAttribute("aria-expanded") === "true" &&
+      !nav.contains(e.target) &&
+      !toggle.contains(e.target)
+    ) {
+      closeMenu();
+    }
+  });
+
+  nav.querySelectorAll("a").forEach(function (link) {
+    link.addEventListener("click", closeMenu);
   });
 })();
 
@@ -69,27 +97,87 @@
 (function initContactForm() {
   const form = document.getElementById("contactForm");
   const status = document.getElementById("formStatus");
+  const submitBtn = form ? form.querySelector('button[type="submit"]') : null;
 
-  if (!form) return;
+  if (!form || !status || !submitBtn) return;
 
-  form.addEventListener("submit", (event) => {
-    event.preventDefault();
+  form.addEventListener("submit", async function (e) {
+    e.preventDefault();
 
-    const name = document.getElementById("name")?.value.trim();
-    const email = document.getElementById("email")?.value.trim();
-    const message = document.getElementById("message")?.value.trim();
+    const name = form.querySelector("#name").value.trim();
+    const email = form.querySelector("#email").value.trim();
+    const message = form.querySelector("#message").value.trim();
 
-    if (!name || !email || !message) {
-      if (status) status.textContent = "Please complete all fields before sending.";
-      return;
+    clearFieldErrors(form);
+    status.textContent = "";
+    status.className = "form-status";
+
+    let hasError = false;
+    if (!name) {
+      showFieldError(form, "name", "Please enter your name.");
+      hasError = true;
     }
-
-    if (status) {
-      status.textContent = "Message ready. Email integration will be connected next.";
+    if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      showFieldError(form, "email", "Please enter a valid work email.");
+      hasError = true;
     }
+    if (!message) {
+      showFieldError(form, "message", "Please describe your project context.");
+      hasError = true;
+    }
+    if (hasError) return;
 
-    form.reset();
+    submitBtn.disabled = true;
+    submitBtn.textContent = "Sending…";
+
+    try {
+      const response = await fetch("https://formspree.io/f/mvzyajaa", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Accept": "application/json",
+        },
+        body: JSON.stringify({ name: name, email: email, message: message }),
+      });
+
+      if (response.ok) {
+        form.reset();
+        status.textContent = "Message sent! We’ll be in touch within 1 business day.";
+        status.className = "form-status form-status--success";
+      } else {
+        status.textContent = "Something went wrong. Email us at contato@sentinelqa.tech";
+        status.className = "form-status form-status--error";
+      }
+    } catch (_) {
+      status.textContent = "Network error. Check your connection and try again.";
+      status.className = "form-status form-status--error";
+    } finally {
+      submitBtn.disabled = false;
+      submitBtn.textContent = "Send message";
+    }
   });
+
+  function showFieldError(form, fieldId, message) {
+    const field = form.querySelector("#" + fieldId);
+    if (!field) return;
+    field.setAttribute("aria-invalid", "true");
+    field.setAttribute("aria-describedby", fieldId + "-error");
+    const errorEl = document.createElement("span");
+    errorEl.id = fieldId + "-error";
+    errorEl.className = "field-error";
+    errorEl.setAttribute("role", "alert");
+    errorEl.textContent = message;
+    field.parentNode.appendChild(errorEl);
+    field.focus();
+  }
+
+  function clearFieldErrors(form) {
+    form.querySelectorAll(".field-error").forEach(function (el) { el.remove(); });
+    form.querySelectorAll("[aria-invalid]").forEach(function (el) {
+      el.removeAttribute("aria-invalid");
+      el.removeAttribute("aria-describedby");
+    });
+  }
 })();
 
 (function initCopyright() {
