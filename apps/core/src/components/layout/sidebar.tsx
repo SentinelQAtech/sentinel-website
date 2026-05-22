@@ -8,7 +8,7 @@ import {
   LayoutDashboard, Bug, BarChart3,
   Bell, Settings, Users, ChevronLeft, ChevronRight,
   Search, Zap, CalendarDays, ClipboardCheck,
-  Activity, Columns, FolderOpen, Building2,
+  Activity, Columns, FolderOpen, Building2, GraduationCap,
 } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { brandLogoIcon } from '@/lib/routes'
@@ -22,9 +22,10 @@ interface BadgeConfig {
 
 interface NavItem {
   labelKey: string
-  href:   string
-  icon:   React.ElementType
-  badge?: BadgeConfig
+  href:     string
+  icon:     React.ElementType
+  badge?:   BadgeConfig
+  external?: boolean
 }
 
 interface NavGroup {
@@ -38,9 +39,10 @@ const navGroups: NavGroup[] = [
   {
     labelKey: 'overview',
     items: [
-      { labelKey: 'dashboard', href: '/dashboard', icon: LayoutDashboard },
-      { labelKey: 'daily',     href: '/daily',     icon: Activity        },
-      { labelKey: 'calendar',  href: '/calendar',  icon: CalendarDays    },
+      { labelKey: 'dashboard', href: '/dashboard',                        icon: LayoutDashboard },
+      { labelKey: 'daily',     href: '/daily',                            icon: Activity        },
+      { labelKey: 'calendar',  href: '/calendar',                         icon: CalendarDays    },
+      { labelKey: 'learning',  href: 'https://sentinelqa.tech/learning/', icon: GraduationCap, external: true },
     ],
   },
   {
@@ -86,21 +88,29 @@ export function Sidebar({ collapsed = false, onToggle }: SidebarProps) {
   const t = useI18nStore(s => s.t)
 
   const renderItem = (item: NavItem) => {
-    const active = pathname.startsWith(item.href)
+    const active = !item.external && pathname.startsWith(item.href)
     const label = t(item.labelKey)
+    const itemClass = cn(
+      'flex items-center gap-3 px-2.5 py-2 rounded-lg text-sm font-medium',
+      'transition-all duration-150 group relative',
+      active
+        ? 'bg-primary/15 text-primary border border-primary/20 shadow-[0_0_12px_rgba(99,102,241,0.1)]'
+        : 'text-white/55 hover:text-white hover:bg-white/[0.05]',
+      collapsed && 'justify-center px-2'
+    )
+    const Wrapper = item.external
+      ? ({ children }: { children: React.ReactNode }) => (
+          <a key={item.href} href={item.href} target="_blank" rel="noopener noreferrer" className={itemClass}>
+            {children}
+          </a>
+        )
+      : ({ children }: { children: React.ReactNode }) => (
+          <Link key={item.href} href={item.href} className={itemClass}>
+            {children}
+          </Link>
+        )
     return (
-      <Link
-        key={item.href}
-        href={item.href}
-        className={cn(
-          'flex items-center gap-3 px-2.5 py-2 rounded-lg text-sm font-medium',
-          'transition-all duration-150 group relative',
-          active
-            ? 'bg-primary/15 text-primary border border-primary/20 shadow-[0_0_12px_rgba(99,102,241,0.1)]'
-            : 'text-white/55 hover:text-white hover:bg-white/[0.05]',
-          collapsed && 'justify-center px-2'
-        )}
-      >
+      <Wrapper key={item.href}>
         <item.icon className={cn(
           'w-4 h-4 shrink-0 transition-colors duration-150',
           active ? 'text-primary' : 'text-white/40 group-hover:text-white/70'
@@ -159,7 +169,7 @@ export function Sidebar({ collapsed = false, onToggle }: SidebarProps) {
             )}
           </div>
         )}
-      </Link>
+      </Wrapper>
     )
   }
 
