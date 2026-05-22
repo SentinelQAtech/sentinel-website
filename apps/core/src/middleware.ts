@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { createServerClient, type CookieOptions } from '@supabase/ssr'
 
+// ── Rate limiting (for /api/sentinel-ai) ─────────────────────────────────────
 const ALLOWED_ORIGINS = (
   process.env.NEXT_PUBLIC_ALLOWED_ORIGINS ??
   'https://sentinel-core-web.vercel.app,http://localhost:3000'
@@ -8,14 +10,11 @@ const ALLOWED_ORIGINS = (
   .map((o) => o.trim())
   .filter(Boolean)
 
-// In-memory rate limit — persists per Edge worker instance
-// Not globally shared across nodes, but adds meaningful friction
 const rateLimitMap = new Map<string, { count: number; resetAt: number }>()
-const RATE_LIMIT = 15   // max requests
-const WINDOW_MS  = 60_000 // per 60 seconds
+const RATE_LIMIT = 15
+const WINDOW_MS  = 60_000
 
-export function middleware(req: NextRequest) {
-  // ── Origin check ──────────────────────────────────────────────
+function handleAiRoute(req: NextRequest): NextResponse | null {
   const origin = req.headers.get('origin') ?? ''
   if (origin && !ALLOWED_ORIGINS.includes(origin)) {
     return new NextResponse(JSON.stringify({ error: 'Forbidden' }), {
@@ -24,7 +23,6 @@ export function middleware(req: NextRequest) {
     })
   }
 
-  // ── Rate limiting by IP ────────────────────────────────────────
   const ip =
     req.headers.get('x-forwarded-for')?.split(',')[0].trim() ??
     req.headers.get('x-real-ip') ??
@@ -42,18 +40,84 @@ export function middleware(req: NextRequest) {
         JSON.stringify({ error: 'Too many requests. Try again in a minute.' }),
         {
           status: 429,
-          headers: {
-            'Content-Type': 'application/json',
-            'Retry-After':  '60',
-          },
+          headers: { 'Content-Type': 'application/json', 'Retry-After': '60' },
         }
       )
     }
   }
 
-  return NextResponse.next()
+  return null // allow through
+}
+
+// ── Auth pages — accessible without a session ────────────────────────────────
+const AUTH_PATHS = ['/login', '/forgot-password', '/change-password', '/auth/callback']
+
+function isAuthPath(pathname: string) {
+  return AUTH_PATHS.some((p) => pathname === p || pathname.startsWith(p + '/'))
+}
+
+export async function middleware(req: NextRequest) {
+  const { pathname } = req.nextUrl
+
+  // Dedicated handler for the AI API route
+  if (pathname === '/api/sentinel-ai') {
+    const blocked = handleAiRoute(req)
+    if (blocked) return blocked
+    return NextResponse.next()
+  }
+
+  // ── Supabase session check ────────────────────────────────────────────────
+  let supabaseResponse = NextResponse.next({ request: req })
+
+  const supabase = createServerClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    {
+      cookies: {
+        getAll: () => req.cookies.getAll(),
+        setAll: (cookiesToSet: { name: string; value: string; options: CookieOptions }[]) => {
+          cookiesToSet.forEach(({ name, value }) => req.cookies.set(name, value))
+          supabaseResponse = NextResponse.next({ request: req })
+          cookiesToSet.forEach(({ name, value, options }) =>
+            supabaseResponse.cookies.set(name, value, options)
+          )
+        },
+      },
+    }
+  )
+
+  const { data: { user } } = await supabase.auth.getUser()
+
+  const onAuthPage  = isAuthPath(pathname)
+  const onChangePwd = pathname === '/change-password' || pathname.startsWith('/change-password/')
+  const forceChange = user?.user_metadata?.force_password_change === true
+
+  // Not logged in and trying to access a protected page
+  if (!user && !onAuthPage) {
+    const redirectTo = req.nextUrl.clone()
+    redirectTo.pathname = '/login'
+    return NextResponse.redirect(redirectTo)
+  }
+
+  // Logged in but must change password first
+  if (user && forceChange && !onChangePwd) {
+    const redirectTo = req.nextUrl.clone()
+    redirectTo.pathname = '/change-password'
+    return NextResponse.redirect(redirectTo)
+  }
+
+  // Logged in and landing on login/forgot-password → go to dashboard
+  if (user && (pathname === '/login' || pathname === '/forgot-password')) {
+    const redirectTo = req.nextUrl.clone()
+    redirectTo.pathname = '/dashboard'
+    return NextResponse.redirect(redirectTo)
+  }
+
+  return supabaseResponse
 }
 
 export const config = {
-  matcher: '/api/sentinel-ai',
+  matcher: [
+    '/((?!_next/static|_next/image|favicon\\.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)',
+  ],
 }
