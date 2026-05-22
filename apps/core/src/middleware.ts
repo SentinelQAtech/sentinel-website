@@ -10,6 +10,8 @@ const ALLOWED_ORIGINS = (
   .map((o) => o.trim())
   .filter(Boolean)
 
+// In-memory — not shared across Edge runtime instances.
+// Provides per-instance friction, not a globally enforced limit.
 const rateLimitMap = new Map<string, { count: number; resetAt: number }>()
 const RATE_LIMIT = 15
 const WINDOW_MS  = 60_000
@@ -49,6 +51,13 @@ function handleAiRoute(req: NextRequest): NextResponse | null {
   return null // allow through
 }
 
+function redirectWithCookies(to: NextResponse, cookieSource: NextResponse): NextResponse {
+  cookieSource.cookies.getAll().forEach((cookie) => {
+    to.cookies.set(cookie.name, cookie.value)
+  })
+  return to
+}
+
 // ── Auth pages — accessible without a session ────────────────────────────────
 const AUTH_PATHS = ['/login', '/forgot-password', '/change-password', '/auth/callback']
 
@@ -64,6 +73,17 @@ export async function middleware(req: NextRequest) {
     const blocked = handleAiRoute(req)
     if (blocked) return blocked
     return NextResponse.next()
+  }
+
+  // Short-circuit /auth/callback — it exchanges the code for a session and
+  // has no existing session to check.
+  if (pathname.startsWith('/auth/callback')) {
+    return NextResponse.next({ request: req })
+  }
+
+  // Short-circuit other /api/* routes — they don't need a session check here.
+  if (pathname.startsWith('/api/') && pathname !== '/api/sentinel-ai') {
+    return NextResponse.next({ request: req })
   }
 
   // ── Supabase session check ────────────────────────────────────────────────
@@ -96,21 +116,23 @@ export async function middleware(req: NextRequest) {
   if (!user && !onAuthPage) {
     const redirectTo = req.nextUrl.clone()
     redirectTo.pathname = '/login'
-    return NextResponse.redirect(redirectTo)
+    redirectTo.search = ''
+    return redirectWithCookies(NextResponse.redirect(redirectTo), supabaseResponse)
   }
 
   // Logged in but must change password first
   if (user && forceChange && !onChangePwd) {
     const redirectTo = req.nextUrl.clone()
     redirectTo.pathname = '/change-password'
-    return NextResponse.redirect(redirectTo)
+    redirectTo.search = ''
+    return redirectWithCookies(NextResponse.redirect(redirectTo), supabaseResponse)
   }
 
   // Logged in and landing on login/forgot-password → go to dashboard
   if (user && (pathname === '/login' || pathname === '/forgot-password')) {
     const redirectTo = req.nextUrl.clone()
     redirectTo.pathname = '/dashboard'
-    return NextResponse.redirect(redirectTo)
+    return redirectWithCookies(NextResponse.redirect(redirectTo), supabaseResponse)
   }
 
   return supabaseResponse
