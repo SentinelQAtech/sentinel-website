@@ -1,0 +1,17 @@
+{
+  "name": "Sentinel Tech - QA",
+  "short_name": "Sentinel QA",
+  "description": "Quality engineering for reliable releases.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#08050f",
+  "theme_color": "#6c2bd9",
+  "icons": [
+    {
+      "src": "assets/brand/logo_full.png",
+      "sizes": "any",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}
