@@ -5,18 +5,8 @@ import {
   ResponsiveContainer
 } from 'recharts'
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card'
-import { Button } from '@/components/ui/button'
-import { useState } from 'react'
-
-const data = [
-  { date: '01 Apr', opened: 12, closed: 8, resolved: 6  },
-  { date: '08 Apr', opened: 19, closed: 14, resolved: 11 },
-  { date: '15 Apr', opened: 8,  closed: 18, resolved: 15 },
-  { date: '22 Apr', opened: 15, closed: 12, resolved: 10 },
-  { date: '29 Apr', opened: 22, closed: 20, resolved: 17 },
-  { date: '06 Mai', opened: 14, closed: 16, resolved: 13 },
-  { date: '13 Mai', opened: 9,  closed: 21, resolved: 18 },
-]
+import { useMemo, useState } from 'react'
+import { useBugsStore } from '@/store/bugs'
 
 const CustomTooltip = ({ active, payload, label }: any) => {
   if (!active || !payload?.length) return null
@@ -40,6 +30,29 @@ type Range = '7d' | '30d' | '90d'
 
 export function BugTrendChart() {
   const [range, setRange] = useState<Range>('30d')
+  const bugs = useBugsStore(s => s.bugs)
+
+  const data = useMemo(() => {
+    const days = range === '7d' ? 7 : range === '90d' ? 90 : 30
+    const today = new Date()
+    today.setHours(0, 0, 0, 0)
+
+    return Array.from({ length: days }, (_, index) => {
+      const date = new Date(today)
+      date.setDate(today.getDate() - (days - 1 - index))
+      const dateKey = date.toISOString().slice(0, 10)
+      const label = date.toLocaleDateString('pt-BR', { day: '2-digit', month: 'short' }).replace('.', '')
+
+      const opened = bugs.filter(bug => bug.createdAt?.slice(0, 10) === dateKey).length
+      const resolved = bugs.filter(bug => bug.resolvedAt?.slice(0, 10) === dateKey).length
+      const closed = bugs.filter(bug => {
+        const updatedKey = bug.updatedAt?.slice(0, 10)
+        return updatedKey === dateKey && (bug.status === 'RESOLVED' || bug.status === 'CLOSED')
+      }).length
+
+      return { date: label, opened, closed, resolved }
+    })
+  }, [bugs, range])
 
   return (
     <Card className="h-full">

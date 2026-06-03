@@ -2,7 +2,7 @@
 
 import {
   LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip,
-  ResponsiveContainer, ReferenceLine, Area, AreaChart
+  ResponsiveContainer
 } from 'recharts'
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card'
 
@@ -12,19 +12,15 @@ interface BurndownChartProps {
 }
 
 export function BurndownChart({ sprintName, planned }: BurndownChartProps) {
-  // Ideal burndown + actual progress
-  const data = [
-    { day: 'Day 1',  ideal: 42, actual: 42 },
-    { day: 'Day 2',  ideal: 37, actual: 38 },
-    { day: 'Day 3',  ideal: 32, actual: 33 },
-    { day: 'Day 4',  ideal: 27, actual: 30 },
-    { day: 'Day 5',  ideal: 22, actual: 26 },
-    { day: 'Day 6',  ideal: 17, actual: 22 },
-    { day: 'Day 7',  ideal: 12, actual: 18 },
-    { day: 'Day 8',  ideal: 7,  actual: 14 },
-    { day: 'Today',  ideal: 4,  actual: 14, isToday: true },
-    { day: 'Day 10', ideal: 0,  actual: null },
-  ]
+  const totalDays = 10
+  const data = Array.from({ length: totalDays }, (_, index) => {
+    const remainingDays = totalDays - 1 - index
+    return {
+      day: index === 0 ? 'Day 1' : index === totalDays - 1 ? 'Final' : `Day ${index + 1}`,
+      ideal: Math.round((planned * remainingDays) / (totalDays - 1)),
+      actual: null,
+    }
+  })
 
   const CustomTooltip = ({ active, payload, label }: any) => {
     if (!active || !payload?.length) return null

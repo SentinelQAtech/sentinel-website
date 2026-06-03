@@ -184,7 +184,7 @@ function ReportBugModal({ onClose, onCreate, nextNumber }: { onClose: () => void
   const [description, setDescription] = useState('')
   const [severity, setSeverity] = useState<BugSeverity>('MEDIUM')
   const [priority, setPriority] = useState<Priority>('MEDIUM')
-  const [environment, setEnvironment] = useState('Production')
+  const [environment, setEnvironment] = useState('')
 
   const inputCls = 'w-full px-3 py-2.5 rounded-lg text-sm bg-white/[0.04] border border-white/[0.08] text-white placeholder-white/25 outline-none focus:border-primary/50'
 

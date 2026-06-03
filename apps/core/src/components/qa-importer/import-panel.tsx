@@ -18,12 +18,12 @@ const TEXT_PLACEHOLDER = `Cole aqui o texto copiado do Jira.
 Formatos suportados:
 
 Pipe-separated:
-SCRUM-123 | Validate login flow | Ready for QA | High | Sprint 14
-AMB-442 | Review checkout bug | In Testing | Critical | Sprint 9
+CARD-123 | Validate login flow | Ready QA | High | Current Sprint
+BUG-442 | Review checkout bug | Testing | Critical | Current Sprint
 
 Ou qualquer texto com issue keys Jira:
-SCRUM-123 Validate login flow
-UOL-88 Test homepage after deploy`
+CARD-123 Validate login flow
+BUG-88 Test homepage after deploy`
 
 const CSV_PLACEHOLDER = `Cole CSV ou use o botão para fazer upload.
 
@@ -32,8 +32,8 @@ issueKey, title, status, priority, sprint, client, assignee, link, notes
 
 Exemplo:
 issueKey,title,status,priority,sprint,client,assignee,link,notes
-SCRUM-123,Validate login flow,Ready for QA,High,Sprint 14,ScrumLaunch,Raphael,,Validate all scenarios
-AMB-442,Review checkout bug,In Testing,Critical,Sprint 9,Ambev,Raphael,,Confirm bug fixed`
+CARD-123,Validate login flow,Ready QA,High,Current Sprint,Client Name,Raphael,,Validate all scenarios
+BUG-442,Review checkout bug,Testing,Critical,Current Sprint,Client Name,Raphael,,Confirm bug fixed`
 
 export function ImportPanel({ qaFilterEnabled, onQaFilterChange, onImport }: Props) {
   const [tab,           setTab]           = useState<TabType>('text')

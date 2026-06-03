@@ -147,7 +147,7 @@ export default function DashboardPage() {
               <p className="font-medium text-white/50">
                 {formatDate(new Date(), "EEEE, dd 'de' MMMM yyyy")}
               </p>
-              <p>Sprint 14 · 5 dias restantes</p>
+              <p>Dados reais do seu workspace</p>
             </div>
             <button
               onClick={() => setEditorOpen(true)}
