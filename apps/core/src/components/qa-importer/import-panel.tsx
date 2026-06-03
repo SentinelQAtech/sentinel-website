@@ -13,6 +13,7 @@ interface Props {
   qaFilterEnabled: boolean
   onQaFilterChange:(enabled: boolean) => void
   onImport:       (items: ParsedQAItem[], source: TabType) => { added: number; updated: number; total: number }
+  onSuccess?:     () => void
 }
 
 const TEXT_PLACEHOLDER = `issueKey | título | status | prioridade | sprint | descrição | link
@@ -55,7 +56,7 @@ function applyClient(
 
 // ─── ImportPanel ─────────────────────────────────────────────
 
-export function ImportPanel({ qaFilterEnabled, onQaFilterChange, onImport }: Props) {
+export function ImportPanel({ qaFilterEnabled, onQaFilterChange, onImport, onSuccess }: Props) {
   const companies  = useCompaniesStore(s => s.companies).filter(c => c.status !== 'finished')
   const prefixMap  = useQAImporterStore(s => s.prefixMap)
   const setPrefixMap = useQAImporterStore(s => s.setPrefixMap)
@@ -151,6 +152,7 @@ export function ImportPanel({ qaFilterEnabled, onQaFilterChange, onImport }: Pro
       setPreview(null)
       setShowPreview(false)
       setLoading(false)
+      if (result.added > 0 && onSuccess) onSuccess()
     }, 200)
   }
 

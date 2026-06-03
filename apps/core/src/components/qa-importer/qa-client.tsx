@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useMemo, useCallback } from 'react'
+import * as Dialog from '@radix-ui/react-dialog'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Send, Layers, Upload, X, ClipboardList, CheckCircle2, Clock, ShieldAlert, ChevronDown, ChevronRight, Archive, AlertTriangle, FileText, GitPullRequest, MessageSquare, ExternalLink, PanelRightOpen } from 'lucide-react'
 import { cn } from '@/lib/utils'
@@ -265,7 +266,7 @@ export function TasksClient() {
       <div className="grid grid-cols-12 gap-5">
 
         {/* ── Tasks list ── */}
-        <div className={cn('col-span-12 flex flex-col gap-4', importOpen ? 'lg:col-span-8' : 'lg:col-span-12')}>
+        <div className="col-span-12 flex flex-col gap-4">
 
           <QAFiltersBar
             filters={filters}
@@ -382,64 +383,76 @@ export function TasksClient() {
             </div>
           )}
         </div>
+      </div>
 
-        {/* ── Import panel (right) ── */}
-        <AnimatePresence>
-          {importOpen && (
-            <motion.div
-              initial={{ opacity: 0, x: 16 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: 16 }}
-              className="col-span-12 lg:col-span-4 flex flex-col gap-4"
-            >
-              <div className="glass-card p-5">
-                <div className="flex items-center justify-between mb-4">
-                  <h2 className="text-sm font-semibold text-white/85 flex items-center gap-2">
-                    <Upload className="h-3.5 w-3.5 text-primary" />
-                    Importar Tasks
-                  </h2>
+      {/* ── Import Dialog ── */}
+      <Dialog.Root open={importOpen} onOpenChange={setImportOpen}>
+        <Dialog.Portal>
+          <Dialog.Overlay className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0" />
+          <Dialog.Content
+            className={cn(
+              'fixed left-1/2 top-1/2 z-50 w-full max-w-lg -translate-x-1/2 -translate-y-1/2',
+              'rounded-2xl border border-primary/20 bg-[#13151f] shadow-[0_32px_80px_rgba(0,0,0,0.7)]',
+              'data-[state=open]:animate-in data-[state=closed]:animate-out',
+              'data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0',
+              'data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95',
+              'data-[state=closed]:slide-out-to-left-1/2 data-[state=closed]:slide-out-to-top-[48%]',
+              'data-[state=open]:slide-in-from-left-1/2 data-[state=open]:slide-in-from-top-[48%]',
+              'duration-200 overflow-hidden',
+            )}
+          >
+            {/* Colored header */}
+            <div className="relative flex items-start justify-between gap-4 bg-gradient-to-b from-primary/[0.18] to-transparent px-6 pt-6 pb-5 border-b border-primary/[0.12]">
+              <div className="flex items-center gap-3.5">
+                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-primary/25 border border-primary/30">
+                  <Upload className="h-5 w-5 text-primary" />
+                </div>
+                <div>
+                  <Dialog.Title className="text-base font-bold text-white">Importar Tasks</Dialog.Title>
+                  <Dialog.Description className="text-xs text-white/40 mt-0.5">
+                    Selecione a empresa e importe suas tasks
+                  </Dialog.Description>
+                </div>
+              </div>
+              <Dialog.Close
+                className="shrink-0 rounded-lg p-1.5 text-white/30 hover:text-white/70 hover:bg-white/[0.06] transition-colors mt-0.5"
+                aria-label="Fechar"
+              >
+                <X className="h-4 w-4" />
+              </Dialog.Close>
+            </div>
+
+            {/* Scrollable content */}
+            <div className="overflow-y-auto max-h-[calc(100vh-10rem)] px-6 py-5 space-y-5">
+              <ImportPanel
+                qaFilterEnabled={store.qaFilterEnabled}
+                onQaFilterChange={store.setQaFilter}
+                onImport={handleImport}
+                onSuccess={() => setTimeout(() => setImportOpen(false), 1800)}
+              />
+
+              {/* Import history (collapsible inside dialog) */}
+              {store.history.length > 0 && (
+                <div className="rounded-xl border border-white/[0.07] overflow-hidden">
                   <button
                     type="button"
-                    aria-label="Fechar painel de importação"
-                    onClick={() => setImportOpen(false)}
-                    className="rounded-lg p-1.5 text-white/25 hover:text-white/60 hover:bg-white/[0.06] transition-colors"
+                    onClick={() => setHistoryOpen(o => !o)}
+                    className="w-full flex items-center justify-between px-4 py-3 hover:bg-white/[0.02] transition-colors"
                   >
-                    <X className="h-3.5 w-3.5" />
+                    <span className="text-xs font-semibold text-white/45">Histórico de importações</span>
+                    <span className="text-[10px] text-white/25">{historyOpen ? '▲' : '▼'}</span>
                   </button>
+                  {historyOpen && (
+                    <div className="px-4 pb-4 border-t border-white/[0.06]">
+                      <ImportHistory history={store.history} />
+                    </div>
+                  )}
                 </div>
-                <ImportPanel
-                  qaFilterEnabled={store.qaFilterEnabled}
-                  onQaFilterChange={store.setQaFilter}
-                  onImport={handleImport}
-                />
-              </div>
-
-              <div className="glass-card overflow-hidden">
-                <button
-                  type="button"
-                  onClick={() => setHistoryOpen(o => !o)}
-                  className="w-full flex items-center justify-between px-5 py-3.5 hover:bg-white/[0.02] transition-colors"
-                >
-                  <span className="text-sm font-semibold text-white/60">Histórico</span>
-                  <span className="text-[10px] text-white/30">{historyOpen ? '▲' : '▼'}</span>
-                </button>
-                {historyOpen && (
-                  <div className="px-4 pb-4 border-t border-white/[0.06]">
-                    <ImportHistory history={store.history} />
-                  </div>
-                )}
-              </div>
-
-              <div className="rounded-xl border border-dashed border-primary/[0.15] bg-primary/[0.03] p-4">
-                <p className="text-[11px] font-semibold text-primary/50 uppercase tracking-wider mb-1">Sentinel QA Sync</p>
-                <p className="text-xs text-white/40 leading-relaxed">
-                  Extensão Chrome ativa — sincronize cards do board Jira e abra esta página para importá-los automaticamente.
-                </p>
-              </div>
-            </motion.div>
-          )}
-        </AnimatePresence>
-      </div>
+              )}
+            </div>
+          </Dialog.Content>
+        </Dialog.Portal>
+      </Dialog.Root>
 
       {/* Sessões anteriores */}
       {store.archivedSessions.length > 0 && (
