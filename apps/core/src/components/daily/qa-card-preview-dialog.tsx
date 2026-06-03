@@ -1,7 +1,7 @@
 'use client'
 
 import * as Dialog from '@radix-ui/react-dialog'
-import { X, ExternalLink, FileSearch } from 'lucide-react'
+import { X, ExternalLink } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { QA_CATEGORY_CONFIG, PRIORITY_CONFIG, type QAItem } from '@/store/qa-importer'
 import { rankItem } from '@/lib/qa-ranking'
@@ -21,12 +21,12 @@ export function QACardPreviewDialog({ item, onClose }: Props) {
   return (
     <Dialog.Root open={!!item} onOpenChange={open => !open && onClose()}>
       <Dialog.Portal>
-        <Dialog.Overlay className="fixed inset-0 z-50 bg-black/55 backdrop-blur-sm data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0" />
+        <Dialog.Overlay className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0" />
 
         <Dialog.Content
           className={cn(
-            'fixed left-1/2 top-1/2 z-50 w-full max-w-md -translate-x-1/2 -translate-y-1/2',
-            'rounded-2xl border border-white/[0.08] bg-[#111318] shadow-[0_24px_80px_rgba(0,0,0,0.6)]',
+            'fixed left-1/2 top-1/2 z-50 w-full max-w-[440px] -translate-x-1/2 -translate-y-1/2',
+            'rounded-2xl border border-white/[0.08] bg-[#13151c] shadow-[0_32px_96px_rgba(0,0,0,0.7)]',
             'data-[state=open]:animate-in data-[state=closed]:animate-out',
             'data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0',
             'data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95',
@@ -35,113 +35,108 @@ export function QACardPreviewDialog({ item, onClose }: Props) {
             'duration-200',
           )}
         >
-          {/* Header */}
-          <div className="flex items-center justify-between gap-3 px-5 pt-5 pb-4">
-            <div className="flex items-center gap-3">
-              <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-primary/20 border border-primary/30">
-                <FileSearch className="h-4 w-4 text-primary" />
-              </div>
-              <div className="min-w-0">
-                {item.issueKey && (
-                  <p className="font-mono text-[11px] font-bold text-white/40 leading-none mb-0.5">
-                    {item.issueKey}
-                  </p>
-                )}
-                <Dialog.Title className="text-sm font-semibold text-white/90 leading-snug line-clamp-1">
-                  {item.title}
-                </Dialog.Title>
-              </div>
+          {/* Close */}
+          <Dialog.Close
+            className="absolute right-4 top-4 rounded-lg p-1.5 text-white/25 hover:text-white/60 hover:bg-white/[0.06] transition-colors"
+            aria-label="Fechar"
+          >
+            <X className="h-4 w-4" />
+          </Dialog.Close>
+
+          {/* Hero — issue key centralizado */}
+          <div className="flex flex-col items-center gap-3 px-6 pt-8 pb-6">
+            {item.issueKey ? (
+              <span className="font-mono text-3xl font-bold tracking-tight text-white">
+                {item.issueKey}
+              </span>
+            ) : (
+              <span className="font-mono text-2xl font-bold text-white/40">QA</span>
+            )}
+            <div className="flex flex-wrap items-center justify-center gap-1.5">
+              <Badge color={cat.color}>{item.qaCategory}</Badge>
+              <Badge color={prio.color}>{item.priority}</Badge>
+              {rank.detectedType && (
+                <span className="rounded-full border border-white/[0.1] bg-white/[0.05] px-2.5 py-0.5 text-[11px] font-semibold text-white/45">
+                  {rank.detectedType}
+                </span>
+              )}
             </div>
-            <Dialog.Close
-              className="shrink-0 rounded-lg p-1.5 text-white/30 hover:text-white/70 hover:bg-white/[0.06] transition-colors"
-              aria-label="Fechar"
-            >
-              <X className="h-4 w-4" />
-            </Dialog.Close>
           </div>
 
-          <div className="px-5 space-y-4 pb-5">
-            {/* Title full */}
+          {/* Divider */}
+          <div className="mx-5 border-t border-white/[0.07]" />
+
+          {/* Fields */}
+          <div className="px-5 py-5 space-y-4">
+            {/* Título */}
             <div>
               <Label>Título</Label>
               <Field>{item.title}</Field>
             </div>
 
-            {/* Row: categoria + prioridade */}
-            <div className="grid grid-cols-2 gap-3">
-              <div>
-                <Label>Categoria</Label>
-                <Field>
-                  <span
-                    className="inline-block w-1.5 h-1.5 rounded-full mr-1.5 shrink-0 align-middle"
-                    style={{ backgroundColor: cat.color }}
-                  />
-                  {item.qaCategory}
-                </Field>
+            {/* Sprint + Cliente */}
+            {(item.sprint || item.client) && (
+              <div className={cn('grid gap-3', item.sprint && item.client ? 'grid-cols-2' : 'grid-cols-1')}>
+                {item.sprint && (
+                  <div>
+                    <Label>Sprint</Label>
+                    <Field>{item.sprint}</Field>
+                  </div>
+                )}
+                {item.client && (
+                  <div>
+                    <Label>Cliente</Label>
+                    <Field>{item.client}</Field>
+                  </div>
+                )}
               </div>
-              <div>
-                <Label>Prioridade</Label>
-                <Field>
-                  <span
-                    className="inline-block w-1.5 h-1.5 rounded-full mr-1.5 shrink-0 align-middle"
-                    style={{ backgroundColor: prio.color }}
-                  />
-                  {item.priority}
-                </Field>
+            )}
+
+            {/* Assignee + Tipo */}
+            {(item.assignee || rank.detectedType) && (
+              <div className="grid grid-cols-2 gap-3">
+                {item.assignee && (
+                  <div>
+                    <Label>Responsável</Label>
+                    <Field>@{item.assignee}</Field>
+                  </div>
+                )}
+                {rank.detectedType && (
+                  <div>
+                    <Label>Tipo</Label>
+                    <Field>{rank.detectedType}</Field>
+                  </div>
+                )}
               </div>
+            )}
+
+            {/* Análise */}
+            <div>
+              <Label>Análise automática</Label>
+              <Field>{rank.tag} · ~{rank.estimatedMinutes}min</Field>
             </div>
 
-            {/* Row: sprint + tipo */}
-            <div className="grid grid-cols-2 gap-3">
-              {(item.sprint || item.client) && (
-                <div>
-                  <Label>Sprint / Cliente</Label>
-                  <Field>{[item.sprint, item.client].filter(Boolean).join(' · ') || '—'}</Field>
-                </div>
-              )}
-              <div>
-                <Label>Tipo detectado</Label>
-                <Field>{rank.detectedType ?? item.type ?? '—'}</Field>
-              </div>
-            </div>
-
-            {/* Row: assignee + análise */}
-            <div className="grid grid-cols-2 gap-3">
-              {item.assignee && (
-                <div>
-                  <Label>Responsável</Label>
-                  <Field>@{item.assignee}</Field>
-                </div>
-              )}
-              <div>
-                <Label>Análise automática</Label>
-                <Field>{rank.tag} · ~{rank.estimatedMinutes}min</Field>
-              </div>
-            </div>
-
-            {/* Notes */}
+            {/* Notas */}
             <div>
               <Label>Notas</Label>
-              {item.notes ? (
-                <div className="rounded-xl border border-white/[0.08] bg-[#0d0e13] px-4 py-3 min-h-[72px]">
-                  <p className="text-sm text-white/55 leading-relaxed">{item.notes}</p>
-                </div>
-              ) : (
-                <div className="rounded-xl border border-dashed border-white/[0.07] bg-[#0d0e13] px-4 py-3 min-h-[56px] flex items-center">
-                  <p className="text-xs text-white/25 italic">
-                    Sem notas — descrição completa disponível no Jira.
-                  </p>
-                </div>
-              )}
+              <div className={cn(
+                'min-h-[72px] rounded-xl border border-white/[0.08] bg-white/[0.04] px-4 py-3',
+                !item.notes && 'flex items-center',
+              )}>
+                {item.notes
+                  ? <p className="text-sm text-white/60 leading-relaxed">{item.notes}</p>
+                  : <p className="text-sm text-white/25 italic">Sem notas — descrição completa no Jira.</p>
+                }
+              </div>
             </div>
           </div>
 
           {/* Footer */}
-          <div className="flex items-center justify-between gap-3 px-5 py-4 border-t border-white/[0.06]">
+          <div className="flex items-center justify-between gap-3 px-5 py-4 border-t border-white/[0.07]">
             <Dialog.Close asChild>
               <button
                 type="button"
-                className="px-4 py-2 text-sm text-white/40 hover:text-white/70 transition-colors"
+                className="px-3 py-2 text-sm text-white/35 hover:text-white/65 transition-colors"
               >
                 Cancelar
               </button>
@@ -158,7 +153,7 @@ export function QACardPreviewDialog({ item, onClose }: Props) {
                 Abrir no Jira
               </a>
             ) : (
-              <span className="text-xs text-white/20 italic px-4 py-2">Sem link</span>
+              <span className="text-xs text-white/20 italic">Sem link</span>
             )}
           </div>
         </Dialog.Content>
@@ -166,6 +161,8 @@ export function QACardPreviewDialog({ item, onClose }: Props) {
     </Dialog.Root>
   )
 }
+
+// ─── Sub-components ───────────────────────────────────────────
 
 function Label({ children }: { children: React.ReactNode }) {
   return (
@@ -177,8 +174,19 @@ function Label({ children }: { children: React.ReactNode }) {
 
 function Field({ children }: { children: React.ReactNode }) {
   return (
-    <div className="flex items-center rounded-xl border border-white/[0.08] bg-[#0d0e13] px-3.5 py-2.5 text-sm text-white/65">
+    <div className="flex min-h-[40px] items-center rounded-xl border border-white/[0.08] bg-white/[0.04] px-3.5 py-2.5 text-sm text-white/65">
       {children}
     </div>
+  )
+}
+
+function Badge({ color, children }: { color: string; children: React.ReactNode }) {
+  return (
+    <span
+      className="rounded-full px-2.5 py-0.5 text-[11px] font-semibold"
+      style={{ backgroundColor: color + '25', color }}
+    >
+      {children}
+    </span>
   )
 }
