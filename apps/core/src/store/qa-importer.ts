@@ -1,12 +1,34 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
 import { syncQAItemsToWorkspace } from '@/lib/workspace-sync'
+import { generateQAResolutionReport } from '@/lib/qa-resolution-report'
+import { createUserWorkspaceStorage } from '@/lib/workspace-storage'
 
 // ─── Types ────────────────────────────────────────────────────
 
 export type QAPriority   = 'Critical' | 'High' | 'Medium' | 'Low' | 'Unknown'
 export type QACategory   = 'Ready for QA' | 'In Testing' | 'Bug Validation' | 'Regression' | 'Review' | 'Blocked' | 'Done' | 'Other'
 export type QAItemSource = 'manual' | 'csv' | 'extension'
+export type QAResolutionResult = 'PASS' | 'FAIL' | 'PARTIAL' | 'BLOCKED'
+export type QADailyStatus = 'todo' | 'doing' | 'done' | 'blocked'
+
+export interface QAResolution {
+  result:           QAResolutionResult
+  coreObjective:    string
+  coreFlow:         string
+  secondaryFlows:   string
+  visualValidation: string
+  regressionRisk:   string
+  validatedItems:   string
+  failedItems:      string
+  observedBehavior: string
+  evidence:         string
+  environment:      string
+  browser:          string
+  buildVersion:     string
+  report:           string
+  resolvedAt:       string
+}
 
 export interface QAItem {
   id:          string
@@ -22,9 +44,14 @@ export interface QAItem {
   type:        string
   link?:       string
   notes?:      string
-  importedAt:  string     // ISO date string
+  importedAt:  string
   sentToDaily: boolean
   qaCategory:  QACategory
+  resolution?: QAResolution
+  dailyStatus?: QADailyStatus
+  dailyOrder?: number
+  dailyDate?: string
+  sentToDailyAt?: string
 }
 
 export interface ImportRecord {
@@ -63,6 +90,12 @@ export const PRIORITY_CONFIG: Record<QAPriority, { color: string; label: string 
 
 const INITIAL_ITEMS: QAItem[] = []
 
+function getLocalISODate() {
+  const now = new Date()
+  const tzOffset = now.getTimezoneOffset() * 60000
+  return new Date(now.getTime() - tzOffset).toISOString().slice(0, 10)
+}
+
 // ─── Store ────────────────────────────────────────────────────
 
 type ImportInput = Omit<QAItem, 'id' | 'importedAt' | 'sentToDaily'>
@@ -79,16 +112,18 @@ interface QAImporterStore {
   history:         ImportRecord[]
   qaFilterEnabled: boolean
 
-  importItems:    (raw: ImportInput[], source: QAItemSource) => ImportResult
-  updateItem:     (id: string, updates: Partial<QAItem>) => void
-  removeItem:     (id: string) => void
-  markSentToDaily:(ids: string[]) => void
-  sendAllToDaily: () => string[]  // returns ids of items marked
+  importItems:     (raw: ImportInput[], source: QAItemSource) => ImportResult
+  updateItem:      (id: string, updates: Partial<QAItem>) => void
+  removeItem:      (id: string) => void
+  markSentToDaily: (ids: string[]) => void
+  updateDailyState:(id: string, updates: Pick<Partial<QAItem>, 'dailyStatus' | 'dailyOrder' | 'dailyDate'>) => void
+  moveDailyItem:   (id: string, direction: 'up' | 'down') => void
+  saveResolution:  (id: string, resolution: Omit<QAResolution, 'report' | 'resolvedAt'>) => void
+  sendAllToDaily:  () => string[]
 
   setQaFilter:    (enabled: boolean) => void
   clearAll:       () => void
 
-  // Extension-ready payload handler — accepts external Jira-like data
   handleQaImportPayload: (payload: Partial<ImportInput>[], source: QAItemSource) => ImportResult
 }
 
@@ -132,7 +167,7 @@ export const useQAImporterStore = create<QAImporterStore>()(
             id:         `imp-${Date.now()}`,
             importedAt: ts,
             total:      raw.length,
-            qaCount:    raw.length,  // caller pre-filters
+            qaCount:    raw.length,
             duplicates: updated,
             source,
           }
@@ -154,14 +189,101 @@ export const useQAImporterStore = create<QAImporterStore>()(
         set(s => ({ items: s.items.filter(i => i.id !== id) })),
 
       markSentToDaily: (ids) =>
-        set(s => ({
-          items: s.items.map(i => ids.includes(i.id) ? { ...i, sentToDaily: true } : i),
-        })),
+        set(s => {
+          const today = getLocalISODate()
+          const currentOrders = s.items
+            .filter(i => i.sentToDaily && (i.dailyDate ?? today) === today)
+            .map(i => i.dailyOrder ?? 0)
+          let nextOrder = currentOrders.length > 0 ? Math.max(...currentOrders) + 1 : 0
+
+          return {
+            items: s.items.map(i => {
+              if (!ids.includes(i.id)) return i
+              if (i.sentToDaily) return i
+              return {
+                ...i,
+                sentToDaily: true,
+                sentToDailyAt: new Date().toISOString(),
+                dailyDate: today,
+                dailyStatus: 'todo' as QADailyStatus,
+                dailyOrder: nextOrder++,
+              }
+            }),
+          }
+        }),
+
+      updateDailyState: (id, updates) =>
+        set(s => ({ items: s.items.map(i => i.id === id ? { ...i, ...updates } : i) })),
+
+      moveDailyItem: (id, direction) =>
+        set(s => {
+          const item = s.items.find(i => i.id === id)
+          if (!item) return s
+          const date = item.dailyDate ?? getLocalISODate()
+          const ordered = s.items
+            .filter(i => i.sentToDaily && (i.dailyDate ?? date) === date)
+            .sort((a, b) => (a.dailyOrder ?? 0) - (b.dailyOrder ?? 0))
+          const index = ordered.findIndex(i => i.id === id)
+          const targetIndex = direction === 'up' ? index - 1 : index + 1
+          if (index < 0 || targetIndex < 0 || targetIndex >= ordered.length) return s
+
+          const nextOrdered = [...ordered]
+          const [moved] = nextOrdered.splice(index, 1)
+          nextOrdered.splice(targetIndex, 0, moved)
+          const orderById = new Map(nextOrdered.map((qaItem, order) => [qaItem.id, order]))
+
+          return {
+            items: s.items.map(i => orderById.has(i.id) ? { ...i, dailyOrder: orderById.get(i.id) } : i),
+          }
+        }),
+
+      saveResolution: (id, resolutionInput) => {
+        let synced: QAItem | null = null
+        set(s => {
+          const items = s.items.map(item => {
+            if (item.id !== id) return item
+
+            const nextCategory: QACategory =
+              resolutionInput.result === 'PASS' ? 'Done' :
+              resolutionInput.result === 'FAIL' ? 'Bug Validation' :
+              'Blocked'
+            const nextDailyStatus: QADailyStatus =
+              resolutionInput.result === 'PASS' ? 'done' : 'blocked'
+
+            const baseResolution = {
+              ...resolutionInput,
+              resolvedAt: new Date().toISOString(),
+              report: '',
+            }
+            const nextItem: QAItem = {
+              ...item,
+              qaCategory: nextCategory,
+              status: nextCategory,
+              dailyStatus: nextDailyStatus,
+              resolution: {
+                ...baseResolution,
+                report: generateQAResolutionReport({ ...item, qaCategory: nextCategory, status: nextCategory }, baseResolution),
+              },
+            }
+            synced = nextItem
+            return nextItem
+          })
+          return { items }
+        })
+        if (synced) syncQAItemsToWorkspace([synced])
+      },
 
       sendAllToDaily: () => {
         const notSent = get().items.filter(i => !i.sentToDaily).map(i => i.id)
+        const today = getLocalISODate()
         set(s => ({
-          items: s.items.map(i => ({ ...i, sentToDaily: true })),
+          items: s.items.map(i => i.sentToDaily ? i : {
+            ...i,
+            sentToDaily: true,
+            sentToDailyAt: new Date().toISOString(),
+            dailyDate: today,
+            dailyStatus: 'todo' as QADailyStatus,
+          }),
         }))
         return notSent
       },
@@ -192,6 +314,7 @@ export const useQAImporterStore = create<QAImporterStore>()(
     {
       name: 'sentinel-core-qa-importer',
       version: 2,
+      storage: createUserWorkspaceStorage(),
       migrate: () => ({ items: [], history: [], qaFilterEnabled: true }),
     }
   )

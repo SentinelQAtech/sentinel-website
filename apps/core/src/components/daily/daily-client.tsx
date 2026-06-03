@@ -15,6 +15,7 @@ import { ClientSection } from './client-section'
 import { MeetingsPanel } from './meetings-panel'
 import { AddItemModal } from './add-item-modal'
 import { AddMeetingModal } from './add-meeting-modal'
+import { QADailyCockpit } from './qa-daily-cockpit'
 
 type ViewMode   = 'client' | 'priority'
 type SortMode   = 'priority' | 'newest' | 'oldest'
@@ -243,6 +244,10 @@ export function DailyClient() {
       {/* Overview + Progress */}
       <motion.div variants={fadeUp} initial="hidden" animate="show" style={{ transitionDelay: '60ms' }}>
         <DailyOverview />
+      </motion.div>
+
+      <motion.div variants={fadeUp} initial="hidden" animate="show" style={{ transitionDelay: '90ms' }}>
+        <QADailyCockpit selectedDate={selectedDate} />
       </motion.div>
 
       {/* View toggle */}
