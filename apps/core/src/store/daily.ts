@@ -80,29 +80,9 @@ export const STATUSES: DailyStatus[] = ['todo', 'in_progress', 'done', 'blocked'
 
 // ─── Initial data ─────────────────────────────────────────────
 
-const INITIAL_TASKS: DailyTask[] = [
-  { id: 't1',  client: 'UOL',         title: 'Fazer Daily',                                            type: 'Daily',       priority: 'Medium', status: 'todo' },
-  { id: 't2',  client: 'Concepta',    title: 'Fazer 8 horas em card',                                  type: 'Card Work',   priority: 'High',   status: 'todo' },
-  { id: 't3',  client: 'ScrumLaunch', title: 'Fazer Daily SmartFlyler',                                type: 'Daily',       priority: 'Medium', status: 'todo' },
-  { id: 't4',  client: 'ScrumLaunch', title: 'Fazer estudos sobre SmartFlyger',                        type: 'Study',       priority: 'Medium', status: 'todo' },
-  { id: 't5',  client: 'ScrumLaunch', title: 'Fazer testes na plataforma se possível',                 type: 'Testing',     priority: 'Low',    status: 'todo' },
-  { id: 't6',  client: 'ScrumLaunch', title: 'Fazer planejamento de QA para o Motta para sexta-feira', type: 'QA Planning', priority: 'High',   status: 'todo' },
-  { id: 't7',  client: 'Ambev',       title: 'Conversar com Shrest para saber prioridades do dia',     type: 'Daily',       priority: 'High',   status: 'todo' },
-  { id: 't8',  client: 'Ambev',       title: 'Fazer review',                                           type: 'Review',      priority: 'Medium', status: 'todo' },
-  { id: 't9',  client: 'Ambev',       title: 'Fazer Planning',                                         type: 'Planning',    priority: 'Medium', status: 'todo' },
-  { id: 't10', client: 'Pessoal',     title: 'Nada',                                                   type: 'Personal',    priority: 'Low',    status: 'done' },
-]
+const INITIAL_TASKS: DailyTask[] = []
 
-const INITIAL_MEETINGS: DailyMeeting[] = [
-  { id: 'm1', region: 'India',   time: '09:00' },
-  { id: 'm2', region: 'India',   time: '10:00' },
-  { id: 'm3', region: 'India',   time: '15:00' },
-  { id: 'm4', region: 'EUA',     time: '10:00' },
-  { id: 'm5', region: 'EUA',     time: '10:30' },
-  { id: 'm6', region: 'EUA',     time: '10:45' },
-  { id: 'm7', region: 'Brasil',  time: '09:30' },
-  { id: 'm8', region: 'Ucrânia', time: '10:30' },
-]
+const INITIAL_MEETINGS: DailyMeeting[] = []
 
 export function getTodayISO() {
   const now = new Date()
