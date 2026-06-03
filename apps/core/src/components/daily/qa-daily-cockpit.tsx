@@ -266,7 +266,7 @@ export function QADailyCockpit({ selectedDate }: { selectedDate: string }) {
               Importe cards reais do Jira e envie para o Daily para montar sua fila de execução.
             </p>
             <Link
-              href="/qa-importer"
+              href="/tasks"
               className="mt-4 inline-flex h-8 items-center justify-center rounded-lg border border-primary/25 bg-primary/10 px-3 text-xs font-semibold text-primary hover:bg-primary/15"
             >
               Abrir QA Importer

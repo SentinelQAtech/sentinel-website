@@ -59,7 +59,7 @@ const navGroups: NavGroup[] = [
     items: [
       { labelKey: 'team',       href: '/team',        icon: Users          },
       { labelKey: 'clients',    href: '/companies',   icon: Building2      },
-      { labelKey: 'qaImporter', href: '/qa-importer', icon: ClipboardCheck },
+      { labelKey: 'tasks', href: '/tasks', icon: ClipboardCheck },
     ],
   },
   {
