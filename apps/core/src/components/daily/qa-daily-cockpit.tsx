@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from 'react'
 import Link from 'next/link'
-import { ArrowDown, ArrowUp, Bot, Clipboard, ExternalLink, MessageSquareReply, PlayCircle, ShieldAlert, CheckCircle2, Crosshair, Inbox, ChevronDown, Sparkles } from 'lucide-react'
+import { ArrowDown, ArrowUp, Bot, Clipboard, ExternalLink, MessageSquareReply, PlayCircle, ShieldAlert, CheckCircle2, Crosshair, Inbox, Sparkles } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import {
   useQAImporterStore,
@@ -275,8 +275,7 @@ export function QADailyCockpit({ selectedDate }: { selectedDate: string }) {
           const status = item.dailyStatus ?? 'todo'
           const statusStyle = statusConfig[status]
           const isExpanded = expandedId === item.id
-          const hasDetail = !!(item.notes || item.link)
-          const rank = sortMode !== 'manual' ? rankItem(item) : null
+          const rank = rankItem(item)
 
           return (
             <div
@@ -303,10 +302,10 @@ export function QADailyCockpit({ selectedDate }: { selectedDate: string }) {
                   </IconButton>
                 </div>
 
-                {/* Content — clicável para expandir */}
+                {/* Content — clicável para preview */}
                 <button
                   type="button"
-                  onClick={() => hasDetail && setExpandedId(isExpanded ? null : item.id)}
+                  onClick={() => setExpandedId(isExpanded ? null : item.id)}
                   className="min-w-0 flex-1 text-left"
                 >
                   <div className="flex flex-wrap items-center gap-1.5 mb-1.5">
@@ -316,12 +315,12 @@ export function QADailyCockpit({ selectedDate }: { selectedDate: string }) {
                     <span className={cn('rounded-full px-2 py-0.5 text-[10px] font-semibold', statusStyle.bg, statusStyle.color)}>
                       {statusStyle.label}
                     </span>
-                    {rank && (
+                    {sortMode !== 'manual' && (
                       <span className={cn('rounded-full border px-2 py-0.5 text-[10px] font-medium', rank.tagColor)}>
                         {rank.tag}
                       </span>
                     )}
-                    {rank && (
+                    {sortMode !== 'manual' && (
                       <span className="text-[10px] text-white/25">~{rank.estimatedMinutes}min</span>
                     )}
                     {item.resolution && (
@@ -365,34 +364,60 @@ export function QADailyCockpit({ selectedDate }: { selectedDate: string }) {
                         <Clipboard className="h-3.5 w-3.5" />
                       </IconButton>
                     )}
-                    {hasDetail && (
-                      <IconButton title={isExpanded ? 'Recolher' : 'Ver detalhes'} onClick={() => setExpandedId(isExpanded ? null : item.id)}>
-                        <ChevronDown className={cn('h-3.5 w-3.5 transition-transform duration-200', isExpanded && 'rotate-180')} />
-                      </IconButton>
+                    {item.link && (
+                      <a
+                        href={item.link}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        title="Abrir no Jira"
+                        className="inline-flex h-8 min-w-8 items-center justify-center gap-1 rounded-lg border border-white/[0.08] bg-white/[0.04] px-2 text-xs font-medium text-white/45 hover:bg-white/[0.08] hover:text-white/70"
+                        onClick={e => e.stopPropagation()}
+                      >
+                        <ExternalLink className="h-3.5 w-3.5" />
+                      </a>
                     )}
                   </div>
                 </div>
               </div>
 
-              {/* Expanded detail */}
-              {isExpanded && hasDetail && (
+              {/* Card preview */}
+              {isExpanded && (
                 <div className="border-t border-white/[0.06] mx-3 pt-3 pb-3 space-y-3">
+                  {/* Meta row */}
+                  <div className="flex flex-wrap gap-1.5">
+                    {rank.detectedType && (
+                      <span className="rounded-full bg-white/[0.06] border border-white/[0.08] px-2 py-0.5 text-[10px] font-semibold text-white/50">
+                        {rank.detectedType}
+                      </span>
+                    )}
+                    {item.qaCategory && (
+                      <span className="rounded-full bg-white/[0.06] border border-white/[0.08] px-2 py-0.5 text-[10px] text-white/40">
+                        {item.qaCategory}
+                      </span>
+                    )}
+                    {item.assignee && (
+                      <span className="rounded-full bg-white/[0.06] border border-white/[0.08] px-2 py-0.5 text-[10px] text-white/40">
+                        @{item.assignee}
+                      </span>
+                    )}
+                    <span className={cn('rounded-full border px-2 py-0.5 text-[10px] font-medium', rank.tagColor)}>
+                      {rank.tag} · ~{rank.estimatedMinutes}min
+                    </span>
+                  </div>
+
+                  {/* Full title if truncated */}
+                  <p className="text-sm font-medium text-white/80 leading-snug">{item.title}</p>
+
+                  {/* Notes */}
                   {item.notes && (
                     <div className="flex gap-2.5">
                       <div className="mt-1 w-0.5 shrink-0 rounded-full bg-primary/40" />
                       <p className="text-xs text-white/55 leading-relaxed">{item.notes}</p>
                     </div>
                   )}
-                  {item.link && (
-                    <a
-                      href={item.link}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-primary/10 border border-primary/25 text-primary hover:bg-primary/20 transition-colors"
-                    >
-                      <ExternalLink className="h-3 w-3" />
-                      Abrir no Jira
-                    </a>
+
+                  {!item.notes && !item.link && (
+                    <p className="text-xs text-white/25 italic">Sem notas adicionais.</p>
                   )}
                 </div>
               )}
