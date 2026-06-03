@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Check, ChevronDown, Trash2, Loader2, Ban } from 'lucide-react'
+import { Check, ChevronDown, Trash2, Loader2, Ban, ExternalLink } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import {
   useDailyStore,
@@ -16,6 +16,15 @@ interface TaskCardProps {
 
 const statusCycle: DailyStatus[] = ['todo', 'in_progress', 'done', 'blocked']
 
+function parseNotes(notes?: string): { link: string | null; text: string } {
+  if (!notes) return { link: null, text: '' }
+  const match = notes.match(/🔗\s*(https?:\/\/\S+)/)
+  return {
+    link: match ? match[1] : null,
+    text: notes.replace(/\s*·?\s*🔗\s*https?:\/\/\S+/, '').trim(),
+  }
+}
+
 export function TaskCard({ task }: TaskCardProps) {
   const { toggleTask, removeTask, updateTask } = useDailyStore()
   const [expanded, setExpanded] = useState(false)
@@ -25,6 +34,8 @@ export function TaskCard({ task }: TaskCardProps) {
   const priority = PRIORITY_CONFIG[task.priority]
   const typeConf = TYPE_CONFIG[task.type]
   const status   = STATUS_CONFIG[task.status]
+
+  const { link, text: cleanNotes } = parseNotes(task.notes)
 
   const cycleStatus = () => {
     const idx  = statusCycle.indexOf(task.status)
@@ -63,14 +74,17 @@ export function TaskCard({ task }: TaskCardProps) {
           {done && <Check className="w-3 h-3 text-white" strokeWidth={3} />}
         </button>
 
-        {/* Title */}
-        <p className={cn(
-          'flex-1 text-sm leading-snug transition-all duration-200',
-          done ? 'line-through text-white/30' : 'text-white/80',
-          blocked && 'text-red-400/70'
-        )}>
+        {/* Title — clicável para expandir */}
+        <button
+          onClick={() => setExpanded(o => !o)}
+          className={cn(
+            'flex-1 text-sm leading-snug text-left transition-all duration-200',
+            done ? 'line-through text-white/30' : 'text-white/80',
+            blocked && 'text-red-400/70'
+          )}
+        >
           {task.title}
-        </p>
+        </button>
 
         {/* Badges row */}
         <div className="flex items-center gap-1.5 shrink-0">
@@ -102,15 +116,13 @@ export function TaskCard({ task }: TaskCardProps) {
             <span className="hidden sm:block">{status.label}</span>
           </button>
 
-          {/* Expand (if notes) */}
-          {task.notes && (
-            <button
-              onClick={() => setExpanded(o => !o)}
-              className="p-1 rounded text-white/25 hover:text-white/50 transition-colors duration-150"
-            >
-              <ChevronDown className={cn('w-3 h-3 transition-transform duration-150', expanded && 'rotate-180')} />
-            </button>
-          )}
+          {/* Expand chevron */}
+          <button
+            onClick={() => setExpanded(o => !o)}
+            className="p-1 rounded text-white/25 hover:text-white/50 transition-colors duration-150"
+          >
+            <ChevronDown className={cn('w-3 h-3 transition-transform duration-150', expanded && 'rotate-180')} />
+          </button>
 
           {/* Delete */}
           <button
@@ -122,9 +134,9 @@ export function TaskCard({ task }: TaskCardProps) {
         </div>
       </div>
 
-      {/* Notes expansion */}
+      {/* Expanded details */}
       <AnimatePresence>
-        {expanded && task.notes && (
+        {expanded && (
           <motion.div
             initial={{ height: 0, opacity: 0 }}
             animate={{ height: 'auto', opacity: 1 }}
@@ -132,9 +144,29 @@ export function TaskCard({ task }: TaskCardProps) {
             transition={{ duration: 0.2 }}
             className="overflow-hidden"
           >
-            <p className="px-3 pb-2.5 text-xs text-white/35 border-t border-white/[0.05] pt-2">
-              {task.notes}
-            </p>
+            <div className="px-3 pb-3 border-t border-white/[0.05] pt-2.5 space-y-2">
+              {cleanNotes && (
+                <p className="text-xs text-white/40 leading-relaxed">{cleanNotes}</p>
+              )}
+              {link && (
+                <a
+                  href={link}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className={cn(
+                    'inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold',
+                    'bg-primary/15 border border-primary/30 text-primary',
+                    'hover:bg-primary/25 transition-all duration-150'
+                  )}
+                >
+                  <ExternalLink className="w-3 h-3" />
+                  Abrir card no Jira
+                </a>
+              )}
+              {!link && !cleanNotes && (
+                <p className="text-xs text-white/20 italic">Nenhum detalhe disponível</p>
+              )}
+            </div>
           </motion.div>
         )}
       </AnimatePresence>

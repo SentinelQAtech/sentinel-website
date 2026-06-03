@@ -1,11 +1,11 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useMemo } from 'react'
 import Link from 'next/link'
 import { motion } from 'framer-motion'
 import {
   Plus, Video, RefreshCw, Sun, Filter, CalendarDays,
-  AlertTriangle, ChevronLeft, ChevronRight, History, Target
+  AlertTriangle, ChevronLeft, ChevronRight, History, Target, ArrowUpDown
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { useDailyStore, DEFAULT_CLIENTS, PRIORITY_CONFIG, CLIENT_CONFIG, getTodayISO, type DailyPriority } from '@/store/daily'
@@ -16,9 +16,12 @@ import { MeetingsPanel } from './meetings-panel'
 import { AddItemModal } from './add-item-modal'
 import { AddMeetingModal } from './add-meeting-modal'
 
-type ViewMode = 'client' | 'priority'
+type ViewMode   = 'client' | 'priority'
+type SortMode   = 'priority' | 'newest' | 'oldest'
+type TypeFilter = 'all' | 'BE' | 'FE'
 
 const PRIORITY_ORDER: DailyPriority[] = ['Critical', 'High', 'Medium', 'Low']
+const PRIO_RANK: Record<DailyPriority, number> = { Critical: 0, High: 1, Medium: 2, Low: 3 }
 
 const fadeUp = {
   hidden: { opacity: 0, y: 12 },
@@ -39,19 +42,33 @@ export function DailyClient() {
     generateTemplate,
   } = useDailyStore()
 
-  const [addItem,    setAddItem]    = useState(false)
-  const [addMeeting, setAddMeeting] = useState(false)
-  const [view,       setView]       = useState<ViewMode>('client')
+  const [addItem,     setAddItem]     = useState(false)
+  const [addMeeting,  setAddMeeting]  = useState(false)
+  const [view,        setView]        = useState<ViewMode>('client')
   const [historyOpen, setHistoryOpen] = useState(false)
+  const [sortBy,      setSortBy]      = useState<SortMode>('priority')
+  const [typeFilter,  setTypeFilter]  = useState<TypeFilter>('all')
+
+  const processedTasks = useMemo(() => {
+    let result = [...tasks]
+    if (typeFilter !== 'all')
+      result = result.filter(t => t.title.includes(`[${typeFilter}]`))
+    switch (sortBy) {
+      case 'priority': result.sort((a, b) => (PRIO_RANK[a.priority] ?? 4) - (PRIO_RANK[b.priority] ?? 4)); break
+      case 'newest':   result.sort((a, b) => b.id.localeCompare(a.id)); break
+      case 'oldest':   result.sort((a, b) => a.id.localeCompare(b.id)); break
+    }
+    return result
+  }, [tasks, sortBy, typeFilter])
 
   // Gather all unique clients (default + any custom)
-  const clientsWithTasks = [...new Set([...DEFAULT_CLIENTS, ...tasks.map(t => t.client)])]
-    .filter(c => tasks.some(t => t.client === c))
+  const clientsWithTasks = [...new Set([...DEFAULT_CLIENTS, ...processedTasks.map(t => t.client)])]
+    .filter(c => processedTasks.some(t => t.client === c))
   const selected = new Date(`${selectedDate}T12:00:00`)
   const todayISO = getTodayISO()
   const isToday = selectedDate === todayISO
   const dailyDates = getDailyDates()
-  const openTasks = tasks.filter(t => t.status !== 'done')
+  const openTasks = processedTasks.filter(t => t.status !== 'done')
   const dateStr = selected.toLocaleDateString('pt-BR', { weekday: 'long', day: 'numeric', month: 'long' })
 
   const shiftDay = (delta: number) => {
@@ -256,7 +273,52 @@ export function DailyClient() {
             </button>
           ))}
         </div>
-        <span className="text-xs text-white/25">{tasks.length} {t('tasks')} · {meetings.length} {t('meetings')}</span>
+        <span className="text-xs text-white/25">{processedTasks.length} {t('tasks')} · {meetings.length} {t('meetings')}</span>
+      </motion.div>
+
+      {/* Sort + type filter bar */}
+      <motion.div
+        variants={fadeUp}
+        initial="hidden"
+        animate="show"
+        style={{ transitionDelay: '140ms' }}
+        className="flex flex-wrap items-center gap-2"
+      >
+        <div className="flex items-center gap-1.5">
+          <ArrowUpDown className="w-3.5 h-3.5 text-white/25" />
+          {([
+            { id: 'priority', label: 'Prioridade' },
+            { id: 'newest',   label: 'Mais novo'  },
+            { id: 'oldest',   label: 'Mais antigo'},
+          ] as const).map(s => (
+            <button
+              key={s.id}
+              onClick={() => setSortBy(s.id)}
+              className={cn(
+                'px-2 py-1 rounded text-[11px] font-medium transition-all duration-150',
+                sortBy === s.id ? 'bg-white/10 text-white/80' : 'text-white/30 hover:text-white/50'
+              )}
+            >
+              {s.label}
+            </button>
+          ))}
+        </div>
+        <div className="w-px h-4 bg-white/[0.08]" />
+        <div className="flex items-center gap-1.5">
+          {(['all', 'BE', 'FE'] as const).map(f => (
+            <button
+              key={f}
+              type="button"
+              onClick={() => setTypeFilter(f)}
+              className={cn(
+                'px-2 py-1 rounded text-[11px] font-medium transition-all duration-150',
+                typeFilter === f ? 'bg-white/10 text-white/80' : 'text-white/30 hover:text-white/50'
+              )}
+            >
+              {f === 'all' ? 'Todos' : f}
+            </button>
+          ))}
+        </div>
       </motion.div>
 
       {/* Main content */}
@@ -275,13 +337,13 @@ export function DailyClient() {
               <ClientSection
                 key={client}
                 client={client}
-                tasks={tasks.filter(t => t.client === client)}
+                tasks={processedTasks.filter(t => t.client === client)}
               />
             ))
           ) : (
             /* By priority */
             PRIORITY_ORDER.map(priority => {
-              const pTasks = tasks.filter(t => t.priority === priority && t.status !== 'done')
+              const pTasks = processedTasks.filter(t => t.priority === priority && t.status !== 'done')
               if (pTasks.length === 0) return null
               const cfg = PRIORITY_CONFIG[priority]
               return (
