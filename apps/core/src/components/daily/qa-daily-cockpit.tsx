@@ -11,6 +11,7 @@ import {
 } from '@/store/qa-importer'
 import { QAResolutionDialog } from '@/components/qa-importer/qa-resolution-dialog'
 import { QACopilotPanel } from '@/components/daily/qa-copilot-panel'
+import { QACardPreviewDialog } from '@/components/daily/qa-card-preview-dialog'
 import { rankItem, sortByRankMode, type RankSortMode } from '@/lib/qa-ranking'
 
 const statusConfig: Record<QADailyStatus, { label: string; color: string; bg: string }> = {
@@ -29,7 +30,7 @@ export function QADailyCockpit({ selectedDate }: { selectedDate: string }) {
   const [resolutionOpen, setResolutionOpen] = useState(false)
   const [copiedId, setCopiedId] = useState<string | null>(null)
   const [focusItemId, setFocusItemId] = useState<string | null>(null)
-  const [expandedId, setExpandedId] = useState<string | null>(null)
+  const [previewItem, setPreviewItem] = useState<QAItem | null>(null)
   const [copilotOpen, setCopilotOpen] = useState(false)
   const [sortMode, setSortMode] = useState<RankSortMode>('fastest')
   const [orderApplied, setOrderApplied] = useState(false)
@@ -274,7 +275,6 @@ export function QADailyCockpit({ selectedDate }: { selectedDate: string }) {
         ) : dailyItems.map((item, index) => {
           const status = item.dailyStatus ?? 'todo'
           const statusStyle = statusConfig[status]
-          const isExpanded = expandedId === item.id
           const rank = rankItem(item)
 
           return (
@@ -305,7 +305,7 @@ export function QADailyCockpit({ selectedDate }: { selectedDate: string }) {
                 {/* Content — clicável para preview */}
                 <button
                   type="button"
-                  onClick={() => setExpandedId(isExpanded ? null : item.id)}
+                  onClick={() => setPreviewItem(item)}
                   className="min-w-0 flex-1 text-left"
                 >
                   <div className="flex flex-wrap items-center gap-1.5 mb-1.5">
@@ -380,62 +380,12 @@ export function QADailyCockpit({ selectedDate }: { selectedDate: string }) {
                 </div>
               </div>
 
-              {/* Card preview */}
-              {isExpanded && (
-                <div className="border-t border-white/[0.06] mx-3 pb-3 pt-3 space-y-3">
-                  {/* Metadata grid */}
-                  <div className="grid grid-cols-2 gap-x-4 gap-y-1.5 text-[11px]">
-                    {item.qaCategory && (
-                      <MetaRow label="Categoria" value={item.qaCategory} />
-                    )}
-                    {rank.detectedType && (
-                      <MetaRow label="Tipo" value={rank.detectedType} />
-                    )}
-                    {item.priority && item.priority !== 'Unknown' && (
-                      <MetaRow label="Prioridade" value={item.priority} />
-                    )}
-                    {item.sprint && (
-                      <MetaRow label="Sprint" value={item.sprint} />
-                    )}
-                    {item.assignee && (
-                      <MetaRow label="Assignee" value={`@${item.assignee}`} />
-                    )}
-                    {item.client && (
-                      <MetaRow label="Cliente" value={item.client} />
-                    )}
-                    <MetaRow label="Análise" value={`${rank.tag} · ~${rank.estimatedMinutes}min`} />
-                  </div>
-
-                  {/* Notes */}
-                  {item.notes ? (
-                    <div className="flex gap-2.5 rounded-lg bg-white/[0.025] border border-white/[0.05] px-3 py-2.5">
-                      <div className="mt-1 w-0.5 shrink-0 rounded-full bg-primary/40" />
-                      <p className="text-xs text-white/55 leading-relaxed">{item.notes}</p>
-                    </div>
-                  ) : (
-                    <p className="text-[11px] text-white/20 italic">
-                      Sem notas — a descrição completa está no Jira.
-                    </p>
-                  )}
-
-                  {/* CTA */}
-                  {item.link && (
-                    <a
-                      href={item.link}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="inline-flex items-center gap-2 rounded-lg border border-primary/25 bg-primary/10 px-3 py-2 text-xs font-semibold text-primary hover:bg-primary/20 transition-colors"
-                    >
-                      <ExternalLink className="h-3.5 w-3.5" />
-                      Abrir task completa no Jira
-                    </a>
-                  )}
-                </div>
-              )}
             </div>
           )
         })}
       </div>
+
+      <QACardPreviewDialog item={previewItem} onClose={() => setPreviewItem(null)} />
 
       <QAResolutionDialog
         item={resolutionItem}
@@ -528,11 +478,3 @@ function ActionButton({
   )
 }
 
-function MetaRow({ label, value }: { label: string; value: string }) {
-  return (
-    <div className="flex items-baseline gap-1.5">
-      <span className="text-white/25 shrink-0">{label}</span>
-      <span className="text-white/60 truncate">{value}</span>
-    </div>
-  )
-}
