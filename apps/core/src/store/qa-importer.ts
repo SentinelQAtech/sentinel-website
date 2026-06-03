@@ -156,7 +156,7 @@ export const useQAImporterStore = create<QAImporterStore>()(
               syncedItems.push(next[dupeIdx])
               updated++
             } else {
-              const created = { ...incoming, id: `qa-${Date.now()}-${added}`, source, importedAt: ts, sentToDaily: false }
+              const created = { ...incoming, id: `qa-${Date.now()}-${added}-${Math.random().toString(36).slice(2, 7)}`, source, importedAt: ts, sentToDaily: false }
               next.push(created)
               syncedItems.push(created)
               added++

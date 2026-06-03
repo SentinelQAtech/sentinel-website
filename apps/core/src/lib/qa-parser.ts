@@ -86,12 +86,15 @@ function parseTextLine(raw: string): ParsedQAItem | null {
     const status   = parts[1 + offset] ?? ''
     const priority = normalizePriority(parts[2 + offset] ?? '')
     const sprint   = parts[3 + offset] ?? ''
-    const client   = parts[4 + offset] ?? ''
-    const assignee = parts[5 + offset] ?? ''
-    const link     = parts[6 + offset] ?? ''
-    const notes    = parts[7 + offset] ?? ''
 
-    return { issueKey, title, client, project: '', status, priority, sprint, assignee, type: '', link, notes, qaCategory: detectQACategory(status) }
+    // Fields 5+ : notes then link (URL auto-detected)
+    const field5 = parts[4 + offset] ?? ''
+    const field6 = parts[5 + offset] ?? ''
+    const isUrl  = (v: string) => /^https?:\/\//i.test(v)
+    const notes  = isUrl(field5) ? '' : field5
+    const link   = isUrl(field5) ? field5 : (isUrl(field6) ? field6 : field6)
+
+    return { issueKey, title, client: '', project: '', status, priority, sprint, assignee: '', type: '', link, notes, qaCategory: detectQACategory(status) }
   }
 
   // No separator — try to pull an issue key from anywhere in the line

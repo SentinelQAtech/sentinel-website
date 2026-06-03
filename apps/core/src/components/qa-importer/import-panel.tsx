@@ -13,17 +13,14 @@ interface Props {
   onImport:       (items: ParsedQAItem[], source: TabType) => { added: number; updated: number; total: number }
 }
 
-const TEXT_PLACEHOLDER = `Cole aqui o texto copiado do Jira.
+const TEXT_PLACEHOLDER = `issueKey | título | status | prioridade | sprint | descrição | link
 
-Formatos suportados:
+Exemplos:
+SFC-1061 | [FE] Validate login flow | Ready QA | High | Sprint 14 | Validar fluxo completo de login incluindo OAuth | https://seu-jira/browse/SFC-1061
+SFC-442  | [BE] Fix checkout bug    | Testing  | Critical | Sprint 14
 
-Pipe-separated:
-CARD-123 | Validate login flow | Ready QA | High | Current Sprint
-BUG-442 | Review checkout bug | Testing | Critical | Current Sprint
-
-Ou qualquer texto com issue keys Jira:
-CARD-123 Validate login flow
-BUG-88 Test homepage after deploy`
+Campos mínimos: issueKey | título | status | prioridade | sprint
+Campos opcionais: descrição e link (qualquer ordem, URL detectada automaticamente)`
 
 const CSV_PLACEHOLDER = `Cole CSV ou use o botão para fazer upload.
 

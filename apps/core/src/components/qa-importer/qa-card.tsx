@@ -140,7 +140,10 @@ export function QACard({ item, selected, onToggleSelect, onSendToDaily, onMarkDo
       </div>
 
       {item.notes && (
-        <p className="text-xs text-white/30 leading-relaxed line-clamp-2">{item.notes}</p>
+        <div className="flex gap-2.5 rounded-lg bg-white/[0.03] border border-white/[0.06] px-3 py-2.5">
+          <div className="mt-0.5 w-0.5 shrink-0 rounded-full bg-primary/40" />
+          <p className="text-xs text-white/50 leading-relaxed line-clamp-3">{item.notes}</p>
+        </div>
       )}
 
       <div className="flex items-center justify-between gap-2 pt-1 border-t border-white/[0.05]">

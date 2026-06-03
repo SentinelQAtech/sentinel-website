@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from 'react'
 import Link from 'next/link'
-import { ArrowDown, ArrowUp, Clipboard, ExternalLink, MessageSquareReply, PlayCircle, ShieldAlert, CheckCircle2, Crosshair, Inbox } from 'lucide-react'
+import { ArrowDown, ArrowUp, Clipboard, ExternalLink, MessageSquareReply, PlayCircle, ShieldAlert, CheckCircle2, Crosshair, Inbox, ChevronDown } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import {
   useQAImporterStore,
@@ -27,6 +27,7 @@ export function QADailyCockpit({ selectedDate }: { selectedDate: string }) {
   const [resolutionOpen, setResolutionOpen] = useState(false)
   const [copiedId, setCopiedId] = useState<string | null>(null)
   const [focusItemId, setFocusItemId] = useState<string | null>(null)
+  const [expandedId, setExpandedId] = useState<string | null>(null)
 
   const dailyItems = useMemo(
     () => items
@@ -78,17 +79,35 @@ export function QADailyCockpit({ selectedDate }: { selectedDate: string }) {
     done:    dailyItems.filter(item => item.dailyStatus === 'done').length,
     blocked: dailyItems.filter(item => item.dailyStatus === 'blocked').length,
   }
+  const progressPct = dailyItems.length > 0 ? Math.round((counts.done / dailyItems.length) * 100) : 0
   const focusItem = dailyItems.find(item => item.id === focusItemId) ?? null
   const nextOpenItem = getNextOpenItem(dailyItems, focusItemId ?? undefined)
 
   return (
     <section className="glass-card border border-primary/15 p-4 space-y-4">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-        <div>
-          <h2 className="text-base font-semibold text-white">QA do Dia</h2>
-          <p className="mt-1 text-xs text-white/35">Fila de execução enviada do QA Importer para hoje.</p>
+        <div className="min-w-0 flex-1">
+          <div className="flex items-center gap-2.5 mb-1">
+            <h2 className="text-base font-semibold text-white">QA do Dia</h2>
+            {dailyItems.length > 0 && (
+              <span className="text-xs text-white/35">
+                {counts.done}/{dailyItems.length} resolvidos
+              </span>
+            )}
+          </div>
+          {dailyItems.length > 0 && (
+            <div className="h-1 w-full max-w-xs rounded-full bg-white/[0.07] overflow-hidden">
+              <div
+                className="h-full rounded-full transition-all duration-500"
+                style={{ width: `${progressPct}%`, backgroundColor: progressPct === 100 ? '#10b981' : '#6366f1' }}
+              />
+            </div>
+          )}
+          {dailyItems.length === 0 && (
+            <p className="text-xs text-white/35">Fila de execução enviada do QA Importer para hoje.</p>
+          )}
         </div>
-        <div className="flex flex-wrap gap-2 text-[11px]">
+        <div className="flex flex-wrap gap-2 text-[11px] shrink-0">
           <Pill label="Next"    value={counts.pending} />
           <Pill label="Doing"   value={counts.doing}   color="text-primary" />
           <Pill label="Done"    value={counts.done}    color="text-emerald-300" />
@@ -185,22 +204,42 @@ export function QADailyCockpit({ selectedDate }: { selectedDate: string }) {
         ) : dailyItems.map((item, index) => {
           const status = item.dailyStatus ?? 'todo'
           const statusStyle = statusConfig[status]
+          const isExpanded = expandedId === item.id
+          const hasDetail = !!(item.notes || item.link)
 
           return (
             <div
               key={item.id}
               data-testid="daily-qa-card"
               className={cn(
-                'rounded-xl border border-white/[0.07] bg-white/[0.025] p-3 transition-colors',
-                status === 'doing'   && 'border-primary/30 bg-primary/[0.04]',
+                'rounded-xl border transition-colors overflow-hidden',
+                status === 'doing'   ? 'border-primary/30 bg-primary/[0.04]' :
+                status === 'blocked' ? 'border-red-500/20 bg-red-500/[0.03]' :
+                                       'border-white/[0.07] bg-white/[0.025]',
                 status === 'done'    && 'opacity-60',
-                status === 'blocked' && 'border-red-500/20 bg-red-500/[0.03]',
               )}
             >
-              <div className="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
-                <div className="min-w-0 flex-1">
-                  <div className="mb-2 flex flex-wrap items-center gap-2">
-                    <span className="rounded-md bg-white/[0.06] px-1.5 py-0.5 font-mono text-[10px] font-bold text-white/50">
+              {/* Main row */}
+              <div className="flex items-center gap-3 p-3">
+                {/* Index + reorder */}
+                <div className="flex flex-col items-center gap-0.5 shrink-0">
+                  <IconButton title="Mover para cima" disabled={index === 0} onClick={() => moveDailyItem(item.id, 'up')}>
+                    <ArrowUp className="h-3 w-3" />
+                  </IconButton>
+                  <span className="text-[10px] font-semibold text-white/25">#{index + 1}</span>
+                  <IconButton title="Mover para baixo" disabled={index === dailyItems.length - 1} onClick={() => moveDailyItem(item.id, 'down')}>
+                    <ArrowDown className="h-3 w-3" />
+                  </IconButton>
+                </div>
+
+                {/* Content — clicável para expandir */}
+                <button
+                  type="button"
+                  onClick={() => hasDetail && setExpandedId(isExpanded ? null : item.id)}
+                  className="min-w-0 flex-1 text-left"
+                >
+                  <div className="flex flex-wrap items-center gap-1.5 mb-1.5">
+                    <span className="font-mono text-[10px] font-bold text-white/45 bg-white/[0.06] px-1.5 py-0.5 rounded">
                       {item.issueKey || 'QA'}
                     </span>
                     <span className={cn('rounded-full px-2 py-0.5 text-[10px] font-semibold', statusStyle.bg, statusStyle.color)}>
@@ -211,42 +250,73 @@ export function QADailyCockpit({ selectedDate }: { selectedDate: string }) {
                         {item.resolution.result}
                       </span>
                     )}
-                    <span className="text-[10px] text-white/30">#{index + 1}</span>
+                    {item.priority && item.priority !== 'Unknown' && (
+                      <span className="text-[10px] text-white/30">{item.priority}</span>
+                    )}
                   </div>
-                  <p className={cn('text-sm font-medium leading-snug text-white/85', status === 'done' && 'line-through text-white/35')}>
+                  <p className={cn('text-sm font-medium leading-snug', status === 'done' ? 'line-through text-white/30' : 'text-white/85')}>
                     {item.title}
                   </p>
-                  <p className="mt-1 text-[11px] text-white/35">
-                    {[item.client, item.sprint, item.assignee && `@${item.assignee}`].filter(Boolean).join(' · ')}
-                  </p>
-                </div>
-
-                <div className="flex flex-wrap items-center gap-1.5">
-                  <IconButton title="Mover para cima" disabled={index === 0} onClick={() => moveDailyItem(item.id, 'up')}>
-                    <ArrowUp className="h-3.5 w-3.5" />
-                  </IconButton>
-                  <IconButton title="Mover para baixo" disabled={index === dailyItems.length - 1} onClick={() => moveDailyItem(item.id, 'down')}>
-                    <ArrowDown className="h-3.5 w-3.5" />
-                  </IconButton>
-                  <ActionButton label="Doing" onClick={() => updateDailyState(item.id, { dailyStatus: 'doing' })} active={status === 'doing'}>
-                    <PlayCircle className="h-3.5 w-3.5" />
-                  </ActionButton>
-                  <ActionButton label="Done" onClick={() => updateDailyState(item.id, { dailyStatus: 'done' })} active={status === 'done'}>
-                    <CheckCircle2 className="h-3.5 w-3.5" />
-                  </ActionButton>
-                  <ActionButton label="Blocked" onClick={() => updateDailyState(item.id, { dailyStatus: 'blocked' })} active={status === 'blocked'}>
-                    <ShieldAlert className="h-3.5 w-3.5" />
-                  </ActionButton>
-                  <IconButton title="Responder card" onClick={() => openResolution(item)}>
-                    <MessageSquareReply className="h-3.5 w-3.5" />
-                  </IconButton>
-                  {item.resolution?.report && (
-                    <IconButton title={copiedId === item.id ? 'Copiado!' : 'Copiar report'} onClick={() => copyReport(item)}>
-                      <Clipboard className="h-3.5 w-3.5" />
-                    </IconButton>
+                  {(item.sprint || item.client) && (
+                    <p className="mt-1 text-[11px] text-white/30">
+                      {[item.sprint, item.client].filter(Boolean).join(' · ')}
+                    </p>
                   )}
+                </button>
+
+                {/* Actions */}
+                <div className="flex flex-col items-end gap-1.5 shrink-0">
+                  <div className="flex items-center gap-1">
+                    <ActionButton label="Doing" onClick={() => updateDailyState(item.id, { dailyStatus: 'doing' })} active={status === 'doing'}>
+                      <PlayCircle className="h-3.5 w-3.5" />
+                    </ActionButton>
+                    <ActionButton label="Done" onClick={() => updateDailyState(item.id, { dailyStatus: 'done' })} active={status === 'done'}>
+                      <CheckCircle2 className="h-3.5 w-3.5" />
+                    </ActionButton>
+                    <ActionButton label="Blocked" onClick={() => updateDailyState(item.id, { dailyStatus: 'blocked' })} active={status === 'blocked'}>
+                      <ShieldAlert className="h-3.5 w-3.5" />
+                    </ActionButton>
+                  </div>
+                  <div className="flex items-center gap-1">
+                    <IconButton title="Responder card" onClick={() => openResolution(item)}>
+                      <MessageSquareReply className="h-3.5 w-3.5" />
+                    </IconButton>
+                    {item.resolution?.report && (
+                      <IconButton title={copiedId === item.id ? 'Copiado!' : 'Copiar report'} onClick={() => copyReport(item)}>
+                        <Clipboard className="h-3.5 w-3.5" />
+                      </IconButton>
+                    )}
+                    {hasDetail && (
+                      <IconButton title={isExpanded ? 'Recolher' : 'Ver detalhes'} onClick={() => setExpandedId(isExpanded ? null : item.id)}>
+                        <ChevronDown className={cn('h-3.5 w-3.5 transition-transform duration-200', isExpanded && 'rotate-180')} />
+                      </IconButton>
+                    )}
+                  </div>
                 </div>
               </div>
+
+              {/* Expanded detail */}
+              {isExpanded && hasDetail && (
+                <div className="border-t border-white/[0.06] mx-3 pt-3 pb-3 space-y-3">
+                  {item.notes && (
+                    <div className="flex gap-2.5">
+                      <div className="mt-1 w-0.5 shrink-0 rounded-full bg-primary/40" />
+                      <p className="text-xs text-white/55 leading-relaxed">{item.notes}</p>
+                    </div>
+                  )}
+                  {item.link && (
+                    <a
+                      href={item.link}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-primary/10 border border-primary/25 text-primary hover:bg-primary/20 transition-colors"
+                    >
+                      <ExternalLink className="h-3 w-3" />
+                      Abrir no Jira
+                    </a>
+                  )}
+                </div>
+              )}
             </div>
           )
         })}
@@ -258,6 +328,7 @@ export function QADailyCockpit({ selectedDate }: { selectedDate: string }) {
         onOpenChange={setResolutionOpen}
         onSave={(id, resolution) => {
           saveResolution(id, resolution)
+          setResolutionOpen(false)
           const nextItem = useQAImporterStore.getState().items.find(item => item.id === id) ?? null
           setResolutionItem(nextItem)
           if (id === focusItemId) {
