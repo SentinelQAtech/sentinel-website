@@ -2,11 +2,11 @@
 
 import { useState, useMemo, useCallback } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Send, Layers, Upload, X, ClipboardList, CheckCircle2, Clock, ShieldAlert } from 'lucide-react'
+import { Send, Layers, Upload, X, ClipboardList, CheckCircle2, Clock, ShieldAlert, ChevronDown, ChevronRight, Archive, AlertTriangle, FileText, GitPullRequest, MessageSquare, ExternalLink } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import {
   useQAImporterStore,
-  type QAItem, type QAItemSource, PRIORITY_ORDER,
+  type QAItem, type QAItemSource, type ArchivedSession, PRIORITY_ORDER, QA_CATEGORY_CONFIG,
 } from '@/store/qa-importer'
 import { useDailyStore, getTodayISO, type DailyPriority, type DailyType } from '@/store/daily'
 import type { ParsedQAItem } from '@/lib/qa-parser'
@@ -36,19 +36,44 @@ function buildEnrichedNotes(item: QAItem): string {
   return [item.notes, item.description && `Descricao:\n${item.description}`, comments, prs, links].filter(Boolean).join('\n\n')
 }
 
+function cleanJiraText(value: string) {
+  return value
+    .replace(/\s+/g, ' ')
+    .replace(/(More options|Suggest a reply|Status update|Thanks\.?)/gi, ' ')
+    .replace(/\s+/g, ' ')
+    .trim()
+}
+
+function isUsefulJiraComment(value: string) {
+  const clean = cleanJiraText(value)
+  if (clean.length < 18) return false
+  if (/^add a comment/i.test(clean)) return false
+  if (/^pro tip:/i.test(clean)) return false
+  return true
+}
+
+function formatCommentDate(value?: string) {
+  if (!value) return ''
+  const date = new Date(value)
+  if (Number.isNaN(date.getTime())) return value
+  return date.toLocaleString('pt-BR', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' })
+}
+
 // ─── TasksClient ──────────────────────────────────────────
 
 export function TasksClient() {
   const store   = useQAImporterStore()
   const addTask = useDailyStore(s => s.addTask)
 
-  const [filters,      setFilters]      = useState<QAFilterState>(DEFAULT_FILTERS)
-  const [selected,     setSelected]     = useState<Set<string>>(new Set())
-  const [historyOpen,  setHistoryOpen]  = useState(false)
-  const [importOpen,   setImportOpen]   = useState(false)
-  const [groupBy,      setGroupBy]      = useState<'none' | 'client' | 'category' | 'priority'>('none')
-  const [sentFeedback, setSentFeedback] = useState<string | null>(null)
-  const [detailItem,   setDetailItem]   = useState<QAItem | null>(null)
+  const [filters,       setFilters]       = useState<QAFilterState>(DEFAULT_FILTERS)
+  const [selected,      setSelected]      = useState<Set<string>>(new Set())
+  const [historyOpen,   setHistoryOpen]   = useState(false)
+  const [importOpen,    setImportOpen]    = useState(false)
+  const [groupBy,       setGroupBy]       = useState<'none' | 'client' | 'category' | 'priority'>('none')
+  const [sentFeedback,  setSentFeedback]  = useState<string | null>(null)
+  const [detailItem,    setDetailItem]    = useState<QAItem | null>(null)
+  const [confirmArchive, setConfirmArchive] = useState(false)
+  const [expandedSession, setExpandedSession] = useState<string | null>(null)
 
   // ── Stats ─────────────────────────────────────────────────
 
@@ -152,13 +177,56 @@ export function TasksClient() {
   return (
     <div className="space-y-5">
 
-      {/* Stats strip */}
+      {/* Stats strip + archive action */}
       {store.items.length > 0 && (
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-          <StatCard icon={<ClipboardList className="h-4 w-4" />} label="Total" value={stats.total} />
-          <StatCard icon={<Clock className="h-4 w-4" />}         label="Pendentes" value={stats.pending} color="text-amber-400" />
-          <StatCard icon={<CheckCircle2 className="h-4 w-4" />}  label="Concluídas" value={stats.done}   color="text-emerald-400" />
-          <StatCard icon={<ShieldAlert className="h-4 w-4" />}   label="Bloqueadas" value={stats.blocked} color="text-red-400" />
+        <div className="space-y-3">
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+            <StatCard icon={<ClipboardList className="h-4 w-4" />} label="Total"      value={stats.total}   />
+            <StatCard icon={<Clock className="h-4 w-4" />}         label="Pendentes"  value={stats.pending}  color="text-amber-400" />
+            <StatCard icon={<CheckCircle2 className="h-4 w-4" />}  label="Concluídas" value={stats.done}     color="text-emerald-400" />
+            <StatCard icon={<ShieldAlert className="h-4 w-4" />}   label="Bloqueadas" value={stats.blocked}  color="text-red-400" />
+          </div>
+
+          <AnimatePresence mode="wait">
+            {!confirmArchive ? (
+              <motion.div key="archive-btn" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+                className="flex justify-end"
+              >
+                <button
+                  type="button"
+                  onClick={() => setConfirmArchive(true)}
+                  className="flex items-center gap-1.5 rounded-lg border border-white/[0.08] bg-white/[0.03] px-3 py-1.5 text-xs text-white/35 hover:border-amber-500/30 hover:bg-amber-500/10 hover:text-amber-400 transition-all"
+                >
+                  <Archive className="h-3.5 w-3.5" />
+                  Arquivar e limpar board
+                </button>
+              </motion.div>
+            ) : (
+              <motion.div key="archive-confirm" initial={{ opacity: 0, y: -4 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}
+                className="flex items-center justify-between gap-3 rounded-xl border border-amber-500/25 bg-amber-500/10 px-4 py-3"
+              >
+                <div className="flex items-center gap-2 text-xs text-amber-300/80">
+                  <AlertTriangle className="h-3.5 w-3.5 shrink-0" />
+                  <span>Arquivar <strong className="text-amber-300">{stats.total} tasks</strong> e limpar o board? O histórico fica salvo.</span>
+                </div>
+                <div className="flex items-center gap-2 shrink-0">
+                  <button type="button" onClick={() => setConfirmArchive(false)}
+                    className="text-xs text-white/40 hover:text-white/70 transition-colors px-2 py-1"
+                  >
+                    Cancelar
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => { store.archiveAndClear(); setConfirmArchive(false) }}
+                    className="flex items-center gap-1.5 rounded-lg bg-amber-500/20 border border-amber-500/30 px-3 py-1.5 text-xs font-semibold text-amber-300 hover:bg-amber-500/30 transition-colors"
+                  >
+                    <Archive className="h-3 w-3" />
+                    Confirmar
+                  </button>
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
         </div>
       )}
 
@@ -261,7 +329,7 @@ export function TasksClient() {
                     {groupKey} ({groupItems.length})
                     <span className="h-px flex-1 bg-white/[0.06]" />
                   </h3>
-                  <div className="grid grid-cols-1 xl:grid-cols-2 gap-3">
+                  <div className="grid grid-cols-1 gap-2.5 lg:grid-cols-2 2xl:grid-cols-3">
                     {groupItems.map(item => (
                       <QACard key={item.id} item={item} selected={selected.has(item.id)}
                         onToggleSelect={toggleSelect} onSendToDaily={sendItemToDaily}
@@ -273,7 +341,7 @@ export function TasksClient() {
               ))}
             </div>
           ) : (
-            <div className="grid grid-cols-1 xl:grid-cols-2 gap-3">
+            <div className="grid grid-cols-1 gap-2.5 lg:grid-cols-2 2xl:grid-cols-3">
               {filtered.map(item => (
                 <QACard key={item.id} item={item} selected={selected.has(item.id)}
                   onToggleSelect={toggleSelect} onSendToDaily={sendItemToDaily}
@@ -342,6 +410,27 @@ export function TasksClient() {
         </AnimatePresence>
       </div>
 
+      {/* Sessões anteriores */}
+      {store.archivedSessions.length > 0 && (
+        <div className="space-y-2">
+          <h3 className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-white/30">
+            <Archive className="h-3.5 w-3.5" />
+            Sessões anteriores
+            <span className="text-white/20 font-normal normal-case tracking-normal">({store.archivedSessions.length})</span>
+          </h3>
+          <div className="space-y-2">
+            {store.archivedSessions.map(session => (
+              <SessionRow
+                key={session.id}
+                session={session}
+                isExpanded={expandedSession === session.id}
+                onToggle={() => setExpandedSession(prev => prev === session.id ? null : session.id)}
+              />
+            ))}
+          </div>
+        </div>
+      )}
+
       {/* Detail modal */}
       {detailItem && (
         <TaskDetailModal item={detailItem} onClose={() => setDetailItem(null)} />
@@ -366,6 +455,99 @@ export function TasksClient() {
 export { TasksClient as QAImporterClient }
 
 // ─── Sub-components ───────────────────────────────────────
+
+function SessionRow({ session, isExpanded, onToggle }: { session: ArchivedSession; isExpanded: boolean; onToggle: () => void }) {
+  const date = new Date(session.archivedAt).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: '2-digit' })
+  const time = new Date(session.archivedAt).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })
+  const { counts } = session
+
+  return (
+    <div className="rounded-xl border border-white/[0.07] bg-white/[0.02] overflow-hidden">
+      {/* Header row */}
+      <button
+        type="button"
+        onClick={onToggle}
+        className="w-full flex items-center gap-3 px-4 py-3 hover:bg-white/[0.03] transition-colors text-left"
+      >
+        {isExpanded
+          ? <ChevronDown className="h-3.5 w-3.5 text-white/25 shrink-0" />
+          : <ChevronRight className="h-3.5 w-3.5 text-white/25 shrink-0" />
+        }
+
+        <div className="flex-1 min-w-0">
+          <div className="flex flex-wrap items-center gap-1.5">
+            <span className="font-mono text-[11px] text-white/50">{date}</span>
+            <span className="text-white/20 text-[11px]">{time}</span>
+            {session.sprint && (
+              <span className="rounded-full bg-white/[0.07] px-2 py-0.5 text-[10px] font-medium text-white/45">
+                {session.sprint}
+              </span>
+            )}
+          </div>
+        </div>
+
+        {/* Result counts */}
+        <div className="flex items-center gap-1.5 shrink-0">
+          <span className="text-[11px] font-semibold text-white/35">{counts.total} tasks</span>
+          {counts.pass > 0    && <CountBadge value={counts.pass}    label="P" color="text-emerald-400 bg-emerald-500/10 border-emerald-500/20" />}
+          {counts.fail > 0    && <CountBadge value={counts.fail}    label="F" color="text-red-400 bg-red-500/10 border-red-500/20" />}
+          {counts.partial > 0 && <CountBadge value={counts.partial} label="~" color="text-amber-400 bg-amber-500/10 border-amber-500/20" />}
+          {counts.blocked > 0 && <CountBadge value={counts.blocked} label="B" color="text-orange-400 bg-orange-500/10 border-orange-500/20" />}
+          {counts.pending > 0 && <CountBadge value={counts.pending} label="?" color="text-white/30 bg-white/[0.05] border-white/[0.08]" />}
+        </div>
+      </button>
+
+      {/* Expanded: card list */}
+      <AnimatePresence>
+        {isExpanded && (
+          <motion.div
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: 'auto', opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            transition={{ duration: 0.2 }}
+            className="overflow-hidden"
+          >
+            <div className="border-t border-white/[0.06] px-4 py-3 space-y-1.5 max-h-72 overflow-y-auto">
+              {session.items.map(item => (
+                <div key={item.id} className="flex items-center gap-2 py-1.5 border-b border-white/[0.04] last:border-0">
+                  <span className="font-mono text-[10px] text-white/35 shrink-0 w-16 truncate">{item.issueKey || '—'}</span>
+                  <span className="flex-1 text-xs text-white/60 truncate">{item.title}</span>
+                  {item.resolution ? (
+                    <ResultBadge result={item.resolution.result} />
+                  ) : (
+                    <span className="text-[10px] text-white/25 shrink-0">{item.qaCategory}</span>
+                  )}
+                </div>
+              ))}
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
+  )
+}
+
+function CountBadge({ value, label, color }: { value: number; label: string; color: string }) {
+  return (
+    <span className={cn('rounded-full border px-1.5 py-0.5 text-[10px] font-bold', color)}>
+      {value}{label}
+    </span>
+  )
+}
+
+function ResultBadge({ result }: { result: string }) {
+  const cfg: Record<string, string> = {
+    PASS:    'text-emerald-400 bg-emerald-500/10 border-emerald-500/20',
+    FAIL:    'text-red-400 bg-red-500/10 border-red-500/20',
+    PARTIAL: 'text-amber-400 bg-amber-500/10 border-amber-500/20',
+    BLOCKED: 'text-orange-400 bg-orange-500/10 border-orange-500/20',
+  }
+  return (
+    <span className={cn('shrink-0 rounded-full border px-2 py-0.5 text-[10px] font-semibold', cfg[result] ?? 'text-white/30 bg-white/[0.05] border-white/[0.08]')}>
+      {result}
+    </span>
+  )
+}
 
 function StatCard({ icon, label, value, color = 'text-white/70' }: { icon: React.ReactNode; label: string; value: number; color?: string }) {
   return (
@@ -408,16 +590,49 @@ function EmptyState({ hasItems, onImport }: { hasItems: boolean; onImport: () =>
 }
 
 function TaskDetailModal({ item, onClose }: { item: QAItem; onClose: () => void }) {
+  const [showComments, setShowComments] = useState(false)
+  const categoryColor = QA_CATEGORY_CONFIG[item.qaCategory]?.color ?? '#6366f1'
+  const priorityColor = item.priority === 'Critical' ? '#ef4444'
+    : item.priority === 'High' ? '#f97316'
+    : item.priority === 'Medium' ? '#f59e0b'
+    : item.priority === 'Low' ? '#10b981'
+    : '#64748b'
+  const usefulComments = (item.comments ?? [])
+    .map(comment => ({ ...comment, body: cleanJiraText(comment.body) }))
+    .filter(comment => isUsefulJiraComment(comment.body))
+  const hiddenComments = Math.max((item.comments?.length ?? 0) - usefulComments.length, 0)
+  const previewComment = usefulComments[0]?.body
+  const metaCards = [
+    { label: 'Cliente',     value: item.client || '-', tone: 'default' },
+    { label: 'Sprint',      value: item.sprint || '-', tone: 'default' },
+    { label: 'Responsavel', value: item.assignee || '-', tone: 'default' },
+    { label: 'Status',      value: item.status || '-', tone: 'category' },
+    { label: 'Tipo',        value: item.type || '-', tone: 'default' },
+    { label: 'Importado',   value: new Date(item.importedAt).toLocaleString('pt-BR'), tone: 'default' },
+    { label: 'Daily',       value: item.sentToDaily ? 'Enviado' : 'Pendente', tone: item.sentToDaily ? 'daily' : 'default' },
+  ]
+
   return (
     <div className="fixed inset-0 z-50 grid place-items-center p-4">
-      <div className="absolute inset-0 bg-black/65 backdrop-blur-sm" onClick={onClose} />
-      <div className="relative dropdown-panel w-full max-w-3xl max-h-[calc(100vh-2rem)] overflow-hidden">
-        <div className="flex items-start justify-between gap-4 border-b border-white/[0.08] px-5 py-4">
+      <div className="absolute inset-0 bg-black/70 backdrop-blur-sm" onClick={onClose} />
+      <div
+        className="relative w-full max-w-4xl max-h-[calc(100vh-2rem)] overflow-hidden rounded-2xl border bg-[#080d18] shadow-2xl"
+        style={{
+          borderColor: `${categoryColor}66`,
+          boxShadow: `0 0 0 1px ${categoryColor}1f, 0 28px 80px rgba(0,0,0,0.55), 0 0 60px ${categoryColor}16`,
+        }}
+      >
+        <div
+          className="pointer-events-none absolute inset-x-0 top-0 h-1"
+          style={{ background: `linear-gradient(90deg, ${categoryColor}, ${categoryColor}66, transparent)` }}
+        />
+        <div className="flex items-start justify-between gap-4 border-b border-white/[0.08] bg-white/[0.015] px-5 py-4">
           <div className="min-w-0">
             <div className="mb-2 flex flex-wrap items-center gap-2">
-              {item.issueKey && <span className="font-mono text-xs font-bold text-primary">{item.issueKey}</span>}
-              <span className="rounded-full bg-white/[0.06] px-2 py-0.5 text-[10px] font-semibold text-white/55">{item.qaCategory}</span>
-              <span className="rounded-full bg-white/[0.06] px-2 py-0.5 text-[10px] font-semibold text-white/55">{item.priority}</span>
+              {item.issueKey && <span className="font-mono text-xs font-bold" style={{ color: categoryColor }}>{item.issueKey}</span>}
+              <span className="rounded-full px-2 py-0.5 text-[10px] font-semibold" style={{ backgroundColor: `${categoryColor}22`, color: categoryColor }}>{item.qaCategory}</span>
+              <span className="rounded-full px-2 py-0.5 text-[10px] font-semibold" style={{ backgroundColor: `${priorityColor}22`, color: priorityColor }}>{item.priority}</span>
+              {item.importDepth === 'deep' && <span className="rounded-full bg-cyan-500/15 px-2 py-0.5 text-[10px] font-semibold text-cyan-300">Deep</span>}
             </div>
             <h2 className="text-base font-semibold leading-snug text-white">{item.title}</h2>
           </div>
@@ -428,16 +643,15 @@ function TaskDetailModal({ item, onClose }: { item: QAItem; onClose: () => void 
 
         <div className="max-h-[calc(100vh-10rem)] overflow-y-auto p-5 space-y-4">
           <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
-            {[
-              { label: 'Cliente',     value: item.client || '-' },
-              { label: 'Sprint',      value: item.sprint || '-' },
-              { label: 'Responsável', value: item.assignee || '-' },
-              { label: 'Status',      value: item.status || '-' },
-              { label: 'Tipo',        value: item.type || '-' },
-              { label: 'Importado',   value: new Date(item.importedAt).toLocaleString('pt-BR') },
-              { label: 'Daily',       value: item.sentToDaily ? 'Enviado' : 'Pendente' },
-            ].map(({ label, value }) => (
-              <div key={label} className="rounded-xl border border-white/[0.06] bg-white/[0.03] p-3">
+            {metaCards.map(({ label, value, tone }) => (
+              <div
+                key={label}
+                className="rounded-xl border bg-white/[0.025] p-3"
+                style={{
+                  borderColor: tone === 'category' ? `${categoryColor}44` : tone === 'daily' ? '#10b98144' : 'rgba(255,255,255,0.07)',
+                  background: tone === 'category' ? `${categoryColor}10` : tone === 'daily' ? 'rgba(16,185,129,0.08)' : 'rgba(255,255,255,0.025)',
+                }}
+              >
                 <p className="mb-1 text-[10px] font-semibold uppercase tracking-wider text-white/30">{label}</p>
                 <p className="truncate text-sm text-white/70">{value}</p>
               </div>
@@ -445,27 +659,89 @@ function TaskDetailModal({ item, onClose }: { item: QAItem; onClose: () => void 
           </div>
 
           {[
-            { label: 'Notas',           content: item.notes },
-            { label: 'Descrição Jira',  content: item.description },
-          ].filter(s => s.content).map(({ label, content }) => (
+            { label: 'Notas', content: item.notes, icon: FileText },
+            { label: 'Descricao Jira', content: item.description, icon: FileText },
+          ].filter(s => s.content).map(({ label, content, icon: Icon }) => (
             <section key={label}>
-              <h3 className="mb-2 text-[10px] font-semibold uppercase tracking-wider text-white/30">{label}</h3>
-              <div className="rounded-xl border border-white/[0.06] bg-white/[0.03] p-4">
+              <h3 className="mb-2 flex items-center gap-2 text-[10px] font-semibold uppercase tracking-wider text-white/35">
+                <Icon className="h-3.5 w-3.5" style={{ color: categoryColor }} />
+                {label}
+              </h3>
+              <div className="rounded-xl border bg-white/[0.025] p-4" style={{ borderColor: `${categoryColor}26` }}>
                 <p className="whitespace-pre-wrap text-sm leading-relaxed text-white/65">{content}</p>
               </div>
             </section>
           ))}
 
-          {(item.comments?.length ?? 0) > 0 && (
+          {(item.pullRequests?.length ?? 0) > 0 && (
             <section>
-              <h3 className="mb-2 text-[10px] font-semibold uppercase tracking-wider text-white/30">Comentários Jira</h3>
+              <h3 className="mb-2 flex items-center gap-2 text-[10px] font-semibold uppercase tracking-wider text-white/35">
+                <GitPullRequest className="h-3.5 w-3.5 text-primary" />
+                Pull Requests
+              </h3>
               <div className="space-y-2">
-                {item.comments?.map((comment, i) => (
-                  <div key={i} className="rounded-xl border border-white/[0.06] bg-white/[0.03] p-4">
-                    <p className="whitespace-pre-wrap text-sm leading-relaxed text-white/65">{comment.body}</p>
-                  </div>
+                {item.pullRequests?.map((link, i) => (
+                  <a
+                    key={`${link.url}-${i}`}
+                    href={link.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-center justify-between gap-3 rounded-xl border border-primary/20 bg-primary/10 px-4 py-3 text-sm text-primary/85 transition-colors hover:bg-primary/15 hover:text-primary"
+                  >
+                    <span className="min-w-0 truncate">{link.text || link.url}</span>
+                    <ExternalLink className="h-3.5 w-3.5 shrink-0" />
+                  </a>
                 ))}
               </div>
+            </section>
+          )}
+
+          {(item.comments?.length ?? 0) > 0 && (
+            <section className="rounded-xl border bg-white/[0.018]" style={{ borderColor: `${categoryColor}30` }}>
+              <button
+                type="button"
+                onClick={() => setShowComments(v => !v)}
+                className="flex w-full items-center justify-between gap-4 px-4 py-3 text-left"
+              >
+                <div className="min-w-0">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <MessageSquare className="h-3.5 w-3.5" style={{ color: categoryColor }} />
+                    <span className="text-[10px] font-semibold uppercase tracking-wider text-white/40">Comentarios Jira</span>
+                    <span className="rounded-full bg-white/[0.06] px-2 py-0.5 text-[10px] font-semibold text-white/45">
+                      {usefulComments.length} uteis
+                    </span>
+                    {hiddenComments > 0 && (
+                      <span className="rounded-full bg-amber-500/10 px-2 py-0.5 text-[10px] font-semibold text-amber-300/80">
+                        {hiddenComments} filtrados
+                      </span>
+                    )}
+                  </div>
+                  {!showComments && (
+                    <p className="mt-2 line-clamp-2 text-xs leading-relaxed text-white/42">
+                      {previewComment || 'Sem comentarios relevantes depois da limpeza automatica.'}
+                    </p>
+                  )}
+                </div>
+                <ChevronDown className={cn('h-4 w-4 shrink-0 text-white/35 transition-transform', showComments && 'rotate-180')} />
+              </button>
+
+              {showComments && (
+                <div className="space-y-2 border-t border-white/[0.06] p-3">
+                  {usefulComments.length > 0 ? usefulComments.map((comment, i) => (
+                    <article key={`${comment.createdAt || 'comment'}-${i}`} className="rounded-xl border border-white/[0.06] bg-[#0d1320] p-3">
+                      <div className="mb-2 flex flex-wrap items-center gap-2 text-[11px]">
+                        <span className="font-semibold text-white/65">{comment.author || `Comentario ${i + 1}`}</span>
+                        {comment.createdAt && <span className="text-white/28">{formatCommentDate(comment.createdAt)}</span>}
+                      </div>
+                      <p className="whitespace-pre-wrap text-sm leading-relaxed text-white/62">{comment.body}</p>
+                    </article>
+                  )) : (
+                    <div className="rounded-xl border border-white/[0.06] bg-white/[0.025] p-4 text-sm text-white/45">
+                      Os comentarios importados parecem ser placeholders do Jira, entao foram escondidos.
+                    </div>
+                  )}
+                </div>
+              )}
             </section>
           )}
         </div>

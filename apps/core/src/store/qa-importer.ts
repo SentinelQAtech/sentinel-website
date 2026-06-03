@@ -11,6 +11,18 @@ export type QACategory   = 'Ready for QA' | 'In Testing' | 'Bug Validation' | 'R
 export type QAItemSource = 'manual' | 'csv' | 'extension'
 export type QAResolutionResult = 'PASS' | 'FAIL' | 'PARTIAL' | 'BLOCKED'
 export type QADailyStatus = 'todo' | 'doing' | 'done' | 'blocked'
+export type QAImportDepth = 'board' | 'deep'
+
+export interface QALink {
+  url: string
+  text?: string
+}
+
+export interface QAComment {
+  body: string
+  author?: string
+  createdAt?: string
+}
 
 export interface QAResolution {
   result:           QAResolutionResult
@@ -44,6 +56,14 @@ export interface QAItem {
   type:        string
   link?:       string
   notes?:      string
+  description?: string
+  comments?:   QAComment[]
+  devNotes?:   string
+  pullRequests?: QALink[]
+  externalLinks?: QALink[]
+  lastSyncedAt?: string
+  importDepth?: QAImportDepth
+  deepImportError?: string
   importedAt:  string
   sentToDaily: boolean
   qaCategory:  QACategory
@@ -61,6 +81,24 @@ export interface ImportRecord {
   qaCount:    number
   duplicates: number
   source:     QAItemSource
+}
+
+export interface ArchivedSessionCounts {
+  total:   number
+  pass:    number
+  fail:    number
+  partial: number
+  blocked: number
+  pending: number
+}
+
+export interface ArchivedSession {
+  id:         string
+  archivedAt: string
+  sprint:     string | null
+  client:     string | null
+  counts:     ArchivedSessionCounts
+  items:      QAItem[]
 }
 
 export const PRIORITY_ORDER: Record<QAPriority, number> = {
@@ -96,6 +134,35 @@ function getLocalISODate() {
   return new Date(now.getTime() - tzOffset).toISOString().slice(0, 10)
 }
 
+function normalizeLinks(value: unknown): QALink[] {
+  if (!Array.isArray(value)) return []
+  return value
+    .map(link => {
+      if (typeof link === 'string') return { url: link }
+      if (!link || typeof link !== 'object') return null
+      const candidate = link as Partial<QALink>
+      if (!candidate.url) return null
+      return { url: candidate.url, text: candidate.text ?? '' }
+    })
+    .filter((link): link is QALink => Boolean(link))
+}
+
+function normalizeComments(value: unknown): QAComment[] {
+  if (!Array.isArray(value)) return []
+  const comments: Array<QAComment | null> = value.map(comment => {
+    if (typeof comment === 'string') return { body: comment }
+    if (!comment || typeof comment !== 'object') return null
+    const candidate = comment as Partial<QAComment>
+    if (!candidate.body) return null
+    return {
+      body: candidate.body,
+      author: candidate.author ?? '',
+      createdAt: candidate.createdAt ?? '',
+    }
+  })
+  return comments.filter((comment): comment is QAComment => Boolean(comment))
+}
+
 // ─── Store ────────────────────────────────────────────────────
 
 type ImportInput = Omit<QAItem, 'id' | 'importedAt' | 'sentToDaily'>
@@ -108,18 +175,20 @@ interface ImportResult {
 }
 
 interface QAImporterStore {
-  items:           QAItem[]
-  history:         ImportRecord[]
-  qaFilterEnabled: boolean
+  items:            QAItem[]
+  history:          ImportRecord[]
+  qaFilterEnabled:  boolean
+  archivedSessions: ArchivedSession[]
 
-  importItems:     (raw: ImportInput[], source: QAItemSource) => ImportResult
-  updateItem:      (id: string, updates: Partial<QAItem>) => void
-  removeItem:      (id: string) => void
-  markSentToDaily: (ids: string[]) => void
-  updateDailyState:(id: string, updates: Pick<Partial<QAItem>, 'dailyStatus' | 'dailyOrder' | 'dailyDate'>) => void
-  moveDailyItem:   (id: string, direction: 'up' | 'down') => void
-  saveResolution:  (id: string, resolution: Omit<QAResolution, 'report' | 'resolvedAt'>) => void
-  sendAllToDaily:  () => string[]
+  importItems:      (raw: ImportInput[], source: QAItemSource) => ImportResult
+  updateItem:       (id: string, updates: Partial<QAItem>) => void
+  removeItem:       (id: string) => void
+  markSentToDaily:  (ids: string[]) => void
+  updateDailyState: (id: string, updates: Pick<Partial<QAItem>, 'dailyStatus' | 'dailyOrder' | 'dailyDate'>) => void
+  moveDailyItem:    (id: string, direction: 'up' | 'down') => void
+  saveResolution:   (id: string, resolution: Omit<QAResolution, 'report' | 'resolvedAt'>) => void
+  sendAllToDaily:   () => string[]
+  archiveAndClear:  () => void
 
   setQaFilter:    (enabled: boolean) => void
   clearAll:       () => void
@@ -130,9 +199,10 @@ interface QAImporterStore {
 export const useQAImporterStore = create<QAImporterStore>()(
   persist(
     (set, get) => ({
-      items:           INITIAL_ITEMS,
-      history:         [],
-      qaFilterEnabled: true,
+      items:            INITIAL_ITEMS,
+      history:          [],
+      qaFilterEnabled:  true,
+      archivedSessions: [],
 
       importItems: (raw, source) => {
         const ts = new Date().toISOString()
@@ -288,6 +358,36 @@ export const useQAImporterStore = create<QAImporterStore>()(
         return notSent
       },
 
+      archiveAndClear: () => set(s => {
+        if (s.items.length === 0) return s
+
+        const sprints = [...new Set(s.items.map(i => i.sprint).filter(Boolean))]
+        const clients = [...new Set(s.items.map(i => i.client).filter(Boolean))]
+
+        const counts: ArchivedSessionCounts = {
+          total:   s.items.length,
+          pass:    s.items.filter(i => i.resolution?.result === 'PASS').length,
+          fail:    s.items.filter(i => i.resolution?.result === 'FAIL').length,
+          partial: s.items.filter(i => i.resolution?.result === 'PARTIAL').length,
+          blocked: s.items.filter(i => i.resolution?.result === 'BLOCKED' || (!i.resolution && i.qaCategory === 'Blocked')).length,
+          pending: s.items.filter(i => !i.resolution && i.qaCategory !== 'Done' && i.qaCategory !== 'Blocked').length,
+        }
+
+        const session: ArchivedSession = {
+          id:         `session-${Date.now()}`,
+          archivedAt: new Date().toISOString(),
+          sprint:     sprints[0] ?? null,
+          client:     clients[0] ?? null,
+          counts,
+          items:      s.items,
+        }
+
+        return {
+          items:            [],
+          archivedSessions: [session, ...s.archivedSessions].slice(0, 30),
+        }
+      }),
+
       setQaFilter: (enabled) => set({ qaFilterEnabled: enabled }),
 
       clearAll: () => set({ items: [], history: [] }),
@@ -305,6 +405,14 @@ export const useQAImporterStore = create<QAImporterStore>()(
           type:       p.type       ?? '',
           link:       p.link       ?? '',
           notes:      p.notes      ?? '',
+          description: p.description ?? '',
+          comments:    normalizeComments(p.comments),
+          devNotes:    p.devNotes ?? '',
+          pullRequests: normalizeLinks(p.pullRequests),
+          externalLinks: normalizeLinks(p.externalLinks),
+          lastSyncedAt: p.lastSyncedAt ?? '',
+          importDepth:  p.importDepth ?? 'board',
+          deepImportError: p.deepImportError ?? '',
           source:     source,
           qaCategory: p.qaCategory ?? 'Other',
         }))
@@ -313,9 +421,9 @@ export const useQAImporterStore = create<QAImporterStore>()(
     }),
     {
       name: 'sentinel-core-qa-importer',
-      version: 2,
+      version: 3,
       storage: createUserWorkspaceStorage(),
-      migrate: () => ({ items: [], history: [], qaFilterEnabled: true }),
+      migrate: () => ({ items: [], history: [], qaFilterEnabled: true, archivedSessions: [] }),
     }
   )
 )
