@@ -1,7 +1,7 @@
 'use client'
 
 import * as Dialog from '@radix-ui/react-dialog'
-import { X, ExternalLink, Clock, Tag, Users, Layers, Zap } from 'lucide-react'
+import { X, ExternalLink, FileSearch } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { QA_CATEGORY_CONFIG, PRIORITY_CONFIG, type QAItem } from '@/store/qa-importer'
 import { rankItem } from '@/lib/qa-ranking'
@@ -14,19 +14,19 @@ interface Props {
 export function QACardPreviewDialog({ item, onClose }: Props) {
   if (!item) return null
 
-  const rank    = rankItem(item)
-  const cat     = QA_CATEGORY_CONFIG[item.qaCategory]
-  const prio    = PRIORITY_CONFIG[item.priority]
+  const rank = rankItem(item)
+  const cat  = QA_CATEGORY_CONFIG[item.qaCategory]
+  const prio = PRIORITY_CONFIG[item.priority]
 
   return (
     <Dialog.Root open={!!item} onOpenChange={open => !open && onClose()}>
       <Dialog.Portal>
-        <Dialog.Overlay className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0" />
+        <Dialog.Overlay className="fixed inset-0 z-50 bg-black/55 backdrop-blur-sm data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0" />
 
         <Dialog.Content
           className={cn(
-            'fixed left-1/2 top-1/2 z-50 w-full max-w-lg -translate-x-1/2 -translate-y-1/2',
-            'rounded-2xl border border-white/[0.09] bg-[#0e0f14] shadow-2xl',
+            'fixed left-1/2 top-1/2 z-50 w-full max-w-md -translate-x-1/2 -translate-y-1/2',
+            'rounded-2xl border border-white/[0.08] bg-[#111318] shadow-[0_24px_80px_rgba(0,0,0,0.6)]',
             'data-[state=open]:animate-in data-[state=closed]:animate-out',
             'data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0',
             'data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95',
@@ -36,32 +36,22 @@ export function QACardPreviewDialog({ item, onClose }: Props) {
           )}
         >
           {/* Header */}
-          <div className="flex items-start justify-between gap-3 px-5 pt-5 pb-4 border-b border-white/[0.06]">
-            <div className="flex flex-wrap items-center gap-2 min-w-0">
-              {item.issueKey && (
-                <span className="font-mono text-[11px] font-bold text-white/50 bg-white/[0.07] px-2 py-0.5 rounded-md shrink-0">
-                  {item.issueKey}
-                </span>
-              )}
-              <span
-                className="text-[10px] font-semibold px-2 py-0.5 rounded-full shrink-0"
-                style={{ backgroundColor: cat.color + '22', color: cat.color }}
-              >
-                {item.qaCategory}
-              </span>
-              <span
-                className="text-[10px] font-semibold px-2 py-0.5 rounded-full shrink-0"
-                style={{ backgroundColor: prio.color + '20', color: prio.color }}
-              >
-                {item.priority}
-              </span>
-              {rank.detectedType && (
-                <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-white/[0.06] border border-white/[0.08] text-white/50 shrink-0">
-                  {rank.detectedType}
-                </span>
-              )}
+          <div className="flex items-center justify-between gap-3 px-5 pt-5 pb-4">
+            <div className="flex items-center gap-3">
+              <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-primary/20 border border-primary/30">
+                <FileSearch className="h-4 w-4 text-primary" />
+              </div>
+              <div className="min-w-0">
+                {item.issueKey && (
+                  <p className="font-mono text-[11px] font-bold text-white/40 leading-none mb-0.5">
+                    {item.issueKey}
+                  </p>
+                )}
+                <Dialog.Title className="text-sm font-semibold text-white/90 leading-snug line-clamp-1">
+                  {item.title}
+                </Dialog.Title>
+              </div>
             </div>
-
             <Dialog.Close
               className="shrink-0 rounded-lg p-1.5 text-white/30 hover:text-white/70 hover:bg-white/[0.06] transition-colors"
               aria-label="Fechar"
@@ -70,48 +60,80 @@ export function QACardPreviewDialog({ item, onClose }: Props) {
             </Dialog.Close>
           </div>
 
-          {/* Title */}
-          <div className="px-5 py-4">
-            <Dialog.Title className="text-base font-semibold leading-snug text-white">
-              {item.title}
-            </Dialog.Title>
-          </div>
+          <div className="px-5 space-y-4 pb-5">
+            {/* Title full */}
+            <div>
+              <Label>Título</Label>
+              <Field>{item.title}</Field>
+            </div>
 
-          {/* Metadata grid */}
-          <div className="px-5 pb-4 grid grid-cols-2 gap-x-6 gap-y-2.5">
-            {item.sprint && (
-              <MetaField icon={<Clock className="h-3.5 w-3.5" />} label="Sprint" value={item.sprint} />
-            )}
-            {item.assignee && (
-              <MetaField icon={<Users className="h-3.5 w-3.5" />} label="Assignee" value={`@${item.assignee}`} />
-            )}
-            {item.client && (
-              <MetaField icon={<Layers className="h-3.5 w-3.5" />} label="Cliente" value={item.client} />
-            )}
-            {item.type && (
-              <MetaField icon={<Tag className="h-3.5 w-3.5" />} label="Tipo" value={item.type} />
-            )}
-            <MetaField
-              icon={<Zap className="h-3.5 w-3.5" />}
-              label="Análise"
-              value={`${rank.tag} · ~${rank.estimatedMinutes}min`}
-            />
-          </div>
+            {/* Row: categoria + prioridade */}
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <Label>Categoria</Label>
+                <Field>
+                  <span
+                    className="inline-block w-1.5 h-1.5 rounded-full mr-1.5 shrink-0 align-middle"
+                    style={{ backgroundColor: cat.color }}
+                  />
+                  {item.qaCategory}
+                </Field>
+              </div>
+              <div>
+                <Label>Prioridade</Label>
+                <Field>
+                  <span
+                    className="inline-block w-1.5 h-1.5 rounded-full mr-1.5 shrink-0 align-middle"
+                    style={{ backgroundColor: prio.color }}
+                  />
+                  {item.priority}
+                </Field>
+              </div>
+            </div>
 
-          {/* Notes */}
-          <div className="px-5 pb-4">
-            {item.notes ? (
-              <div className="rounded-xl bg-white/[0.03] border border-white/[0.06] p-4">
-                <p className="text-[11px] font-semibold uppercase tracking-wider text-white/25 mb-2">Notas</p>
-                <p className="text-sm text-white/60 leading-relaxed">{item.notes}</p>
+            {/* Row: sprint + tipo */}
+            <div className="grid grid-cols-2 gap-3">
+              {(item.sprint || item.client) && (
+                <div>
+                  <Label>Sprint / Cliente</Label>
+                  <Field>{[item.sprint, item.client].filter(Boolean).join(' · ') || '—'}</Field>
+                </div>
+              )}
+              <div>
+                <Label>Tipo detectado</Label>
+                <Field>{rank.detectedType ?? item.type ?? '—'}</Field>
               </div>
-            ) : (
-              <div className="rounded-xl bg-white/[0.02] border border-dashed border-white/[0.07] px-4 py-3 text-center">
-                <p className="text-xs text-white/25">
-                  Sem notas importadas — a descrição completa está no Jira.
-                </p>
+            </div>
+
+            {/* Row: assignee + análise */}
+            <div className="grid grid-cols-2 gap-3">
+              {item.assignee && (
+                <div>
+                  <Label>Responsável</Label>
+                  <Field>@{item.assignee}</Field>
+                </div>
+              )}
+              <div>
+                <Label>Análise automática</Label>
+                <Field>{rank.tag} · ~{rank.estimatedMinutes}min</Field>
               </div>
-            )}
+            </div>
+
+            {/* Notes */}
+            <div>
+              <Label>Notas</Label>
+              {item.notes ? (
+                <div className="rounded-xl border border-white/[0.08] bg-[#0d0e13] px-4 py-3 min-h-[72px]">
+                  <p className="text-sm text-white/55 leading-relaxed">{item.notes}</p>
+                </div>
+              ) : (
+                <div className="rounded-xl border border-dashed border-white/[0.07] bg-[#0d0e13] px-4 py-3 min-h-[56px] flex items-center">
+                  <p className="text-xs text-white/25 italic">
+                    Sem notas — descrição completa disponível no Jira.
+                  </p>
+                </div>
+              )}
+            </div>
           </div>
 
           {/* Footer */}
@@ -119,9 +141,9 @@ export function QACardPreviewDialog({ item, onClose }: Props) {
             <Dialog.Close asChild>
               <button
                 type="button"
-                className="px-4 py-2 rounded-lg text-sm text-white/40 hover:text-white/70 transition-colors"
+                className="px-4 py-2 text-sm text-white/40 hover:text-white/70 transition-colors"
               >
-                Fechar
+                Cancelar
               </button>
             </Dialog.Close>
 
@@ -130,13 +152,13 @@ export function QACardPreviewDialog({ item, onClose }: Props) {
                 href={item.link}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-flex items-center gap-2 rounded-xl bg-primary px-4 py-2 text-sm font-semibold text-white hover:bg-primary/80 transition-colors"
+                className="inline-flex items-center gap-2 rounded-xl bg-primary px-5 py-2.5 text-sm font-semibold text-white hover:bg-primary/85 transition-colors"
               >
                 <ExternalLink className="h-4 w-4" />
                 Abrir no Jira
               </a>
             ) : (
-              <span className="text-xs text-white/20 italic">Sem link disponível</span>
+              <span className="text-xs text-white/20 italic px-4 py-2">Sem link</span>
             )}
           </div>
         </Dialog.Content>
@@ -145,22 +167,18 @@ export function QACardPreviewDialog({ item, onClose }: Props) {
   )
 }
 
-function MetaField({
-  icon,
-  label,
-  value,
-}: {
-  icon: React.ReactNode
-  label: string
-  value: string
-}) {
+function Label({ children }: { children: React.ReactNode }) {
   return (
-    <div className="flex items-start gap-2">
-      <span className="mt-0.5 text-white/25 shrink-0">{icon}</span>
-      <div className="min-w-0">
-        <p className="text-[10px] font-semibold uppercase tracking-wider text-white/25">{label}</p>
-        <p className="text-xs text-white/65 truncate">{value}</p>
-      </div>
+    <p className="mb-1.5 text-[11px] font-semibold uppercase tracking-wider text-white/30">
+      {children}
+    </p>
+  )
+}
+
+function Field({ children }: { children: React.ReactNode }) {
+  return (
+    <div className="flex items-center rounded-xl border border-white/[0.08] bg-[#0d0e13] px-3.5 py-2.5 text-sm text-white/65">
+      {children}
     </div>
   )
 }
