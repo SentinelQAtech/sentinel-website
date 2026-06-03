@@ -26,7 +26,7 @@ export function QACardPreviewDialog({ item, onClose }: Props) {
         <Dialog.Content
           className={cn(
             'fixed left-1/2 top-1/2 z-50 w-full max-w-[440px] -translate-x-1/2 -translate-y-1/2',
-            'rounded-2xl border border-white/[0.09] bg-[#1c1f2a] shadow-[0_32px_96px_rgba(0,0,0,0.6)]',
+            'rounded-2xl border border-white/[0.1] bg-[#171b2e] shadow-[0_32px_96px_rgba(0,0,0,0.6)]',
             'data-[state=open]:animate-in data-[state=closed]:animate-out',
             'data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0',
             'data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95',
@@ -68,9 +68,22 @@ export function QACardPreviewDialog({ item, onClose }: Props) {
 
           {/* Fields */}
           <div className="px-5 py-5 space-y-4">
-            {/* Título */}
+            {/* Título + Jira inline */}
             <div>
-              <Label>Título</Label>
+              <div className="flex items-center justify-between mb-1.5">
+                <p className="text-[11px] font-semibold uppercase tracking-wider text-white/30">Título</p>
+                {item.link && (
+                  <a
+                    href={item.link}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-center gap-1 text-[11px] font-semibold uppercase tracking-wider text-white/25 hover:text-primary transition-colors"
+                  >
+                    Jira
+                    <ExternalLink className="h-2.5 w-2.5" />
+                  </a>
+                )}
+              </div>
               <Field>{item.title}</Field>
             </div>
 
@@ -120,7 +133,7 @@ export function QACardPreviewDialog({ item, onClose }: Props) {
             <div>
               <Label>Notas</Label>
               <div className={cn(
-                'min-h-[72px] rounded-xl border border-white/[0.08] bg-[#14161e] px-4 py-3',
+                'min-h-[72px] rounded-xl border border-white/[0.08] bg-[#10132a] px-4 py-3',
                 !item.notes && 'flex items-center',
               )}>
                 {item.notes
@@ -129,6 +142,41 @@ export function QACardPreviewDialog({ item, onClose }: Props) {
                 }
               </div>
             </div>
+
+            {item.description && (
+              <div>
+                <Label>Descricao Jira</Label>
+                <div className="max-h-40 overflow-y-auto rounded-xl border border-white/[0.08] bg-[#10132a] px-4 py-3">
+                  <p className="whitespace-pre-wrap text-sm leading-relaxed text-white/60">{item.description}</p>
+                </div>
+              </div>
+            )}
+
+            {(item.pullRequests?.length ?? 0) > 0 && (
+              <div>
+                <Label>PRs / Versao</Label>
+                <div className="space-y-2">
+                  {item.pullRequests?.map(link => (
+                    <a key={link.url} href={link.url} target="_blank" rel="noopener noreferrer" className="block truncate rounded-xl border border-primary/20 bg-primary/10 px-3.5 py-2.5 text-sm text-primary hover:bg-primary/15">
+                      {link.text || link.url}
+                    </a>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {(item.comments?.length ?? 0) > 0 && (
+              <div>
+                <Label>Comentarios Jira</Label>
+                <div className="max-h-44 space-y-2 overflow-y-auto">
+                  {item.comments?.slice(0, 5).map((comment, index) => (
+                    <div key={`${index}-${comment.body.slice(0, 20)}`} className="rounded-xl border border-white/[0.08] bg-[#10132a] px-4 py-3">
+                      <p className="whitespace-pre-wrap text-sm leading-relaxed text-white/60">{comment.body}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
 
           {/* Footer */}
@@ -150,7 +198,7 @@ export function QACardPreviewDialog({ item, onClose }: Props) {
                 className="inline-flex items-center gap-2 rounded-xl bg-primary px-5 py-2.5 text-sm font-semibold text-white hover:bg-primary/85 transition-colors"
               >
                 <ExternalLink className="h-4 w-4" />
-                Abrir no Jira
+                Abrir Task
               </a>
             ) : (
               <span className="text-xs text-white/20 italic">Sem link</span>
@@ -174,7 +222,7 @@ function Label({ children }: { children: React.ReactNode }) {
 
 function Field({ children }: { children: React.ReactNode }) {
   return (
-    <div className="flex min-h-[40px] items-center rounded-xl border border-white/[0.08] bg-[#14161e] px-3.5 py-2.5 text-sm text-white/65">
+    <div className="flex min-h-[40px] items-center rounded-xl border border-white/[0.08] bg-[#10132a] px-3.5 py-2.5 text-sm text-white/65">
       {children}
     </div>
   )
