@@ -15,6 +15,7 @@ import { QAFiltersBar, DEFAULT_FILTERS, type QAFilterState } from './qa-filters'
 import { QACard }          from './qa-card'
 import { ImportPanel }     from './import-panel'
 import { ImportHistory }   from './import-history'
+import { FormattedText }   from './formatted-text'
 
 const VALID_CLIENTS   = new Set(['UOL', 'Concepta', 'ScrumLaunch', 'Ambev', 'Pessoal'])
 const DAILY_PRIORITY  = new Set(['Critical', 'High', 'Medium', 'Low'])
@@ -668,7 +669,7 @@ function TaskDetailModal({ item, onClose }: { item: QAItem; onClose: () => void 
                 {label}
               </h3>
               <div className="rounded-xl border bg-white/[0.025] p-4" style={{ borderColor: `${categoryColor}26` }}>
-                <p className="whitespace-pre-wrap text-sm leading-relaxed text-white/65">{content}</p>
+                <FormattedText text={content ?? ''} />
               </div>
             </section>
           ))}
@@ -733,7 +734,7 @@ function TaskDetailModal({ item, onClose }: { item: QAItem; onClose: () => void 
                         <span className="font-semibold text-white/65">{comment.author || `Comentario ${i + 1}`}</span>
                         {comment.createdAt && <span className="text-white/28">{formatCommentDate(comment.createdAt)}</span>}
                       </div>
-                      <p className="whitespace-pre-wrap text-sm leading-relaxed text-white/62">{comment.body}</p>
+                      <FormattedText text={comment.body} />
                     </article>
                   )) : (
                     <div className="rounded-xl border border-white/[0.06] bg-white/[0.025] p-4 text-sm text-white/45">

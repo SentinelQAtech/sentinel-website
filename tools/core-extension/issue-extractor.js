@@ -17,6 +17,46 @@ function cleanText(value, limit = TEXT_LIMIT) {
     .slice(0, limit);
 }
 
+/**
+ * Convert a DOM element's HTML to structured plain text.
+ * Preserves paragraphs, headings, lists (ordered + unordered) and line breaks.
+ * Never mutates the original element \u2014 works on a deep clone.
+ */
+function htmlToText(el, limit = TEXT_LIMIT) {
+  if (!el) return '';
+  const clone = el.cloneNode(true);
+
+  // <br> \u2192 newline
+  clone.querySelectorAll('br').forEach(br => {
+    br.replaceWith('\n');
+  });
+
+  // Ordered list items: prepend "N. "
+  clone.querySelectorAll('ol > li').forEach(li => {
+    const parent = li.parentElement;
+    const idx = parent ? Array.from(parent.children).indexOf(li) + 1 : 1;
+    li.prepend(`\n${idx}. `);
+  });
+
+  // Unordered list items: prepend "- "
+  clone.querySelectorAll('ul > li').forEach(li => {
+    li.prepend('\n- ');
+  });
+
+  // Headings: double newline before, single after
+  clone.querySelectorAll('h1,h2,h3,h4,h5,h6').forEach(h => {
+    h.prepend('\n\n');
+    h.append('\n');
+  });
+
+  // Block elements that need a newline before them
+  clone.querySelectorAll('p, blockquote, pre, tr').forEach(el => {
+    el.prepend('\n');
+  });
+
+  return cleanText(clone.textContent || '', limit);
+}
+
 function visible(el) {
   const rect = el.getBoundingClientRect();
   const style = getComputedStyle(el);
@@ -80,7 +120,7 @@ function extractDescription() {
   for (const selector of selectors) {
     const nodes = Array.from(document.querySelectorAll(selector)).filter(visible);
     for (const node of nodes) {
-      const text = cleanText(node.textContent || '');
+      const text = htmlToText(node);
       if (text && text.length > 20 && !/^description$/i.test(text)) return text;
     }
   }
@@ -98,7 +138,7 @@ function extractComments() {
   const comments = [];
   for (const selector of selectors) {
     for (const el of Array.from(document.querySelectorAll(selector)).filter(visible)) {
-      const body = cleanText(el.textContent || '', 4000);
+      const body = htmlToText(el, 4000);
       if (body.length < 8) continue;
       if (/^(add comment|adicionar comentário|comment)$/i.test(body)) continue;
       comments.push({ body });

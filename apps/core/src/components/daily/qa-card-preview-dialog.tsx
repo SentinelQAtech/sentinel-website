@@ -5,6 +5,7 @@ import { X, ExternalLink } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { QA_CATEGORY_CONFIG, PRIORITY_CONFIG, type QAItem } from '@/store/qa-importer'
 import { rankItem } from '@/lib/qa-ranking'
+import { FormattedText } from '@/components/qa-importer/formatted-text'
 
 interface Props {
   item: QAItem | null
@@ -132,22 +133,19 @@ export function QACardPreviewDialog({ item, onClose }: Props) {
             {/* Notas */}
             <div>
               <Label>Notas</Label>
-              <div className={cn(
-                'min-h-[72px] rounded-xl border border-white/[0.08] bg-[#10132a] px-4 py-3',
-                !item.notes && 'flex items-center',
-              )}>
-                {item.notes
-                  ? <p className="text-sm text-white/60 leading-relaxed">{item.notes}</p>
-                  : <p className="text-sm text-white/25 italic">Sem notas — descrição completa no Jira.</p>
-                }
+              <div className="min-h-[56px] rounded-xl border border-white/[0.08] bg-[#10132a] px-4 py-3">
+                <FormattedText
+                  text={item.notes ?? ''}
+                  emptyMessage="Sem notas — descrição completa no Jira."
+                />
               </div>
             </div>
 
             {item.description && (
               <div>
-                <Label>Descricao Jira</Label>
-                <div className="max-h-40 overflow-y-auto rounded-xl border border-white/[0.08] bg-[#10132a] px-4 py-3">
-                  <p className="whitespace-pre-wrap text-sm leading-relaxed text-white/60">{item.description}</p>
+                <Label>Descrição Jira</Label>
+                <div className="max-h-52 overflow-y-auto rounded-xl border border-white/[0.08] bg-[#10132a] px-4 py-3">
+                  <FormattedText text={item.description} />
                 </div>
               </div>
             )}
@@ -167,11 +165,16 @@ export function QACardPreviewDialog({ item, onClose }: Props) {
 
             {(item.comments?.length ?? 0) > 0 && (
               <div>
-                <Label>Comentarios Jira</Label>
-                <div className="max-h-44 space-y-2 overflow-y-auto">
+                <Label>Comentários Jira</Label>
+                <div className="max-h-56 space-y-2 overflow-y-auto">
                   {item.comments?.slice(0, 5).map((comment, index) => (
                     <div key={`${index}-${comment.body.slice(0, 20)}`} className="rounded-xl border border-white/[0.08] bg-[#10132a] px-4 py-3">
-                      <p className="whitespace-pre-wrap text-sm leading-relaxed text-white/60">{comment.body}</p>
+                      {comment.author && (
+                        <p className="mb-2 text-[10px] font-semibold text-white/30 uppercase tracking-wider">
+                          {comment.author}
+                        </p>
+                      )}
+                      <FormattedText text={comment.body} />
                     </div>
                   ))}
                 </div>
