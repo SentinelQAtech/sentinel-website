@@ -382,42 +382,53 @@ export function QADailyCockpit({ selectedDate }: { selectedDate: string }) {
 
               {/* Card preview */}
               {isExpanded && (
-                <div className="border-t border-white/[0.06] mx-3 pt-3 pb-3 space-y-3">
-                  {/* Meta row */}
-                  <div className="flex flex-wrap gap-1.5">
-                    {rank.detectedType && (
-                      <span className="rounded-full bg-white/[0.06] border border-white/[0.08] px-2 py-0.5 text-[10px] font-semibold text-white/50">
-                        {rank.detectedType}
-                      </span>
-                    )}
+                <div className="border-t border-white/[0.06] mx-3 pb-3 pt-3 space-y-3">
+                  {/* Metadata grid */}
+                  <div className="grid grid-cols-2 gap-x-4 gap-y-1.5 text-[11px]">
                     {item.qaCategory && (
-                      <span className="rounded-full bg-white/[0.06] border border-white/[0.08] px-2 py-0.5 text-[10px] text-white/40">
-                        {item.qaCategory}
-                      </span>
+                      <MetaRow label="Categoria" value={item.qaCategory} />
+                    )}
+                    {rank.detectedType && (
+                      <MetaRow label="Tipo" value={rank.detectedType} />
+                    )}
+                    {item.priority && item.priority !== 'Unknown' && (
+                      <MetaRow label="Prioridade" value={item.priority} />
+                    )}
+                    {item.sprint && (
+                      <MetaRow label="Sprint" value={item.sprint} />
                     )}
                     {item.assignee && (
-                      <span className="rounded-full bg-white/[0.06] border border-white/[0.08] px-2 py-0.5 text-[10px] text-white/40">
-                        @{item.assignee}
-                      </span>
+                      <MetaRow label="Assignee" value={`@${item.assignee}`} />
                     )}
-                    <span className={cn('rounded-full border px-2 py-0.5 text-[10px] font-medium', rank.tagColor)}>
-                      {rank.tag} · ~{rank.estimatedMinutes}min
-                    </span>
+                    {item.client && (
+                      <MetaRow label="Cliente" value={item.client} />
+                    )}
+                    <MetaRow label="Análise" value={`${rank.tag} · ~${rank.estimatedMinutes}min`} />
                   </div>
 
-                  {/* Full title if truncated */}
-                  <p className="text-sm font-medium text-white/80 leading-snug">{item.title}</p>
-
                   {/* Notes */}
-                  {item.notes && (
-                    <div className="flex gap-2.5">
+                  {item.notes ? (
+                    <div className="flex gap-2.5 rounded-lg bg-white/[0.025] border border-white/[0.05] px-3 py-2.5">
                       <div className="mt-1 w-0.5 shrink-0 rounded-full bg-primary/40" />
                       <p className="text-xs text-white/55 leading-relaxed">{item.notes}</p>
                     </div>
+                  ) : (
+                    <p className="text-[11px] text-white/20 italic">
+                      Sem notas — a descrição completa está no Jira.
+                    </p>
                   )}
 
-                  {!item.notes && !item.link && (
-                    <p className="text-xs text-white/25 italic">Sem notas adicionais.</p>
+                  {/* CTA */}
+                  {item.link && (
+                    <a
+                      href={item.link}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-2 rounded-lg border border-primary/25 bg-primary/10 px-3 py-2 text-xs font-semibold text-primary hover:bg-primary/20 transition-colors"
+                    >
+                      <ExternalLink className="h-3.5 w-3.5" />
+                      Abrir task completa no Jira
+                    </a>
                   )}
                 </div>
               )}
@@ -514,5 +525,14 @@ function ActionButton({
       {children}
       {label}
     </button>
+  )
+}
+
+function MetaRow({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="flex items-baseline gap-1.5">
+      <span className="text-white/25 shrink-0">{label}</span>
+      <span className="text-white/60 truncate">{value}</span>
+    </div>
   )
 }
