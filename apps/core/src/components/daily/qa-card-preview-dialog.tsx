@@ -26,7 +26,7 @@ export function QACardPreviewDialog({ item, onClose }: Props) {
         <Dialog.Content
           className={cn(
             'fixed left-1/2 top-1/2 z-50 w-full max-w-[440px] -translate-x-1/2 -translate-y-1/2',
-            'rounded-2xl border border-white/[0.08] bg-[#13151c] shadow-[0_32px_96px_rgba(0,0,0,0.7)]',
+            'rounded-2xl border border-white/[0.09] bg-[#1c1f2a] shadow-[0_32px_96px_rgba(0,0,0,0.6)]',
             'data-[state=open]:animate-in data-[state=closed]:animate-out',
             'data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0',
             'data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95',
@@ -120,7 +120,7 @@ export function QACardPreviewDialog({ item, onClose }: Props) {
             <div>
               <Label>Notas</Label>
               <div className={cn(
-                'min-h-[72px] rounded-xl border border-white/[0.08] bg-white/[0.04] px-4 py-3',
+                'min-h-[72px] rounded-xl border border-white/[0.08] bg-[#14161e] px-4 py-3',
                 !item.notes && 'flex items-center',
               )}>
                 {item.notes
@@ -174,7 +174,7 @@ function Label({ children }: { children: React.ReactNode }) {
 
 function Field({ children }: { children: React.ReactNode }) {
   return (
-    <div className="flex min-h-[40px] items-center rounded-xl border border-white/[0.08] bg-white/[0.04] px-3.5 py-2.5 text-sm text-white/65">
+    <div className="flex min-h-[40px] items-center rounded-xl border border-white/[0.08] bg-[#14161e] px-3.5 py-2.5 text-sm text-white/65">
       {children}
     </div>
   )
