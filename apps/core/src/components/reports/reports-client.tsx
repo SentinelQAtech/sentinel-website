@@ -11,7 +11,7 @@ import { useNotificationsStore } from '@/store/notifications'
 import { useQAImporterStore } from '@/store/qa-importer'
 import { useProjectsStore } from '@/store/projects'
 import { useBugsStore } from '@/store/bugs'
-import { useKanbanStore } from '@/store/kanban'
+
 import { TEAM, TEAM_STORAGE_KEY, type TeamMember } from '@/lib/team-data'
 import { cn } from '@/lib/utils'
 
@@ -37,7 +37,7 @@ export function ReportsClient() {
   const notifications = useNotificationsStore(s => s.notifications)
   const projects = useProjectsStore(s => s.projects)
   const bugs = useBugsStore(s => s.bugs)
-  const tasks = useKanbanStore(s => s.tasks)
+  const tasks = useQAImporterStore(s => s.items)
   const members = useRealTeam()
 
   const activeCompanies = companies.filter(company => company.status !== 'finished')
@@ -49,7 +49,7 @@ export function ReportsClient() {
   const readiness = useMemo(() => [
     { label: 'Clientes ativos', value: activeCompanies.length, icon: BriefcaseBusiness, color: 'text-cyan-300', href: '/companies' },
     { label: 'Time ativo', value: activeMembers.length, icon: Users, color: 'text-indigo-300', href: '/team' },
-    { label: 'QA pendente', value: pendingQA.length, icon: ClipboardCheck, color: 'text-amber-300', href: '/qa-importer' },
+    { label: 'QA pendente', value: pendingQA.length, icon: ClipboardCheck, color: 'text-amber-300', href: '/tasks' },
     { label: 'Notificacoes abertas', value: unreadNotifications.length, icon: Bell, color: 'text-violet-300', href: '/notifications' },
   ], [activeCompanies.length, activeMembers.length, pendingQA.length, unreadNotifications.length])
 

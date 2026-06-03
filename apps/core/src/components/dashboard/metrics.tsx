@@ -10,7 +10,7 @@ import { useI18nStore } from '@/store/i18n'
 import { TEAM, TEAM_STORAGE_KEY, type TeamMember } from '@/lib/team-data'
 import { useProjectsStore } from '@/store/projects'
 import { useBugsStore } from '@/store/bugs'
-import { useKanbanStore } from '@/store/kanban'
+import { useQAImporterStore } from '@/store/qa-importer'
 
 function useCounter(target: number, duration = 900, delay = 0) {
   const [value, setValue] = useState(0)
@@ -134,7 +134,7 @@ export function DashboardMetrics() {
   const projectCount = useProjectsStore(s => s.projects.filter(project => project.status === 'ACTIVE').length)
   const openBugs = useBugsStore(s => s.bugs.filter(bug => bug.status !== 'RESOLVED' && bug.status !== 'CLOSED').length)
   const criticalBugs = useBugsStore(s => s.bugs.filter(bug => bug.severity === 'CRITICAL').length)
-  const tasksDone = useKanbanStore(s => s.tasks.filter(task => task.status === 'DONE').length)
+  const tasksDone = useQAImporterStore(s => s.items.filter(i => i.qaCategory === 'Done').length)
   const metrics = METRICS.map(item =>
     item.titleKey === 'dashboardMetricTeamMembers' ? { ...item, value: teamCount } :
     item.titleKey === 'dashboardMetricActiveProjects' ? { ...item, value: projectCount } :

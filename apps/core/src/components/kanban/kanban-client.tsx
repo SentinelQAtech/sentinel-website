@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useMemo, useState } from 'react'
 import {
   DndContext,
   DragEndEvent,
@@ -10,49 +10,97 @@ import {
   useSensors,
   closestCorners,
 } from '@dnd-kit/core'
-import { SortableContext, arrayMove, verticalListSortingStrategy } from '@dnd-kit/sortable'
-import { KanbanColumn } from './kanban-column'
-import { KanbanCard } from './kanban-card'
-import { KanbanTaskDialog } from './kanban-task-dialog'
-import { KanbanSettingsDialog } from './kanban-settings-dialog'
-import { KanbanTaskPreviewDialog } from './kanban-task-preview-dialog'
-import { Plus, Settings2 } from 'lucide-react'
-import { Button } from '@/components/ui/button'
-import type { Task, TaskStatus } from '@/types'
-import { useKanbanStore } from '@/store/kanban'
-import { useQAImporterStore } from '@/store/qa-importer'
+import { SortableContext, verticalListSortingStrategy } from '@dnd-kit/sortable'
+import { KanbanColumn }              from './kanban-column'
+import { KanbanTaskDialog }          from './kanban-task-dialog'
+import { KanbanSettingsDialog }      from './kanban-settings-dialog'
+import { KanbanTaskPreviewDialog }   from './kanban-task-preview-dialog'
+import { Plus, Settings2 }           from 'lucide-react'
+import { Button }                    from '@/components/ui/button'
+import type { Task, TaskStatus, Priority } from '@/types'
+import type { NewKanbanTask }        from './kanban-types'
+import { useKanbanStore }            from '@/store/kanban'
+import {
+  useQAImporterStore,
+  type QAItem, type QACategory, type QAPriority,
+} from '@/store/qa-importer'
 
-const COLUMN_COLORS = ['#14b8a6', '#ec4899', '#f97316', '#84cc16', '#0ea5e9', '#a855f7']
+// ─── Converters ───────────────────────────────────────────
+
+const DEFAULT_CREATOR = {
+  id: '1', email: '', username: '', name: 'Raphael',
+  role: 'ADMIN' as const, isActive: true, createdAt: '',
+}
+
+function qaItemToTask(item: QAItem): Task {
+  return {
+    id:          item.id,
+    title:       item.issueKey ? `[${item.issueKey}] ${item.title}` : item.title,
+    description: item.notes || item.description || undefined,
+    status:      item.qaCategory as unknown as TaskStatus,
+    priority:    mapPriority(item.priority),
+    tags:        [item.client, item.sprint, item.type].filter(Boolean) as string[],
+    storyPoints: mapPoints(item.priority),
+    projectId:   item.project || item.client || 'qa',
+    sprintId:    item.sprint,
+    creatorId:   DEFAULT_CREATOR.id,
+    creator:     DEFAULT_CREATOR,
+    order:       0,
+    createdAt:   item.importedAt,
+    updatedAt:   item.importedAt,
+  }
+}
+
+function mapPriority(p: QAPriority): Priority {
+  if (p === 'Critical') return 'CRITICAL'
+  if (p === 'High')     return 'HIGH'
+  if (p === 'Low')      return 'LOW'
+  return 'MEDIUM'
+}
+
+function mapPoints(p: QAPriority) {
+  if (p === 'Critical') return 8
+  if (p === 'High')     return 5
+  if (p === 'Medium')   return 3
+  if (p === 'Low')      return 1
+  return undefined
+}
+
+function mapPriorityToQA(p: Priority): QAPriority {
+  if (p === 'CRITICAL') return 'Critical'
+  if (p === 'HIGH')     return 'High'
+  if (p === 'LOW')      return 'Low'
+  return 'Medium'
+}
+
+// ─── Component ────────────────────────────────────────────
 
 export function KanbanClient() {
-  const columns = useKanbanStore(s => s.columns)
-  const tasks = useKanbanStore(s => s.tasks)
-  const setColumns = useKanbanStore(s => s.setColumns)
-  const setTasks = useKanbanStore(s => s.setTasks)
-  const addTaskToStore = useKanbanStore(s => s.addTask)
-  const [selectedTask, setSelectedTask] = useState<Task | null>(null)
+  const columns     = useKanbanStore(s => s.columns)
+  const setColumns  = useKanbanStore(s => s.setColumns)
+  const qaItems     = useQAImporterStore(s => s.items)
+  const updateItem  = useQAImporterStore(s => s.updateItem)
+  const importItems = useQAImporterStore(s => s.importItems)
 
-  // Dialog state
-  const [taskDialogOpen, setTaskDialogOpen]       = useState(false)
-  const [taskDialogStatus, setTaskDialogStatus]   = useState<string>('TODO')
+  const [selectedTask,       setSelectedTask]       = useState<Task | null>(null)
+  const [taskDialogOpen,     setTaskDialogOpen]     = useState(false)
+  const [taskDialogStatus,   setTaskDialogStatus]   = useState<string>('Ready for QA')
   const [settingsDialogOpen, setSettingsDialogOpen] = useState(false)
-  const [previewDialogOpen, setPreviewDialogOpen] = useState(false)
+  const [previewDialogOpen,  setPreviewDialogOpen]  = useState(false)
 
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 4 } })
   )
 
-  useEffect(() => {
-    const importedItems = useQAImporterStore.getState().items
-    if (importedItems.length > 0) useKanbanStore.getState().importQAItems(importedItems)
-  }, [])
+  // Convert QA items to Task[] for rendering
+  const tasks = useMemo(() => qaItems.map(qaItemToTask), [qaItems])
 
-  const getTasksByColumn = (status: string) =>
-    tasks.filter(t => t.status === status).sort((a, b) => a.order - b.order)
+  const getTasksByColumn = (columnId: string) =>
+    tasks.filter(t => t.status === columnId)
 
-  // ── Dialog handlers ────────────────────────────────────────────
+  // ── Handlers ─────────────────────────────────────────────
 
-  const openAddTask = (status: string = 'TODO') => {
+  const openAddTask = (status: string = 'Ready for QA') => {
     setTaskDialogStatus(status)
     setTaskDialogOpen(true)
   }
@@ -62,55 +110,57 @@ export function KanbanClient() {
     setPreviewDialogOpen(true)
   }
 
-  const handleAddColumn = () => {
-    setColumns(prev => {
-      const next = prev.length + 1
-      return [
-        ...prev,
-        {
-          id: `CUSTOM_${Date.now()}`,
-          label: `Nova coluna ${next}`,
-          color: COLUMN_COLORS[prev.length % COLUMN_COLORS.length],
-        },
-      ]
-    })
+  const handleAddTask = (data: NewKanbanTask) => {
+    importItems([{
+      issueKey:   '',
+      title:      data.title,
+      client:     (data.tags?.[0] as string) || '',
+      project:    '',
+      status:     data.status,
+      priority:   mapPriorityToQA(data.priority),
+      sprint:     data.tags?.[1] as string || '',
+      assignee:   '',
+      type:       '',
+      link:       '',
+      notes:      '',
+      source:     'manual',
+      qaCategory: data.status as QACategory,
+    }], 'manual')
   }
 
-  const handleRenameColumn = (columnId: string, label: string) => {
-    setColumns(prev => prev.map(col => col.id === columnId ? { ...col, label } : col))
+  const handleAddColumn = () => {
+    setColumns(prev => [
+      ...prev,
+      { id: `CUSTOM_${Date.now()}`, label: `Nova coluna ${prev.length + 1}`, color: '#8b5cf6' },
+    ])
   }
+
+  const handleRenameColumn = (columnId: string, label: string) =>
+    setColumns(prev => prev.map(col => col.id === columnId ? { ...col, label } : col))
 
   const handleDeleteColumn = (columnId: string) => {
     const column = columns.find(col => col.id === columnId)
     if (!column) return
-
     if (columns.length <= 1) {
       window.alert('O board precisa manter pelo menos uma coluna.')
       return
     }
-
     const columnTasks = tasks.filter(t => t.status === columnId)
     if (columnTasks.length > 0) {
       const confirmed = window.confirm(
-        `A coluna "${column.label}" tem ${columnTasks.length} card(s). Ao excluir, eles serao movidos para a primeira coluna restante. Deseja continuar?`
+        `A coluna "${column.label}" tem ${columnTasks.length} card(s). Excluir mesmo assim?`
       )
       if (!confirmed) return
     }
-
-    const remainingColumns = columns.filter(col => col.id !== columnId)
-    const fallbackStatus = remainingColumns[0]?.id
-
-    setColumns(remainingColumns)
-    if (fallbackStatus) {
-      setTasks(prev => prev.map(t =>
-        t.status === columnId ? { ...t, status: fallbackStatus as TaskStatus } : t
-      ))
+    const remaining = columns.filter(col => col.id !== columnId)
+    const fallback  = remaining[0]?.id as QACategory
+    if (fallback) {
+      columnTasks.forEach(t => updateItem(t.id, { qaCategory: fallback }))
     }
+    setColumns(remaining)
   }
 
-  const handleAddTask = addTaskToStore
-
-  // ── Drag & Drop handlers ────────────────────────────────────────
+  // ── Drag & Drop ───────────────────────────────────────────
 
   const handleDragOver = ({ active, over }: DragOverEvent) => {
     if (!over || active.id === over.id) return
@@ -118,67 +168,51 @@ export function KanbanClient() {
     const activeId = active.id as string
     const overId   = over.id as string
 
-    const draggedTask = tasks.find(t => t.id === activeId)
-    if (!draggedTask) return
-
-    // Dragging over a column droppable zone
+    // Dragging over a column zone
     const overColumn = columns.find(c => c.id === overId)
     if (overColumn) {
-      if (draggedTask.status !== overColumn.id) {
-        setTasks(prev =>
-          prev.map(t => t.id === activeId ? { ...t, status: overColumn.id as TaskStatus } : t)
-        )
+      const activeTask = tasks.find(t => t.id === activeId)
+      if (activeTask && activeTask.status !== overColumn.id) {
+        updateItem(activeId, { qaCategory: overColumn.id as QACategory })
       }
       return
     }
 
-    // Dragging over a card in a different column → move to that column
+    // Dragging over a card in a different column
     const overTask = tasks.find(t => t.id === overId)
-    if (overTask && overTask.status !== draggedTask.status) {
-      setTasks(prev =>
-        prev.map(t => t.id === activeId ? { ...t, status: overTask.status as TaskStatus } : t)
-      )
+    if (overTask) {
+      const activeTask = tasks.find(t => t.id === activeId)
+      if (activeTask && activeTask.status !== overTask.status) {
+        updateItem(activeId, { qaCategory: overTask.status as unknown as QACategory })
+      }
     }
   }
 
   const handleDragEnd = ({ active, over }: DragEndEvent) => {
     if (!over || active.id === over.id) return
 
-    const activeId = active.id as string
-    const overId   = over.id as string
-
+    const activeId   = active.id as string
+    const overId     = over.id as string
     const overColumn = columns.find(c => c.id === overId)
     const overTask   = tasks.find(t => t.id === overId)
+    const target     = overColumn?.id ?? overTask?.status
 
-    if (!overTask && !overColumn) return
-
-    const targetStatus = overColumn?.id ?? overTask?.status
-
-    setTasks(prev => {
-      const updated = prev.map(t =>
-        t.id === activeId ? { ...t, status: targetStatus as TaskStatus } : t
-      )
-      // Reorder within column if dropped on another card
-      if (overTask) {
-        const colTasks = updated.filter(t => t.status === targetStatus)
-        const oldIdx   = colTasks.findIndex(t => t.id === activeId)
-        const newIdx   = colTasks.findIndex(t => t.id === overId)
-        if (oldIdx !== -1 && newIdx !== -1 && oldIdx !== newIdx) {
-          const reordered = arrayMove(colTasks, oldIdx, newIdx).map((t, i) => ({ ...t, order: i }))
-          return updated.map(t => reordered.find(r => r.id === t.id) ?? t)
-        }
-      }
-      return updated
-    })
+    if (target) {
+      updateItem(activeId, { qaCategory: target as QACategory })
+    }
   }
+
+  // ── Render ────────────────────────────────────────────────
 
   return (
     <div className="h-full flex flex-col gap-5 animate-fade-in-up">
       {/* Header */}
       <div className="flex items-center justify-between shrink-0">
         <div>
-          <h1 className="text-2xl font-bold text-white">Kanban Board</h1>
-          <p className="text-sm text-white/40 mt-0.5">Workspace operacional</p>
+          <h1 className="text-2xl font-bold text-white">Board</h1>
+          <p className="text-sm text-white/40 mt-0.5">
+            {qaItems.length} task{qaItems.length !== 1 ? 's' : ''} · arraste para mudar o status
+          </p>
         </div>
         <div className="flex items-center gap-2">
           <Button
@@ -187,7 +221,7 @@ export function KanbanClient() {
             leftIcon={<Settings2 className="w-3.5 h-3.5" />}
             onClick={() => setSettingsDialogOpen(true)}
           >
-            Board Settings
+            Colunas
           </Button>
           <Button
             variant="outline"
@@ -195,15 +229,15 @@ export function KanbanClient() {
             leftIcon={<Plus className="w-3.5 h-3.5" />}
             onClick={handleAddColumn}
           >
-            Add Column
+            Nova coluna
           </Button>
           <Button
             variant="glow"
             size="sm"
             leftIcon={<Plus className="w-3.5 h-3.5" />}
-            onClick={() => openAddTask('TODO')}
+            onClick={() => openAddTask('Ready for QA')}
           >
-            Add Task
+            Nova task
           </Button>
         </div>
       </div>
@@ -216,7 +250,7 @@ export function KanbanClient() {
           onDragOver={handleDragOver}
           onDragEnd={handleDragEnd}
         >
-          <div className="flex gap-4 h-full min-h-[500px] pb-4" style={{ minWidth: 'max-content' }}>
+          <div className="flex gap-4 h-full min-h-[500px] pb-4 min-w-max">
             {columns.map(col => {
               const colTasks = getTasksByColumn(col.id)
               return (
@@ -238,7 +272,6 @@ export function KanbanClient() {
               )
             })}
           </div>
-
         </DndContext>
       </div>
 
