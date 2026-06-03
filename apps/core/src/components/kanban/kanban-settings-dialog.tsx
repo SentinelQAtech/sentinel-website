@@ -30,7 +30,7 @@ export function KanbanSettingsDialog({
               <div>
                 <Dialog.Title className="text-base font-semibold text-white">Board Settings</Dialog.Title>
                 <Dialog.Description className="text-xs text-white/35 mt-0.5">
-                  Configure as colunas do Kanban Board
+                  Configure as colunas do Board
                 </Dialog.Description>
               </div>
               <Dialog.Close asChild>

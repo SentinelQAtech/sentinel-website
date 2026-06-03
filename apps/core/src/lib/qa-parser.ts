@@ -49,7 +49,12 @@ export function detectQACategory(status: string, type = ''): QACategory {
 
 export function isQARelated(item: Partial<ParsedQAItem>): boolean {
   if (item.priority === 'Critical') return true
-  const text  = `${item.title ?? ''} ${item.notes ?? ''}`.toLowerCase()
+  const comments = item.comments?.map(comment => comment.body).join(' ') ?? ''
+  const links = [
+    ...(item.pullRequests ?? []).map(link => `${link.text ?? ''} ${link.url}`),
+    ...(item.externalLinks ?? []).map(link => `${link.text ?? ''} ${link.url}`),
+  ].join(' ')
+  const text  = `${item.title ?? ''} ${item.notes ?? ''} ${item.description ?? ''} ${comments} ${links}`.toLowerCase()
   const status = (item.status ?? '').toLowerCase()
   const type   = (item.type   ?? '').toLowerCase()
 
@@ -142,7 +147,16 @@ const CSV_HEADERS: Record<string, keyof ParsedQAItem> = {
   url:          'link',
   notes:        'notes',
   notas:        'notes',
-  description:  'notes',
+  description:  'description',
+  descricao:    'description',
+  descrição:    'description',
+  comments:     'devNotes',
+  comentarios:  'devNotes',
+  comentários:  'devNotes',
+  pr:           'devNotes',
+  prs:          'devNotes',
+  pullrequest:  'devNotes',
+  pullrequests: 'devNotes',
   type:         'type',
   tipo:         'type',
 }

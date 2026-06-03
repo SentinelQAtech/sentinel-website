@@ -117,6 +117,16 @@ body {
 .btn-sm {
   width: auto; padding: 6px 12px; font-size: 11px;
 }
+.btn-cancel {
+  margin-top: 10px;
+  padding: 7px;
+  color: rgba(239,68,68,0.85);
+  border-color: rgba(239,68,68,0.25);
+}
+.btn-cancel:hover {
+  background: rgba(239,68,68,0.10);
+  color: var(--error);
+}
 
 /* ── Status card (sync page) ── */
 .status-card {
@@ -145,6 +155,50 @@ body {
 .dot-green  { background: var(--success); box-shadow: 0 0 6px var(--success); }
 .dot-yellow { background: var(--warn); }
 .dot-gray   { background: var(--dim); }
+
+/* ── Deep import progress ── */
+.progress-card {
+  margin-top: 12px;
+  padding: 12px;
+  border-radius: 10px;
+  border: 1px solid rgba(99,102,241,0.22);
+  background: rgba(99,102,241,0.06);
+}
+.progress-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  font-size: 11px;
+  font-weight: 700;
+  color: rgba(255,255,255,0.70);
+}
+.progress-head span:last-child {
+  color: var(--primary);
+  font-variant-numeric: tabular-nums;
+}
+.progress-bar {
+  height: 6px;
+  margin-top: 9px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: rgba(255,255,255,0.07);
+}
+.progress-bar div {
+  width: 0%;
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, var(--primary), var(--cyan));
+  transition: width 0.2s ease;
+}
+.progress-detail {
+  min-height: 30px;
+  margin-top: 8px;
+  color: rgba(255,255,255,0.42);
+  font-size: 10px;
+  line-height: 1.4;
+  word-break: break-word;
+}
 
 /* ── Result card ── */
 .result-card {

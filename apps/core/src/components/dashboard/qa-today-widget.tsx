@@ -42,7 +42,7 @@ export function QATodayWidget() {
           <CardTitle>QA Today</CardTitle>
         </div>
         <Link
-          href="/qa-importer"
+          href="/tasks"
           className="flex items-center gap-1 text-xs text-primary/70 hover:text-primary transition-colors duration-150"
         >
           QA Importer
@@ -104,7 +104,7 @@ export function QATodayWidget() {
 
         {/* CTA */}
         <Link
-          href="/qa-importer"
+          href="/tasks"
           className={cn(
             'mt-auto flex items-center justify-center gap-2 py-2.5 rounded-xl',
             'border border-primary/25 bg-primary/10 text-xs font-semibold text-primary',

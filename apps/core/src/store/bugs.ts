@@ -53,7 +53,7 @@ export const useBugsStore = create<BugsState>()(
               id,
               bugId: item.issueKey || `BUG-${String(next.length + 1).padStart(3, '0')}`,
               title: item.title,
-              description: item.notes || item.link || 'Bug importado via QA Importer.',
+              description: buildQABugDescription(item) || 'Bug importado via QA Importer.',
               severity: mapQAPriorityToSeverity(item.priority),
               priority: mapQAPriorityToPriority(item.priority),
               status: mapQAStatusToBugStatus(item),
@@ -82,8 +82,23 @@ export const useBugsStore = create<BugsState>()(
 )
 
 function isBugItem(item: QAItem) {
-  const text = `${item.issueKey} ${item.title} ${item.type} ${item.status} ${item.qaCategory}`.toLowerCase()
+  const comments = item.comments?.map(comment => comment.body).join(' ') ?? ''
+  const text = `${item.issueKey} ${item.title} ${item.type} ${item.status} ${item.qaCategory} ${item.description ?? ''} ${comments}`.toLowerCase()
   return item.qaCategory === 'Bug Validation' || text.includes('bug') || text.includes('defect')
+}
+
+function buildQABugDescription(item: QAItem) {
+  const comments = item.comments?.slice(0, 5).map((comment, index) => `Comentario ${index + 1}: ${comment.body}`).join('\n\n')
+  const prs = item.pullRequests?.map(link => `PR: ${link.text || link.url} - ${link.url}`).join('\n')
+  const links = item.externalLinks?.slice(0, 8).map(link => `Link: ${link.text || link.url} - ${link.url}`).join('\n')
+  return [
+    item.notes,
+    item.description && `Descricao:\n${item.description}`,
+    comments,
+    prs,
+    links,
+    item.link && `Jira: ${item.link}`,
+  ].filter(Boolean).join('\n\n')
 }
 
 function mapQAPriorityToSeverity(priority: QAPriority): BugSeverity {

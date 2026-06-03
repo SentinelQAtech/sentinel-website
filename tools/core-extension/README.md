@@ -5,6 +5,8 @@ Captura cards QA visíveis em boards Jira e sincroniza com o Sentinel Core.
 **Sem tokens Jira. Sem autenticação. Sem dados de senha.**  
 Lê apenas o que já está visível na tela.
 
+**Read-only:** a extensão não altera cards, não move status, não comenta, não salva campos e não executa ações de escrita no Jira.
+
 ---
 
 ## Como instalar (modo desenvolvedor)
@@ -23,7 +25,9 @@ Lê apenas o que já está visível na tela.
    - **Sentinel URL**: URL do seu Sentinel online (ex: `https://meusentinel.vercel.app`)
    - **Sync Token** (opcional): valor de `QA_SYNC_TOKEN` no `.env` do Sentinel
 2. Abra um board Jira com colunas "QA", "Testing" ou "Ready for QA" visíveis
-3. Clique no ícone da extensão → **Sincronizar cards QA**
+3. Clique no ícone da extensão:
+   - **Sincronizar cards QA** para import rápido do board visível.
+   - **Import profundo** para abrir cada issue em uma aba temporária read-only e capturar descrição, comentários e links/PRs visíveis.
 4. No Sentinel → QA Importer → aba **Extensão** → **Pull da Extensão**
 
 ---
@@ -54,6 +58,19 @@ A extensão captura colunas cujo nome contém:
 | `assignee` | `alt` do avatar |
 | `link` | URL completa do Jira issue |
 | `notes` | Labels/epics coloridos |
+
+No **Import profundo**, quando disponíveis no DOM da issue, também são capturados:
+
+| Campo | Fonte |
+|-------|-------|
+| `description` | Descrição visível da issue |
+| `comments` | Comentários visíveis |
+| `pullRequests` | Links GitHub/GitLab/Bitbucket/PR/MR visíveis |
+| `externalLinks` | Links externos encontrados na issue |
+| `lastSyncedAt` | Momento da leitura |
+| `importDepth` | `deep` |
+
+O import profundo processa uma issue por vez, em aba temporária, para reduzir ruído e preservar estabilidade.
 
 ---
 

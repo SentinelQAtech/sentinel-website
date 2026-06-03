@@ -1,7 +1,7 @@
 'use strict';
 
 chrome.runtime.onInstalled.addListener(() => {
-  console.log('[Sentinel QA Sync] Extension installed v1.0.1');
+  console.log('[Sentinel QA Sync] Extension installed v1.1.0');
 });
 
 // Keep service worker alive during popup messaging

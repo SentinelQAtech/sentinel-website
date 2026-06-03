@@ -1,6 +1,7 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
 import type { Project } from '@/types'
+import { createUserWorkspaceStorage } from '@/lib/workspace-storage'
 
 interface ProjectsState {
   projects: Project[]
@@ -29,6 +30,10 @@ export const useProjectsStore = create<ProjectsState>()(
           ),
         })),
     }),
-    { name: 'sentinel-core-projects', version: 1 }
+    {
+      name: 'sentinel-core-projects',
+      version: 2,
+      storage: createUserWorkspaceStorage(),
+    }
   )
 )

@@ -21,14 +21,6 @@
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
-    <script>
-      (function () {
-        var savedTheme = localStorage.getItem("sentinel_site_theme");
-        if (savedTheme === "light") {
-          document.documentElement.setAttribute("data-theme", "light");
-        }
-      })();
-    </script>
     <link rel="stylesheet" href="assets/css/style.css" />
   </head>
   <body>
@@ -48,11 +40,6 @@
           <a href="#contact">Contact</a>
           <a href="/core/dashboard">Core</a>
         </nav>
-
-        <button class="theme-toggle" id="themeToggle" type="button" aria-label="Switch to light mode" aria-pressed="false">
-          <span class="theme-toggle-icon" aria-hidden="true"></span>
-          <span class="theme-toggle-text">Light</span>
-        </button>
 
         <button class="menu-toggle" id="menuToggle" aria-label="Open menu" aria-expanded="false" aria-controls="navMenu">
           <span></span>

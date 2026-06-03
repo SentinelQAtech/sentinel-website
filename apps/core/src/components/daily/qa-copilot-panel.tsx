@@ -15,6 +15,10 @@ interface Message {
 // ─── Helpers ──────────────────────────────────────────────────
 
 function buildFirstMessage(item: QAItem): string {
+  const comments = item.comments?.slice(0, 5).map((comment, index) => `Comentario ${index + 1}: ${comment.body}`).join('\n') ?? ''
+  const prs = item.pullRequests?.map(link => `${link.text || 'PR'}: ${link.url}`).join('\n') ?? ''
+  const links = item.externalLinks?.slice(0, 8).map(link => `${link.text || 'Link'}: ${link.url}`).join('\n') ?? ''
+
   const lines = [
     `Analisar card ${item.issueKey ? item.issueKey : 'QA'}: ${item.title}`,
     '',
@@ -22,6 +26,10 @@ function buildFirstMessage(item: QAItem): string {
     item.status  && `Status: ${item.status}`,
     item.sprint  && `Sprint: ${item.sprint}`,
     item.notes   && `Notas: ${item.notes}`,
+    item.description && `Descricao Jira:\n${item.description}`,
+    comments && `Comentarios Jira:\n${comments}`,
+    prs && `PRs / versao:\n${prs}`,
+    links && `Links externos:\n${links}`,
     item.link    && `Link: ${item.link}`,
   ]
   return lines.filter(Boolean).join('\n')

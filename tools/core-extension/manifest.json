@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "Sentinel QA Sync",
-  "version": "1.0.9",
+  "version": "1.1.0",
   "description": "Capture QA cards from visible Jira boards and sync to Sentinel Core — sem tokens, sem autenticação.",
 
   "permissions": ["activeTab", "storage", "scripting", "tabs"],
