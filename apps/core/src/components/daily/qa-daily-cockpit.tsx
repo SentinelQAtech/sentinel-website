@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from 'react'
 import Link from 'next/link'
-import { ArrowDown, ArrowUp, Clipboard, ExternalLink, MessageSquareReply, PlayCircle, ShieldAlert, CheckCircle2, Crosshair, Inbox, ChevronDown } from 'lucide-react'
+import { ArrowDown, ArrowUp, Bot, Clipboard, ExternalLink, MessageSquareReply, PlayCircle, ShieldAlert, CheckCircle2, Crosshair, Inbox, ChevronDown, Sparkles } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import {
   useQAImporterStore,
@@ -10,6 +10,8 @@ import {
   type QADailyStatus,
 } from '@/store/qa-importer'
 import { QAResolutionDialog } from '@/components/qa-importer/qa-resolution-dialog'
+import { QACopilotPanel } from '@/components/daily/qa-copilot-panel'
+import { rankItem, sortByRankMode, type RankSortMode } from '@/lib/qa-ranking'
 
 const statusConfig: Record<QADailyStatus, { label: string; color: string; bg: string }> = {
   todo:    { label: 'Next',    color: 'text-white/55',    bg: 'bg-white/[0.05]' },
@@ -28,13 +30,25 @@ export function QADailyCockpit({ selectedDate }: { selectedDate: string }) {
   const [copiedId, setCopiedId] = useState<string | null>(null)
   const [focusItemId, setFocusItemId] = useState<string | null>(null)
   const [expandedId, setExpandedId] = useState<string | null>(null)
+  const [copilotOpen, setCopilotOpen] = useState(false)
+  const [sortMode, setSortMode] = useState<RankSortMode>('fastest')
+  const [orderApplied, setOrderApplied] = useState(false)
 
-  const dailyItems = useMemo(
-    () => items
+  const dailyItems = useMemo(() => {
+    const base = items
       .filter(item => item.sentToDaily && (item.dailyDate ?? selectedDate) === selectedDate)
-      .sort((a, b) => (a.dailyOrder ?? 0) - (b.dailyOrder ?? 0)),
-    [items, selectedDate],
-  )
+      .sort((a, b) => (a.dailyOrder ?? 0) - (b.dailyOrder ?? 0))
+    return sortByRankMode(base, sortMode)
+  }, [items, selectedDate, sortMode])
+
+  const applyOrder = () => {
+    dailyItems.forEach((item, idx) => {
+      updateDailyState(item.id, { dailyOrder: idx })
+    })
+    setSortMode('manual')
+    setOrderApplied(true)
+    setTimeout(() => setOrderApplied(false), 2000)
+  }
 
   const copyReport = async (item: QAItem) => {
     if (!item.resolution?.report) return
@@ -167,6 +181,13 @@ export function QADailyCockpit({ selectedDate }: { selectedDate: string }) {
               )}
             </div>
             <div className="flex shrink-0 flex-wrap items-center gap-2">
+              <ActionButton
+                label={copilotOpen ? 'Fechar Copilot' : 'QA Copilot'}
+                onClick={() => setCopilotOpen(v => !v)}
+                active={copilotOpen}
+              >
+                <Bot className="h-3.5 w-3.5" />
+              </ActionButton>
               <ActionButton label="Responder no Focus" onClick={() => openResolution(focusItem)} active>
                 <MessageSquareReply className="h-3.5 w-3.5" />
               </ActionButton>
@@ -183,6 +204,55 @@ export function QADailyCockpit({ selectedDate }: { selectedDate: string }) {
               )}
             </div>
           </div>
+        </div>
+      )}
+
+      {focusItem && copilotOpen && (
+        <QACopilotPanel item={focusItem} />
+      )}
+
+      {dailyItems.length > 0 && (
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <div className="flex items-center gap-1.5">
+            <Sparkles className="h-3 w-3 text-primary/60" />
+            <span className="text-[11px] text-white/35">Ordenar por:</span>
+            {(
+              [
+                { mode: 'fastest',  label: '⚡ Mais rápidas' },
+                { mode: 'priority', label: '🎯 Prioridade'   },
+                { mode: 'bugs',     label: '🐛 Bugs primeiro' },
+                { mode: 'manual',   label: '↕ Manual'        },
+              ] as { mode: RankSortMode; label: string }[]
+            ).map(({ mode, label }) => (
+              <button
+                key={mode}
+                type="button"
+                onClick={() => setSortMode(mode)}
+                className={cn(
+                  'rounded-lg border px-2 py-1 text-[10px] font-medium transition-colors',
+                  sortMode === mode
+                    ? 'border-primary/30 bg-primary/15 text-primary'
+                    : 'border-white/[0.08] bg-white/[0.03] text-white/35 hover:text-white/60 hover:bg-white/[0.06]',
+                )}
+              >
+                {label}
+              </button>
+            ))}
+          </div>
+          {sortMode !== 'manual' && (
+            <button
+              type="button"
+              onClick={applyOrder}
+              className={cn(
+                'rounded-lg border px-2.5 py-1 text-[10px] font-semibold transition-colors',
+                orderApplied
+                  ? 'border-emerald-500/30 bg-emerald-500/10 text-emerald-400'
+                  : 'border-white/[0.08] bg-white/[0.04] text-white/40 hover:text-white/70 hover:bg-white/[0.07]',
+              )}
+            >
+              {orderApplied ? '✓ Ordem salva' : 'Aplicar esta ordem'}
+            </button>
+          )}
         </div>
       )}
 
@@ -206,6 +276,7 @@ export function QADailyCockpit({ selectedDate }: { selectedDate: string }) {
           const statusStyle = statusConfig[status]
           const isExpanded = expandedId === item.id
           const hasDetail = !!(item.notes || item.link)
+          const rank = sortMode !== 'manual' ? rankItem(item) : null
 
           return (
             <div
@@ -245,6 +316,14 @@ export function QADailyCockpit({ selectedDate }: { selectedDate: string }) {
                     <span className={cn('rounded-full px-2 py-0.5 text-[10px] font-semibold', statusStyle.bg, statusStyle.color)}>
                       {statusStyle.label}
                     </span>
+                    {rank && (
+                      <span className={cn('rounded-full border px-2 py-0.5 text-[10px] font-medium', rank.tagColor)}>
+                        {rank.tag}
+                      </span>
+                    )}
+                    {rank && (
+                      <span className="text-[10px] text-white/25">~{rank.estimatedMinutes}min</span>
+                    )}
                     {item.resolution && (
                       <span className="rounded-full border border-white/[0.08] bg-white/[0.04] px-2 py-0.5 text-[10px] font-semibold text-white/65">
                         {item.resolution.result}
