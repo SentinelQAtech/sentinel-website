@@ -423,7 +423,15 @@ export const useQAImporterStore = create<QAImporterStore>()(
       name: 'sentinel-core-qa-importer',
       version: 3,
       storage: createUserWorkspaceStorage(),
-      migrate: () => ({ items: [], history: [], qaFilterEnabled: true, archivedSessions: [] }),
+      migrate: (state: unknown) => {
+        const s = (state ?? {}) as Record<string, unknown>
+        return {
+          items:            Array.isArray(s.items) ? s.items : [],
+          history:          Array.isArray(s.history) ? s.history : [],
+          qaFilterEnabled:  typeof s.qaFilterEnabled === 'boolean' ? s.qaFilterEnabled : true,
+          archivedSessions: Array.isArray(s.archivedSessions) ? s.archivedSessions : [],
+        }
+      },
     }
   )
 )
