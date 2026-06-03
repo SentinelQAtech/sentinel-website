@@ -1,6 +1,7 @@
 'use client'
 
-import { ClipboardList, CheckCircle2, Circle, AlertCircle, Minus } from 'lucide-react'
+import Link from 'next/link'
+import { ClipboardList, CheckCircle2, Circle, AlertCircle, Minus, ArrowRight } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { useDailyStore, PRIORITY_CONFIG, CLIENT_CONFIG, getTodayISO } from '@/store/daily'
 import type { DailyStatus } from '@/store/daily'
@@ -13,7 +14,7 @@ const STATUS_ICON: Record<DailyStatus, { icon: React.ElementType; cls: string }>
 }
 
 export function DailyTasksWidget() {
-  const { getTasksForDate, toggleTask } = useDailyStore()
+  const { getTasksForDate } = useDailyStore()
   const tasks = getTasksForDate(getTodayISO())
 
   const sorted = [...tasks].sort((a, b) => {
@@ -35,12 +36,19 @@ export function DailyTasksWidget() {
             <ClipboardList className="w-3 h-3 text-primary" />
           </div>
           <h3 className="text-sm font-semibold text-white/85">Tarefas de Hoje</h3>
+          {total > 0 && (
+            <span className="text-[10px] text-white/30">
+              {done}/{total}
+            </span>
+          )}
         </div>
-        {total > 0 && (
-          <span className="text-[10px] text-white/30 shrink-0">
-            {done}/{total}
-          </span>
-        )}
+        <Link
+          href="/daily"
+          className="flex items-center gap-1 text-[10px] text-white/30 hover:text-primary transition-colors shrink-0"
+        >
+          Ver Daily
+          <ArrowRight className="w-3 h-3" />
+        </Link>
       </div>
 
       {/* Task list */}
@@ -59,10 +67,10 @@ export function DailyTasksWidget() {
               const isDone = task.status === 'done'
 
               return (
-                <button
+                <Link
                   key={task.id}
-                  onClick={() => toggleTask(task.id)}
-                  title={isDone ? 'Marcar como pendente' : 'Marcar como concluída'}
+                  href="/daily"
+                  title="Abrir no Daily"
                   className="w-full flex items-center gap-2 px-2 py-1.5 rounded-lg text-left hover:bg-white/[0.04] group transition-colors"
                 >
                   <Icon className={cn('w-3.5 h-3.5 shrink-0', sIcon.cls)} />
@@ -85,7 +93,7 @@ export function DailyTasksWidget() {
                   >
                     {cCfg?.short ?? task.client}
                   </span>
-                </button>
+                </Link>
               )
             })}
           </div>
