@@ -179,6 +179,7 @@ interface QAImporterStore {
   history:          ImportRecord[]
   qaFilterEnabled:  boolean
   archivedSessions: ArchivedSession[]
+  prefixMap:        Record<string, string>  // e.g. { SFC: 'ScrumLaunch', UOL: 'UOL' }
 
   importItems:      (raw: ImportInput[], source: QAItemSource) => ImportResult
   updateItem:       (id: string, updates: Partial<QAItem>) => void
@@ -189,6 +190,7 @@ interface QAImporterStore {
   saveResolution:   (id: string, resolution: Omit<QAResolution, 'report' | 'resolvedAt'>) => void
   sendAllToDaily:   () => string[]
   archiveAndClear:  () => void
+  setPrefixMap:     (map: Record<string, string>) => void
 
   setQaFilter:    (enabled: boolean) => void
   clearAll:       () => void
@@ -203,6 +205,7 @@ export const useQAImporterStore = create<QAImporterStore>()(
       history:          [],
       qaFilterEnabled:  true,
       archivedSessions: [],
+      prefixMap:        {},
 
       importItems: (raw, source) => {
         const ts = new Date().toISOString()
@@ -388,6 +391,8 @@ export const useQAImporterStore = create<QAImporterStore>()(
         }
       }),
 
+      setPrefixMap: (map) => set({ prefixMap: map }),
+
       setQaFilter: (enabled) => set({ qaFilterEnabled: enabled }),
 
       clearAll: () => set({ items: [], history: [] }),
@@ -430,6 +435,7 @@ export const useQAImporterStore = create<QAImporterStore>()(
           history:          Array.isArray(s.history) ? s.history : [],
           qaFilterEnabled:  typeof s.qaFilterEnabled === 'boolean' ? s.qaFilterEnabled : true,
           archivedSessions: Array.isArray(s.archivedSessions) ? s.archivedSessions : [],
+          prefixMap:        (s.prefixMap && typeof s.prefixMap === 'object' && !Array.isArray(s.prefixMap)) ? s.prefixMap as Record<string, string> : {},
         }
       },
     }
