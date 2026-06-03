@@ -60,7 +60,7 @@ export function ImportPanel({ qaFilterEnabled, onQaFilterChange, onImport }: Pro
   const prefixMap  = useQAImporterStore(s => s.prefixMap)
   const setPrefixMap = useQAImporterStore(s => s.setPrefixMap)
 
-  const [tab,           setTab]           = useState<TabType>('text')
+  const [tab,           setTab]           = useState<TabType>('extension')
   const [textInput,     setTextInput]     = useState('')
   const [csvInput,      setCsvInput]      = useState('')
   const [preview,       setPreview]       = useState<ParsedQAItem[] | null>(null)
@@ -186,29 +186,29 @@ export function ImportPanel({ qaFilterEnabled, onQaFilterChange, onImport }: Pro
 
       {/* ── Empresa (required) ─────────────────────────────── */}
       <div>
-        <label className="mb-1.5 flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wider text-white/40">
+        <p className="mb-2 flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wider text-white/40">
           <Building2 className="h-3 w-3" />
           Empresa <span className="text-red-400/70">*</span>
-        </label>
-        <select
-          aria-label="Selecionar empresa"
-          value={selectedClient}
-          onChange={e => setSelectedClient(e.target.value)}
-          className={cn(
-            'w-full rounded-xl border bg-white/[0.04] px-3 py-2.5 text-sm outline-none transition-colors',
-            selectedClient
-              ? 'border-primary/30 text-white'
-              : 'border-white/[0.08] text-white/35',
-            'focus:border-primary/40',
-          )}
-        >
-          <option value="">Selecione a empresa...</option>
+        </p>
+        <div className="flex flex-wrap gap-2">
           {companies.map(c => (
-            <option key={c.id} value={c.name}>{c.name}</option>
+            <button
+              key={c.id}
+              type="button"
+              onClick={() => setSelectedClient(prev => prev === c.name ? '' : c.name)}
+              className={cn(
+                'rounded-full border px-3 py-1.5 text-xs font-semibold transition-all',
+                selectedClient === c.name
+                  ? 'border-primary/40 bg-primary/20 text-primary shadow-[0_0_12px_rgba(99,102,241,0.2)]'
+                  : 'border-white/[0.08] bg-white/[0.04] text-white/50 hover:border-white/[0.18] hover:text-white/80',
+              )}
+            >
+              {c.name}
+            </button>
           ))}
-        </select>
+        </div>
         {!selectedClient && (
-          <p className="mt-1 text-[10px] text-white/25">Selecione antes de importar</p>
+          <p className="mt-1.5 text-[10px] text-white/25">Selecione a empresa antes de importar</p>
         )}
       </div>
 

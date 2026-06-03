@@ -2,7 +2,7 @@
 
 import { useState, useMemo, useCallback } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Send, Layers, Upload, X, ClipboardList, CheckCircle2, Clock, ShieldAlert, ChevronDown, ChevronRight, Archive, AlertTriangle, FileText, GitPullRequest, MessageSquare, ExternalLink } from 'lucide-react'
+import { Send, Layers, Upload, X, ClipboardList, CheckCircle2, Clock, ShieldAlert, ChevronDown, ChevronRight, Archive, AlertTriangle, FileText, GitPullRequest, MessageSquare, ExternalLink, PanelRightOpen } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import {
   useQAImporterStore,
@@ -177,6 +177,36 @@ export function TasksClient() {
 
   return (
     <div className="space-y-5">
+
+      {/* Page header */}
+      <div className="flex items-center justify-between gap-4">
+        <div className="flex items-center gap-3">
+          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-primary/15 border border-primary/25">
+            <ClipboardList className="h-5 w-5 text-primary" />
+          </div>
+          <div>
+            <h1 className="text-xl font-bold text-white">Tasks</h1>
+            <p className="text-xs text-white/35 mt-0.5">
+              {store.items.length > 0
+                ? `${store.items.length} task${store.items.length !== 1 ? 's' : ''} · gerencie e envie para o Daily`
+                : 'Importe tasks para começar'}
+            </p>
+          </div>
+        </div>
+        <button
+          type="button"
+          onClick={() => setImportOpen(o => !o)}
+          className={cn(
+            'flex items-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold transition-all shrink-0',
+            importOpen
+              ? 'border border-white/[0.10] bg-white/[0.05] text-white/60'
+              : 'bg-primary text-white shadow-[0_0_20px_rgba(99,102,241,0.3)] hover:bg-primary/85',
+          )}
+        >
+          <PanelRightOpen className="h-4 w-4" />
+          {importOpen ? 'Fechar' : 'Importar'}
+        </button>
+      </div>
 
       {/* Stats strip + archive action */}
       {store.items.length > 0 && (
@@ -437,17 +467,6 @@ export function TasksClient() {
         <TaskDetailModal item={detailItem} onClose={() => setDetailItem(null)} />
       )}
 
-      {/* Importar FAB — visible when panel is closed */}
-      {!importOpen && (
-        <button
-          type="button"
-          onClick={() => setImportOpen(true)}
-          className="fixed bottom-6 right-6 z-40 flex items-center gap-2 rounded-2xl bg-primary px-5 py-3 text-sm font-semibold text-white shadow-[0_0_24px_rgba(99,102,241,0.35)] hover:bg-primary/85 transition-all"
-        >
-          <Upload className="h-4 w-4" />
-          Importar
-        </button>
-      )}
     </div>
   )
 }
