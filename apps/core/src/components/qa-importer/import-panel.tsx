@@ -79,7 +79,7 @@ export function ImportPanel({ qaFilterEnabled, onQaFilterChange, onImport, onSuc
   // Prefix map config UI
   const [prefixOpen,    setPrefixOpen]    = useState(false)
   const [newPrefix,     setNewPrefix]     = useState('')
-  const [newClient,     setNewClient]     = useState('')
+  const [newClient,     setNewClient]     = useState(() => companies[0]?.name ?? '')
 
   const currentInput    = tab === 'text' ? textInput : csvInput
   const setCurrentInput = tab === 'text' ? setTextInput : setCsvInput
@@ -169,7 +169,7 @@ export function ImportPanel({ qaFilterEnabled, onQaFilterChange, onImport, onSuc
     if (!newPrefix.trim() || !newClient.trim()) return
     setPrefixMap({ ...prefixMap, [newPrefix.trim().toUpperCase()]: newClient.trim() })
     setNewPrefix('')
-    setNewClient('')
+    setNewClient(companies[0]?.name ?? '')
   }
 
   const removePrefixEntry = (key: string) => {
