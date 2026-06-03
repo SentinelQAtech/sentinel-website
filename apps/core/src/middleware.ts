@@ -87,6 +87,11 @@ export async function middleware(req: NextRequest) {
   }
 
   // ── Supabase session check ────────────────────────────────────────────────
+  // In local/mock mode, skip Supabase entirely and allow all routes.
+  if (process.env.NEXT_PUBLIC_AUTH_MODE === 'local') {
+    return NextResponse.next({ request: req })
+  }
+
   let supabaseResponse = NextResponse.next({ request: req })
 
   const supabase = createServerClient(

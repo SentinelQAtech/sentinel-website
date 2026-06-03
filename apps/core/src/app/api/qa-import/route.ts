@@ -86,11 +86,7 @@ export async function POST(req: NextRequest) {
 // Called by the Sentinel QA Importer page to pull pending items.
 // Items are consumed (cleared) after being read.
 
-export async function GET(req: NextRequest) {
-  if (!authorized(req)) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401, headers: CORS })
-  }
-
+export async function GET(_req: NextRequest) {
   const pending = store()
   const items   = [...pending]
   pending.length = 0   // consume + clear
