@@ -83,10 +83,9 @@ export const useBugsStore = create<BugsState>()(
   )
 )
 
-function isBugItem(item: QAItem) {
-  const comments = item.comments?.map(comment => comment.body).join(' ') ?? ''
-  const text = `${item.issueKey} ${item.title} ${item.type} ${item.status} ${item.qaCategory} ${item.description ?? ''} ${comments}`.toLowerCase()
-  return item.qaCategory === 'Bug Validation' || text.includes('bug') || text.includes('defect')
+// All QA items are trackable — the Bugs module is the QA tracking board
+function isBugItem(_item: QAItem) {
+  return true
 }
 
 function buildQABugDescription(item: QAItem) {

@@ -4,6 +4,7 @@ import { useMemo, useState } from 'react'
 import { BriefcaseBusiness, Bug, Building2, Check, CheckSquare, Edit3, Globe2, Map as MapIcon, Plus, Search, Trash2, X, XCircle } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { useCompaniesStore, type Company, type CompanyStatus } from '@/store/companies'
+import { useQAImporterStore } from '@/store/qa-importer'
 import { WORLD_COUNTRY_PATHS } from '@/data/world-map-paths'
 import { useI18nStore } from '@/store/i18n'
 
@@ -36,7 +37,36 @@ export default function CompaniesPage() {
   const { companies, addCompany, updateCompany, deleteCompany, finishCompany } = useCompaniesStore()
   useI18nStore(s => s.locale)
   const t = useI18nStore(s => s.t)
+  const qaItems = useQAImporterStore(s => s.items)
   const [query, setQuery] = useState('')
+
+  // Derived stats per client from QA items
+  const qaStats = useMemo(() => {
+    const map = new Map<string, { tasks: number; bugs: number; projects: number }>()
+    const projectsPerClient = new Map<string, Set<string>>()
+
+    qaItems.forEach(item => {
+      const key = item.client?.toLowerCase()
+      if (!key) return
+      const s = map.get(key) ?? { tasks: 0, bugs: 0, projects: 0 }
+      s.tasks++
+      if (item.qaCategory === 'Bug Validation' || item.qaCategory === 'Regression' ||
+          item.resolution?.result === 'FAIL') s.bugs++
+      map.set(key, s)
+
+      if (item.project) {
+        if (!projectsPerClient.has(key)) projectsPerClient.set(key, new Set())
+        projectsPerClient.get(key)!.add(item.project)
+      }
+    })
+
+    projectsPerClient.forEach((projects, key) => {
+      const s = map.get(key)
+      if (s) s.projects = projects.size
+    })
+
+    return map
+  }, [qaItems])
   const [editingId, setEditingId] = useState<string | null>(null)
   const [form, setForm] = useState<Omit<Company, 'id'>>(EMPTY_FORM)
   const [mapOpen, setMapOpen] = useState(false)
@@ -157,11 +187,16 @@ export default function CompaniesPage() {
                 <Info label="E-mail" value={company.contactEmail || 'Nao informado'} />
                 <Info label="Jira" value={company.jiraUrl || 'Nao informado'} />
               </div>
-              <div className="mt-3 grid grid-cols-3 gap-2">
-                <Metric icon={<BriefcaseBusiness className="h-3.5 w-3.5" />} label="Projetos" value="0" />
-                <Metric icon={<CheckSquare className="h-3.5 w-3.5" />} label="Tasks" value="0" />
-                <Metric icon={<Bug className="h-3.5 w-3.5" />} label="Bugs" value="0" />
-              </div>
+              {(() => {
+                const s = qaStats.get(company.name.toLowerCase()) ?? { tasks: 0, bugs: 0, projects: 0 }
+                return (
+                  <div className="mt-3 grid grid-cols-3 gap-2">
+                    <Metric icon={<BriefcaseBusiness className="h-3.5 w-3.5" />} label="Projetos" value={String(s.projects || 0)} />
+                    <Metric icon={<CheckSquare className="h-3.5 w-3.5" />} label="QA Items" value={String(s.tasks)} />
+                    <Metric icon={<Bug className="h-3.5 w-3.5" />} label="Bugs" value={String(s.bugs)} />
+                  </div>
+                )
+              })()}
               {company.notes && <p className="mt-3 rounded-lg bg-white/[0.03] p-3 text-xs text-white/45">{company.notes}</p>}
             </div>
           ))}
