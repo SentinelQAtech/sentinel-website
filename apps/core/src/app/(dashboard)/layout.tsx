@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { Sidebar } from '@/components/layout/sidebar'
 import { Header } from '@/components/layout/header'
@@ -8,22 +8,35 @@ import { AIFloatingButton } from '@/components/ai/ai-floating-button'
 import { AIPanel } from '@/components/ai/ai-panel'
 import { CommandPalette } from '@/components/ai/command-palette'
 import { useAuthStore } from '@/store/auth'
-import { useState } from 'react'
+import { createClient } from '@/lib/supabase/client'
 import { cn } from '@/lib/utils'
+import type { Role } from '@/types'
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   const router = useRouter()
-  const { isAuthenticated, _hasHydrated } = useAuthStore()
+  const { isAuthenticated, login } = useAuthStore()
   const [collapsed, setCollapsed] = useState(false)
+  const [checking, setChecking] = useState(!isAuthenticated)
 
   useEffect(() => {
-    if (_hasHydrated && !isAuthenticated) {
-      router.replace('/login')
-    }
-  }, [_hasHydrated, isAuthenticated, router])
+    if (isAuthenticated) { setChecking(false); return }
+    const supabase = createClient()
+    supabase.auth.getUser().then(({ data: { user } }) => {
+      if (!user) { router.replace('/login'); return }
+      login({
+        id:        user.id,
+        email:     user.email!,
+        username:  user.user_metadata?.username ?? user.email!.split('@')[0],
+        name:      user.user_metadata?.full_name ?? user.user_metadata?.name ?? user.email!.split('@')[0],
+        role:      (user.user_metadata?.role as Role) ?? 'ADMIN',
+        isActive:  true,
+        createdAt: user.created_at,
+      })
+      setChecking(false)
+    })
+  }, [isAuthenticated, login, router])
 
-  if (!_hasHydrated) return null
-  if (!isAuthenticated) return null
+  if (checking) return null
 
   return (
     <div className="flex h-screen overflow-hidden bg-surface-950">

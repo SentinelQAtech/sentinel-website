@@ -8,10 +8,13 @@ import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import { motion } from 'framer-motion'
 import { createClient } from '@/lib/supabase/client'
+import { useAuthStore } from '@/store/auth'
 import { brandLogoIcon } from '@/lib/routes'
+import type { Role } from '@/types'
 
 export default function LoginPage() {
   const router = useRouter()
+  const login = useAuthStore(s => s.login)
 
   const [email, setEmail]               = useState('')
   const [password, setPassword]         = useState('')
@@ -25,13 +28,24 @@ export default function LoginPage() {
     setLoading(true)
 
     const supabase = createClient()
-    const { error: authError } = await supabase.auth.signInWithPassword({ email, password })
+    const { data, error: authError } = await supabase.auth.signInWithPassword({ email, password })
 
-    if (authError) {
+    if (authError || !data.user) {
       setError('E-mail ou senha incorretos.')
       setLoading(false)
       return
     }
+
+    const u = data.user
+    login({
+      id:            u.id,
+      email:         u.email!,
+      username:      u.user_metadata?.username ?? u.email!.split('@')[0],
+      name:          u.user_metadata?.full_name ?? u.user_metadata?.name ?? u.email!.split('@')[0],
+      role:          (u.user_metadata?.role as Role) ?? 'ADMIN',
+      isActive:      true,
+      createdAt:     u.created_at,
+    })
 
     router.push('/dashboard')
     router.refresh()

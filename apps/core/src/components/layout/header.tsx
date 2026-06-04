@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
 import { useState, useRef, useEffect } from 'react'
 import { useAuthStore } from '@/store/auth'
+import { createClient } from '@/lib/supabase/client'
 import { useNotificationsStore } from '@/store/notifications'
 import { useRouter } from 'next/navigation'
 import { SearchModal } from './search-modal'
@@ -52,7 +53,9 @@ export function Header() {
     return () => document.removeEventListener('keydown', handleKeyDown)
   }, [])
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
+    const supabase = createClient()
+    await supabase.auth.signOut()
     logout()
     router.push('/login')
   }
