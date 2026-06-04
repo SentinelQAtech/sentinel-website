@@ -42,29 +42,26 @@ body {
 /* Integrated PCB atmosphere for the Sentinel website background. */
 body::before {
   content: "";
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  pointer-events: none;
-  z-index: 0;
-  background:
-    linear-gradient(180deg, rgba(8, 5, 15, 0.08) 0%, rgba(8, 5, 15, 0.42) 42%, rgba(8, 5, 15, 0.95) 100%),
-    url('../brand/background_integrated_v2.png') top center / max(100%, 1280px) auto no-repeat;
-  opacity: 0.5;
-}
-
-body::after {
-  content: "";
-  position: absolute;
+  position: fixed;
   inset: 0;
   pointer-events: none;
   z-index: 0;
   background:
-    radial-gradient(ellipse at 50% 24%, rgba(8, 5, 15, 0.96) 0%, rgba(8, 5, 15, 0.9) 34%, rgba(8, 5, 15, 0.56) 58%, rgba(8, 5, 15, 0.18) 100%),
+    url('../brand/background_integrated_v2.png') top center / clamp(1080px, 88vw, 1360px) auto no-repeat;
+  opacity: 0.42;
+}
+
+body::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  background:
+    radial-gradient(ellipse at 50% 32%, rgba(8, 5, 15, 0.98) 0%, rgba(8, 5, 15, 0.93) 38%, rgba(8, 5, 15, 0.66) 64%, rgba(8, 5, 15, 0.28) 100%),
     radial-gradient(ellipse at center top, rgba(82, 0, 214, 0.08), transparent 48%),
-    linear-gradient(90deg, rgba(8, 5, 15, 0.18) 0%, rgba(8, 5, 15, 0.72) 22%, rgba(8, 5, 15, 0.9) 50%, rgba(8, 5, 15, 0.72) 78%, rgba(8, 5, 15, 0.18) 100%);
+    linear-gradient(90deg, rgba(8, 5, 15, 0.08) 0%, rgba(8, 5, 15, 0.68) 20%, rgba(8, 5, 15, 0.92) 50%, rgba(8, 5, 15, 0.68) 80%, rgba(8, 5, 15, 0.08) 100%),
+    linear-gradient(180deg, rgba(8, 5, 15, 0.1) 0%, rgba(8, 5, 15, 0.3) 48%, rgba(8, 5, 15, 0.64) 100%);
 }
 
 body > * {
@@ -906,18 +903,6 @@ p {
   background: transparent;
 }
 
-.section,
-.footer {
-  background-image:
-    radial-gradient(ellipse at 50% 24%, rgba(8, 5, 15, 0.96) 0%, rgba(8, 5, 15, 0.9) 34%, rgba(8, 5, 15, 0.56) 58%, rgba(8, 5, 15, 0.18) 100%),
-    radial-gradient(ellipse at center top, rgba(82, 0, 214, 0.08), transparent 48%),
-    linear-gradient(90deg, rgba(8, 5, 15, 0.18) 0%, rgba(8, 5, 15, 0.72) 22%, rgba(8, 5, 15, 0.9) 50%, rgba(8, 5, 15, 0.72) 78%, rgba(8, 5, 15, 0.18) 100%),
-    url('../brand/background_integrated_v2.png');
-  background-position: center, center, center, top center;
-  background-repeat: no-repeat;
-  background-size: 100% 100%, 100% 100%, 100% 100%, max(100%, 1280px) auto;
-}
-
 .proof-grid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
@@ -1639,25 +1624,15 @@ html[data-theme="light"] body {
 }
 
 html[data-theme="light"] body::before {
-  background: url('../brand/background_integrated_light.png') top center / max(100%, 1280px) auto no-repeat;
-  opacity: 1;
+  background: url('../brand/background_integrated_light.png') top center / clamp(1080px, 88vw, 1360px) auto no-repeat;
+  opacity: 0.78;
 }
 
 html[data-theme="light"] body::after {
   background:
-    radial-gradient(ellipse at 50% 30%, rgba(255, 255, 255, 0.97) 0%, rgba(255, 255, 255, 0.9) 38%, rgba(255, 255, 255, 0.46) 66%, rgba(255, 255, 255, 0.08) 100%),
-    linear-gradient(90deg, rgba(247, 245, 255, 0) 0%, rgba(255, 255, 255, 0.46) 24%, rgba(255, 255, 255, 0.82) 50%, rgba(255, 255, 255, 0.46) 76%, rgba(247, 245, 255, 0) 100%);
-}
-
-html[data-theme="light"] .section,
-html[data-theme="light"] .footer {
-  background-image:
-    radial-gradient(ellipse at 50% 30%, rgba(255, 255, 255, 0.97) 0%, rgba(255, 255, 255, 0.9) 38%, rgba(255, 255, 255, 0.46) 66%, rgba(255, 255, 255, 0.08) 100%),
-    linear-gradient(90deg, rgba(247, 245, 255, 0) 0%, rgba(255, 255, 255, 0.46) 24%, rgba(255, 255, 255, 0.82) 50%, rgba(255, 255, 255, 0.46) 76%, rgba(247, 245, 255, 0) 100%),
-    url('../brand/background_integrated_light.png');
-  background-position: center, center, top center;
-  background-repeat: no-repeat;
-  background-size: 100% 100%, 100% 100%, max(100%, 1280px) auto;
+    radial-gradient(ellipse at 50% 32%, rgba(255, 255, 255, 0.98) 0%, rgba(255, 255, 255, 0.92) 40%, rgba(255, 255, 255, 0.58) 68%, rgba(255, 255, 255, 0.16) 100%),
+    linear-gradient(90deg, rgba(247, 245, 255, 0.08) 0%, rgba(255, 255, 255, 0.5) 22%, rgba(255, 255, 255, 0.86) 50%, rgba(255, 255, 255, 0.5) 78%, rgba(247, 245, 255, 0.08) 100%),
+    linear-gradient(180deg, rgba(247, 245, 255, 0.16) 0%, rgba(247, 245, 255, 0.34) 52%, rgba(247, 245, 255, 0.66) 100%);
 }
 
 html[data-theme="light"] .site-header {
