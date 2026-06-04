@@ -7,38 +7,34 @@ import { Eye, EyeOff, ArrowRight, Lock, Mail, AlertCircle } from 'lucide-react'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import { motion } from 'framer-motion'
-import { validateCredentials } from '@/lib/mock-auth'
-import { useAuthStore } from '@/store/auth'
+import { createClient } from '@/lib/supabase/client'
 import { brandLogoIcon } from '@/lib/routes'
 
 export default function LoginPage() {
   const router = useRouter()
-  const login = useAuthStore(s => s.login)
 
-  const [email, setEmail]             = useState('')
-  const [password, setPassword]       = useState('')
+  const [email, setEmail]               = useState('')
+  const [password, setPassword]         = useState('')
   const [showPassword, setShowPassword] = useState(false)
-  const [loading, setLoading]         = useState(false)
-  const [error, setError]             = useState('')
+  const [loading, setLoading]           = useState(false)
+  const [error, setError]               = useState('')
 
   const handleSubmit = async (e: React.SyntheticEvent<HTMLFormElement>) => {
     e.preventDefault()
     setError('')
     setLoading(true)
 
-    // Simula latência de rede
-    await new Promise(r => setTimeout(r, 700))
+    const supabase = createClient()
+    const { error: authError } = await supabase.auth.signInWithPassword({ email, password })
 
-    const user = validateCredentials(email, password)
-
-    if (!user) {
+    if (authError) {
       setError('E-mail ou senha incorretos.')
       setLoading(false)
       return
     }
 
-    login(user)
     router.push('/dashboard')
+    router.refresh()
   }
 
   return (
