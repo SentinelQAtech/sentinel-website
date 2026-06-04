@@ -42,7 +42,7 @@ body {
 /* Integrated PCB atmosphere for the Sentinel website background. */
 body::before {
   content: "";
-  position: absolute;
+  position: fixed;
   top: 0;
   left: 0;
   right: 0;
@@ -51,13 +51,14 @@ body::before {
   z-index: 0;
   background:
     linear-gradient(180deg, rgba(8, 5, 15, 0.08) 0%, rgba(8, 5, 15, 0.42) 42%, rgba(8, 5, 15, 0.95) 100%),
-    url('../brand/background_integrated_v2.png') top center / max(100%, 1280px) auto no-repeat;
+    url('../brand/background_integrated_v2.png') center / cover no-repeat;
+  background-size: 100% 100%, cover;
   opacity: 0.5;
 }
 
 body::after {
   content: "";
-  position: absolute;
+  position: fixed;
   inset: 0;
   pointer-events: none;
   z-index: 0;
@@ -1628,7 +1629,7 @@ html[data-theme="light"] body {
 }
 
 html[data-theme="light"] body::before {
-  background: url('../brand/background_integrated_light.png') top center / max(100%, 1280px) auto no-repeat;
+  background: url('../brand/background_integrated_light.png') center / cover no-repeat;
   opacity: 1;
 }
 
