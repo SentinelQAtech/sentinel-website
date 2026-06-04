@@ -1,0 +1,62 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 2560 1080" preserveAspectRatio="xMidYMid slice">
+  <defs>
+    <filter id="violetGlow" x="-40%" y="-40%" width="180%" height="180%">
+      <feGaussianBlur stdDeviation="3" result="blur"/>
+      <feColorMatrix in="blur" type="matrix" values="0.55 0 0 0 0.25 0 0.1 0 0 0.02 0 0 0.9 0 1 0 0 0 0.8 0" result="glow"/>
+      <feMerge>
+        <feMergeNode in="glow"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+    <filter id="cyanGlow" x="-80%" y="-80%" width="260%" height="260%">
+      <feGaussianBlur stdDeviation="6" result="blur"/>
+      <feColorMatrix in="blur" type="matrix" values="0 0 0 0 0 0 0.65 0 0 0.95 0 0 1 0 1 0 0 0 0.9 0" result="glow"/>
+      <feMerge>
+        <feMergeNode in="glow"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+    <linearGradient id="trace" x1="0" x2="1">
+      <stop offset="0" stop-color="#8b3cff" stop-opacity="0.78"/>
+      <stop offset="0.55" stop-color="#5c20d8" stop-opacity="0.48"/>
+      <stop offset="1" stop-color="#19c8ff" stop-opacity="0.34"/>
+    </linearGradient>
+    <g id="leftTraces" fill="none" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M0 126h186l62 62h168l46 46h118" />
+      <path d="M0 218h252l40 40h228" />
+      <path d="M0 328h320l58 58h226" />
+      <path d="M0 452h204l84 84h312" />
+      <path d="M0 612h270l54-54h210" />
+      <path d="M0 732h218l74-74h254" />
+      <path d="M0 854h354l64-64h154" />
+      <path d="M0 960h224l54-54h190" />
+      <path d="M104 0v126l88 88v226" />
+      <path d="M238 0v172l94 94v198" />
+      <path d="M386 0v138l124 124v108" />
+      <path d="M70 1080V916l78-78V690" />
+      <path d="M238 1080V900l96-96V650" />
+      <path d="M420 1080V936l92-92V720" />
+    </g>
+  </defs>
+
+  <g stroke="url(#trace)" stroke-width="3.2" filter="url(#violetGlow)" opacity="0.66">
+    <use href="#leftTraces"/>
+    <use href="#leftTraces" transform="translate(2560 0) scale(-1 1)"/>
+  </g>
+
+  <g fill="#8d57ff" opacity="0.78" filter="url(#violetGlow)">
+    <circle cx="248" cy="188" r="7"/><circle cx="520" cy="234" r="6"/>
+    <circle cx="378" cy="386" r="8"/><circle cx="600" cy="452" r="7"/>
+    <circle cx="324" cy="558" r="7"/><circle cx="546" cy="658" r="6"/>
+    <circle cx="416" cy="790" r="7"/><circle cx="278" cy="906" r="7"/>
+    <circle cx="2312" cy="188" r="7"/><circle cx="2040" cy="234" r="6"/>
+    <circle cx="2182" cy="386" r="8"/><circle cx="1960" cy="452" r="7"/>
+    <circle cx="2236" cy="558" r="7"/><circle cx="2014" cy="658" r="6"/>
+    <circle cx="2144" cy="790" r="7"/><circle cx="2282" cy="906" r="7"/>
+  </g>
+
+  <g fill="#00c8ff" opacity="0.86" filter="url(#cyanGlow)">
+    <circle cx="172" cy="336" r="7"/><circle cx="202" cy="850" r="7"/>
+    <circle cx="2388" cy="336" r="7"/><circle cx="2358" cy="850" r="7"/>
+  </g>
+</svg>

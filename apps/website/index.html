@@ -42,10 +42,23 @@
           <a href="/core/dashboard">Core</a>
         </nav>
 
-        <button class="theme-toggle" id="themeToggle" type="button" aria-label="Switch to light mode" aria-pressed="false">
-          <span class="theme-toggle-icon" aria-hidden="true"></span>
-          <span class="theme-toggle-text">Light</span>
-        </button>
+        <div class="header-controls">
+          <div class="language-switch" id="languageSwitch">
+            <button class="language-toggle" id="languageToggle" type="button" aria-label="Change language" aria-expanded="false" aria-haspopup="true">
+              <span class="language-icon" aria-hidden="true"></span>
+              <span class="language-code" id="languageCode">EN</span>
+            </button>
+            <div class="language-menu" id="languageMenu" role="menu" aria-label="Language options">
+              <button type="button" role="menuitem" data-lang-option="pt-BR">Português-BR</button>
+              <button type="button" role="menuitem" data-lang-option="en-US">English (USA)</button>
+              <button type="button" role="menuitem" data-lang-option="es">Español</button>
+            </div>
+          </div>
+
+          <button class="theme-toggle" id="themeToggle" type="button" aria-label="Switch to light mode" aria-pressed="false">
+            <span class="theme-toggle-icon" aria-hidden="true"></span>
+          </button>
+        </div>
 
         <button class="menu-toggle" id="menuToggle" aria-label="Open menu" aria-expanded="false" aria-controls="navMenu">
           <span></span>
