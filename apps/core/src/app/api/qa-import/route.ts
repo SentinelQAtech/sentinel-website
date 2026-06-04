@@ -1,30 +1,31 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { createClient } from '@supabase/supabase-js'
 
 // ─────────────────────────────────────────────────────────────
-// In-memory store for extension-submitted QA items.
+// Persistent queue backed by Supabase.
+// Requires a `qa_sync_queue` table — run this once in Supabase:
 //
-// ✅ Works for self-hosted (Node.js persistent server).
-// ⚠️  For Vercel (serverless), replace with:
-//     import { kv } from '@vercel/kv'
-//     or any Redis / database client.
+//   create table if not exists qa_sync_queue (
+//     id bigint generated always as identity primary key,
+//     item jsonb not null,
+//     source text default 'extension',
+//     received_at timestamptz default now()
+//   );
+//   alter table qa_sync_queue disable row level security;
 // ─────────────────────────────────────────────────────────────
 
-const g = globalThis as typeof globalThis & {
-  _sentinelQAPending?: object[]
-}
-
-function store(): object[] {
-  if (!g._sentinelQAPending) g._sentinelQAPending = []
-  return g._sentinelQAPending
+function getSupabase() {
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL
+  const key = process.env.SUPABASE_SERVICE_ROLE_KEY ?? process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+  if (!url || !key) return null
+  return createClient(url, key, { auth: { persistSession: false } })
 }
 
 // ─── Token guard ─────────────────────────────────────────────
-// Set QA_SYNC_TOKEN in your .env to require a token.
-// Leave unset for open access (use behind auth middleware).
 
 function authorized(req: NextRequest): boolean {
   const envToken = process.env.QA_SYNC_TOKEN
-  if (!envToken) return true  // No token configured → open
+  if (!envToken) return true
   const header = req.headers.get('x-sync-token')
   const param  = req.nextUrl.searchParams.get('token')
   return header === envToken || param === envToken
@@ -57,39 +58,64 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'Invalid JSON' }, { status: 400, headers: CORS })
   }
 
-  const items = Array.isArray(body?.items) ? body.items : []
+  const items = Array.isArray(body?.items) ? body.items.slice(0, 100) : []
   if (items.length === 0) {
     return NextResponse.json({ error: 'No items provided' }, { status: 400, headers: CORS })
   }
 
-  const pending = store()
+  const supabase = getSupabase()
+  if (!supabase) {
+    return NextResponse.json({ error: 'Storage not configured' }, { status: 503, headers: CORS })
+  }
 
-  // Stamp each item with receivedAt and source
-  const stamped = items.slice(0, 100).map((item: object) => ({
-    ...(item as object),
-    source:     body.source ?? 'extension',
-    receivedAt: new Date().toISOString(),
+  const rows = items.map(item => ({
+    item:   item,
+    source: body.source ?? 'extension',
   }))
 
-  pending.push(...stamped)
+  const { error } = await supabase.from('qa_sync_queue').insert(rows)
 
-  // Keep max 300 items to avoid unbounded memory
-  if (pending.length > 300) pending.splice(0, pending.length - 300)
+  if (error) {
+    console.error('[QA Import POST]', error)
+    return NextResponse.json({ error: 'Failed to store items' }, { status: 500, headers: CORS })
+  }
 
   return NextResponse.json(
-    { success: true, received: stamped.length, total: pending.length },
+    { success: true, received: rows.length },
     { headers: CORS }
   )
 }
 
 // ─── GET /api/qa-import ──────────────────────────────────────
 // Called by the Sentinel QA Importer page to pull pending items.
-// Items are consumed (cleared) after being read.
+// Items are consumed (deleted) after being read.
 
 export async function GET(_req: NextRequest) {
-  const pending = store()
-  const items   = [...pending]
-  pending.length = 0   // consume + clear
+  const supabase = getSupabase()
+  if (!supabase) {
+    return NextResponse.json({ items: [], count: 0, error: 'Storage not configured' }, { headers: CORS })
+  }
+
+  const { data, error } = await supabase
+    .from('qa_sync_queue')
+    .select('id, item, source, received_at')
+    .order('received_at', { ascending: true })
+    .limit(300)
+
+  if (error) {
+    console.error('[QA Import GET]', error)
+    return NextResponse.json({ error: 'Failed to read queue' }, { status: 500, headers: CORS })
+  }
+
+  if (!data || data.length === 0) {
+    return NextResponse.json({ items: [], count: 0 }, { headers: CORS })
+  }
+
+  // Delete consumed rows
+  const ids = data.map(r => r.id)
+  await supabase.from('qa_sync_queue').delete().in('id', ids)
+
+  const items = data.map(r => ({ ...r.item, source: r.source, receivedAt: r.received_at }))
 
   return NextResponse.json(
     { items, count: items.length },
