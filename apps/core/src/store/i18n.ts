@@ -9,9 +9,12 @@ type Dictionary = Record<string, string>
 
 const ptBR: Dictionary = {
   overview: 'VISÃO GERAL',
+  dailyFlow: 'DIA A DIA',
+  execution: 'EXECUÇÃO',
   workspace: 'TRABALHO',
   management: 'GESTÃO',
   analytics: 'ANÁLISES',
+  extras: 'MAIS',
   dashboard: 'Dashboard',
   daily: 'Daily',
   calendar: 'Calendário',
@@ -188,9 +191,12 @@ const ptBR: Dictionary = {
 
 const enUS: Dictionary = {
   overview: 'OVERVIEW',
+  dailyFlow: 'DAILY FLOW',
+  execution: 'EXECUTION',
   workspace: 'WORKSPACE',
   management: 'MANAGEMENT',
   analytics: 'ANALYTICS',
+  extras: 'MORE',
   dashboard: 'Dashboard',
   daily: 'Daily',
   calendar: 'Calendar',

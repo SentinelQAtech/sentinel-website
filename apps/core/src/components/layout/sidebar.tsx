@@ -7,7 +7,7 @@ import { useI18nStore } from '@/store/i18n'
 import {
   LayoutDashboard, Bug, BarChart3,
   Bell, Settings, Users, ChevronLeft, ChevronRight,
-  Search, Zap, CalendarDays, ClipboardCheck,
+  Zap, CalendarDays, ClipboardCheck,
   Activity, Columns, FolderOpen, Building2, GraduationCap,
 } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
@@ -37,35 +37,40 @@ interface NavGroup {
 
 const navGroups: NavGroup[] = [
   {
-    labelKey: 'overview',
+    labelKey: 'dailyFlow',
     items: [
-      { labelKey: 'dashboard', href: '/dashboard',                        icon: LayoutDashboard },
-      { labelKey: 'daily',     href: '/daily',                            icon: Activity        },
-      { labelKey: 'calendar',  href: '/calendar',                         icon: CalendarDays    },
-      { labelKey: 'learning',  href: 'https://sentinelqa.tech/learning/', icon: GraduationCap, external: true },
+      { labelKey: 'dashboard', href: '/dashboard', icon: LayoutDashboard },
+      { labelKey: 'daily',     href: '/daily',     icon: Activity        },
+      { labelKey: 'tasks',     href: '/tasks',     icon: ClipboardCheck  },
     ],
   },
   {
-    labelKey: 'workspace',
+    labelKey: 'execution',
     items: [
-      { labelKey: 'projects', href: '/projects', icon: FolderOpen },
-      { labelKey: 'board',    href: '/kanban',   icon: Columns    },
-      { labelKey: 'sprints',  href: '/sprints',  icon: Zap        },
-      { labelKey: 'bugs', href: '/bugs', icon: Bug },
+      { labelKey: 'board',   href: '/kanban',   icon: Columns    },
+      { labelKey: 'bugs',    href: '/bugs',     icon: Bug        },
+      { labelKey: 'sprints', href: '/sprints',  icon: Zap        },
     ],
   },
   {
     labelKey: 'management',
     items: [
-      { labelKey: 'team',       href: '/team',        icon: Users          },
-      { labelKey: 'clients',    href: '/companies',   icon: Building2      },
-      { labelKey: 'tasks', href: '/tasks', icon: ClipboardCheck },
+      { labelKey: 'projects', href: '/projects',  icon: FolderOpen },
+      { labelKey: 'clients',  href: '/companies', icon: Building2  },
+      { labelKey: 'team',     href: '/team',      icon: Users      },
     ],
   },
   {
     labelKey: 'analytics',
     items: [
       { labelKey: 'reports', href: '/reports', icon: BarChart3 },
+    ],
+  },
+  {
+    labelKey: 'extras',
+    items: [
+      { labelKey: 'calendar', href: '/calendar',                         icon: CalendarDays                       },
+      { labelKey: 'learning', href: 'https://sentinelqa.tech/learning/', icon: GraduationCap, external: true },
     ],
   },
 ]
@@ -200,18 +205,6 @@ export function Sidebar({ collapsed = false, onToggle }: SidebarProps) {
               </motion.div>
             )}
           </AnimatePresence>
-        </div>
-
-        {/* Search */}
-        <div className="px-3 py-3 border-b border-white/[0.06]">
-          <button className={cn(
-            'flex items-center justify-center gap-2.5 px-2.5 py-2 rounded-lg',
-            'bg-white/[0.04] border border-white/[0.08] text-white/40',
-            'hover:bg-white/[0.07] hover:text-white/60 transition-all duration-200',
-            collapsed ? 'w-full' : 'w-9'
-          )}>
-            <Search className="w-3.5 h-3.5 shrink-0" />
-          </button>
         </div>
 
         {/* Grouped Nav */}
