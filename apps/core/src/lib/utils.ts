@@ -67,6 +67,17 @@ export const projectStatusConfig: Record<ProjectStatus, { label: string; color: 
   CANCELLED: { label: 'Cancelled', color: 'text-red-400',     bg: 'bg-red-500/10'     },
 }
 
+// ─── Task title sanitizer ─────────────────────────────────────────────────────
+
+// Cleans titles from Linear exports that contain duplicated/artifact text:
+// "[KEY] BODY BODY" → "[KEY] BODY"
+// "[KEY] BODY Edit summary for KEY..." → "[KEY] BODY"
+export function sanitizeTitle(raw: string): string {
+  let s = raw.replace(/\s*Edit summary for [A-Z]{2,}-\d+\b.*/i, '').trim()
+  s = s.replace(/^(\[[A-Z]{2,}-\d+\] )(.+?)\2$/, '$1$2').trim()
+  return s
+}
+
 // ─── Number utils ─────────────────────────────────────────────────────────────
 
 export function abbreviateNumber(n: number): string {

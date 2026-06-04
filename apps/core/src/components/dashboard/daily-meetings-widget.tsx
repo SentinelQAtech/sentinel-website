@@ -9,8 +9,9 @@ import { useI18nStore } from '@/store/i18n'
 export function DailyMeetingsWidget() {
   useI18nStore(s => s.locale)
   const t = useI18nStore(s => s.t)
-  const { getMeetingsForDate } = useDailyStore()
-  const meetings = getMeetingsForDate(getTodayISO())
+  const allMeetings = useDailyStore(s => s.allMeetings)
+  const todayISO = getTodayISO()
+  const meetings = allMeetings.filter(m => (m.date ?? todayISO) === todayISO)
 
   const now    = new Date()
   const nowMin = now.getHours() * 60 + now.getMinutes()

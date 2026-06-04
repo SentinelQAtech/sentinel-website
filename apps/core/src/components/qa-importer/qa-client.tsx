@@ -149,7 +149,7 @@ export function TasksClient() {
   const sendItemToDaily = useCallback((item: QAItem) => {
     const client    = VALID_CLIENTS.has(item.client) ? item.client : 'Pessoal'
     const titleParts = [item.issueKey && `[${item.issueKey}]`, item.title].filter(Boolean)
-    addTask({ date: getTodayISO(), client, title: titleParts.join(' '), type: mapToDailyType(item.qaCategory), priority: mapToDailyPriority(item.priority), status: 'todo', notes: buildEnrichedNotes(item) || undefined })
+    addTask({ id: `qai-${item.id}`, qaSourceId: item.id, date: getTodayISO(), client, title: titleParts.join(' '), type: mapToDailyType(item.qaCategory), priority: mapToDailyPriority(item.priority), status: 'todo', notes: buildEnrichedNotes(item) || undefined })
     store.markSentToDaily([item.id])
     setSentFeedback(`"${item.title}" enviado para o Daily`)
     setTimeout(() => setSentFeedback(null), 3000)

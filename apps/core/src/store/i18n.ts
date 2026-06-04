@@ -77,7 +77,7 @@ const ptBR: Dictionary = {
   byPriority: 'Por Prioridade',
   sendOpenToToday: 'Enviar abertas para hoje',
   viewingPreviousDaily: 'Visualizando Daily anterior',
-  tasks: 'tarefas',
+  tasks: 'Tarefas',
   meetings: 'reuniões',
   doneTasks: 'concluídas',
   noTasksToday: 'Nenhuma tarefa para hoje',

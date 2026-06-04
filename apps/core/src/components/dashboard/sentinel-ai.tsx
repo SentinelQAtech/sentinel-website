@@ -21,15 +21,15 @@ import { useDailyStore, getTodayISO } from '@/store/daily'
 import { useQAImporterStore } from '@/store/qa-importer'
 
 function useInsights() {
-  const getTasksForDate = useDailyStore(s => s.getTasksForDate)
-  const getDailyDates = useDailyStore(s => s.getDailyDates)
-  const tasks = getTasksForDate(getTodayISO())
+  const allTasks = useDailyStore(s => s.allTasks)
   const qaItems = useQAImporterStore(s => s.items)
+  const todayISO = getTodayISO()
 
   return useMemo(() => {
     const insights = []
     const focus = []
 
+    const tasks = allTasks.filter(t => (t.date ?? todayISO) === todayISO)
     const openTasks = tasks.filter(t => t.status !== 'done')
     const criticalTasks = tasks.filter(t => t.priority === 'Critical' && t.status !== 'done')
     const highTasks = tasks.filter(t => t.priority === 'High' && t.status !== 'done')
@@ -40,9 +40,7 @@ function useInsights() {
     const criticalQA = qaItems.filter(i => i.priority === 'Critical' && i.qaCategory !== 'Done')
     const pendingQA = qaItems.filter(i => !i.sentToDaily && i.qaCategory !== 'Done')
     const blockedQA = qaItems.filter(i => i.qaCategory === 'Blocked')
-    const historicalOpen = getDailyDates()
-      .filter(date => date !== getTodayISO())
-      .flatMap(date => getTasksForDate(date).filter(t => t.status !== 'done'))
+    const historicalOpen = allTasks.filter(t => (t.date ?? todayISO) !== todayISO && t.status !== 'done')
 
     if (criticalQA.length > 0) {
       focus.push({ label: 'Validar QA critico', detail: `${criticalQA.length} item${criticalQA.length > 1 ? 'ns' : ''} aguardando`, href: '/qa-importer', color: '#ef4444', icon: Bug })
@@ -166,7 +164,7 @@ function useInsights() {
     }
 
     return { insights: insights.slice(0, 4), focus: focus.slice(0, 3) }
-  }, [tasks, qaItems, getDailyDates, getTasksForDate])
+  }, [allTasks, qaItems, todayISO])
 }
 
 export function SentinelAI() {

@@ -1,5 +1,6 @@
 'use client'
 
+import Link from 'next/link'
 import { SeverityBadge, BugStatusBadge, PriorityBadge } from '@/components/ui/badge'
 import { Avatar } from '@/components/ui/avatar'
 import { timeAgo } from '@/lib/utils'
@@ -46,13 +47,13 @@ export function BugTable({ bugs, onOpenBug }: BugTableProps) {
               className="border-b border-white/[0.04] hover:bg-white/[0.03] transition-colors duration-150 group"
             >
               <td className="px-4 py-3.5">
-                <button
-                  onClick={() => onOpenBug?.(bug)}
+                <Link
+                  href="/tasks"
                   className="font-mono text-xs text-primary/80 hover:text-primary flex items-center gap-1 transition-colors"
                 >
                   {bug.bugId}
                   <ArrowUpRight className="w-3 h-3 opacity-0 group-hover:opacity-100 transition-opacity" />
-                </button>
+                </Link>
               </td>
               <td className="px-4 py-3.5 max-w-[280px]">
                 <button onClick={() => onOpenBug?.(bug)} className="text-left text-white/80 hover:text-white transition-colors line-clamp-1">

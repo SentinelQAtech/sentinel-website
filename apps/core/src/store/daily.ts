@@ -8,15 +8,16 @@ export type DailyStatus   = 'todo' | 'in_progress' | 'done' | 'blocked'
 export type DailyType     = 'Daily' | 'Card Work' | 'Study' | 'Testing' | 'QA Planning' | 'Review' | 'Planning' | 'Personal' | 'Meeting'
 
 export interface DailyTask {
-  id:          string
-  date?:       string
-  client:      string
-  title:       string
-  type:        DailyType
-  priority:    DailyPriority
-  status:      DailyStatus
+  id:           string
+  date?:        string
+  client:       string
+  title:        string
+  type:         DailyType
+  priority:     DailyPriority
+  status:       DailyStatus
   responsible?: string
-  notes?:      string
+  notes?:       string
+  qaSourceId?:  string  // QA Importer item ID origin — tasks with this are removed when QA item is deleted
 }
 
 export interface DailyMeeting {
@@ -122,10 +123,11 @@ interface DailyStore {
   getDailyDates:      () => string[]
   copyOpenTasksToToday: (fromDate: string) => number
 
-  addTask:        (task: Omit<DailyTask, 'id'>) => void
-  updateTask:     (id: string, updates: Partial<DailyTask>) => void
-  toggleTask:     (id: string) => void
-  removeTask:     (id: string) => void
+  addTask:              (task: Omit<DailyTask, 'id'> & { id?: string }) => void
+  updateTask:           (id: string, updates: Partial<DailyTask>) => void
+  toggleTask:           (id: string) => void
+  removeTask:           (id: string) => void
+  syncWithQAImporter:   (activeQAIds: Set<string>) => void
 
   addMeeting:     (m: Omit<DailyMeeting, 'id'>) => void
   removeMeeting:  (id: string) => void
@@ -179,7 +181,11 @@ export const useDailyStore = create<DailyStore>()(
 
       addTask: (task) =>
         set(s => {
-          const datedTask = { ...task, date: task.date ?? s.selectedDate, id: `t${Date.now()}` }
+          const id = task.id ?? `t${Date.now()}`
+          // Don't duplicate QA-sourced tasks on the same date
+          const taskDate = task.date ?? s.selectedDate
+          if (task.qaSourceId && s.allTasks.some(t => t.qaSourceId === task.qaSourceId && (t.date ?? s.selectedDate) === taskDate)) return s
+          const datedTask = { ...task, date: task.date ?? s.selectedDate, id }
           const allTasks = [...s.allTasks, datedTask]
           return {
             allTasks,
@@ -210,6 +216,16 @@ export const useDailyStore = create<DailyStore>()(
       removeTask: (id) =>
         set(s => {
           const allTasks = s.allTasks.filter(t => t.id !== id)
+          return {
+            allTasks,
+            tasks: allTasks.filter(t => (t.date ?? today) === s.selectedDate),
+          }
+        }),
+
+      syncWithQAImporter: (activeQAIds) =>
+        set(s => {
+          // Remove tasks whose QA source item no longer exists in the importer
+          const allTasks = s.allTasks.filter(t => !t.qaSourceId || activeQAIds.has(t.qaSourceId))
           return {
             allTasks,
             tasks: allTasks.filter(t => (t.date ?? today) === s.selectedDate),
@@ -261,13 +277,16 @@ export const useDailyStore = create<DailyStore>()(
     },
     {
       name: 'sentinel-core-daily',
-      version: 2,
+      version: 3,
       migrate: (persistedState: unknown) => {
         const state = persistedState as Partial<DailyStore> | undefined
         const today = getTodayISO()
         const sourceTasks = state?.allTasks ?? state?.tasks ?? INITIAL_TASKS
         const sourceMeetings = state?.allMeetings ?? state?.meetings ?? INITIAL_MEETINGS
         const selectedDate = state?.selectedDate ?? today
+
+        // v3: preserve all existing tasks. syncWithQAImporter handles cleanup of
+        // QA-sourced tasks reactively. Manual tasks (no qaSourceId) are never touched.
         const allTasks = withDate(sourceTasks, today)
         const allMeetings = withDate(sourceMeetings, today)
         return {

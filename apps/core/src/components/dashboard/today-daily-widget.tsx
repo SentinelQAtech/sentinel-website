@@ -21,10 +21,12 @@ const STATUS_ICON: Record<DailyStatus, { icon: React.ElementType; cls: string }>
 export function TodayDailyWidget() {
   useI18nStore(s => s.locale)
   const t = useI18nStore(s => s.t)
-  const { getTasksForDate, getMeetingsForDate, toggleTask } = useDailyStore()
+  const storeTasks = useDailyStore(s => s.allTasks)
+  const storeMeetings = useDailyStore(s => s.allMeetings)
+  const toggleTask = useDailyStore(s => s.toggleTask)
   const today = getTodayISO()
-  const tasks = getTasksForDate(today)
-  const meetings = getMeetingsForDate(today)
+  const tasks = storeTasks.filter(t => (t.date ?? today) === today)
+  const meetings = storeMeetings.filter(m => (m.date ?? today) === today)
 
   const total = tasks.length
   const done  = tasks.filter(t => t.status === 'done').length

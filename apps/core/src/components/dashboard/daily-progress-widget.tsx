@@ -6,10 +6,9 @@ import { AlertTriangle, ArrowRight, Ban, CheckCircle2, Clock3, History, Sun } fr
 import { useDailyStore, getTodayISO } from '@/store/daily'
 
 export function DailyProgressWidget() {
-  const { getTasksForDate, getDailyDates } = useDailyStore()
+  const allTasks = useDailyStore(s => s.allTasks)
   const today = getTodayISO()
-  const tasks = getTasksForDate(today)
-  const dates = getDailyDates()
+  const tasks = allTasks.filter(t => (t.date ?? today) === today)
 
   const total = tasks.length
   const done = tasks.filter(t => t.status === 'done').length
@@ -19,10 +18,18 @@ export function DailyProgressWidget() {
   const activeClients = new Set(tasks.map(t => t.client)).size
   const pct = total > 0 ? Math.round((done / total) * 100) : 0
 
-  const previousOpen = dates
-    .filter(date => date !== today)
-    .map(date => ({ date, count: getTasksForDate(date).filter(t => t.status !== 'done').length }))
-    .filter(item => item.count > 0)[0]
+  // Single pass: accumulate open-task counts per historical date
+  const openByDate: Record<string, number> = {}
+  for (const t of allTasks) {
+    const d = t.date ?? today
+    if (d !== today && t.status !== 'done') {
+      openByDate[d] = (openByDate[d] ?? 0) + 1
+    }
+  }
+  const previousOpen = Object.entries(openByDate)
+    .sort((a, b) => b[0].localeCompare(a[0]))
+    .map(([date, count]) => ({ date, count }))
+    .find(item => item.count > 0)
 
   const stats = [
     { label: 'Abertas', value: open, icon: Clock3, color: '#f59e0b' },

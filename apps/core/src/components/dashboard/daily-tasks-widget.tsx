@@ -2,7 +2,7 @@
 
 import Link from 'next/link'
 import { ClipboardList, CheckCircle2, Circle, AlertCircle, Minus, ArrowRight } from 'lucide-react'
-import { cn } from '@/lib/utils'
+import { cn, sanitizeTitle } from '@/lib/utils'
 import { useDailyStore, PRIORITY_CONFIG, CLIENT_CONFIG, getTodayISO } from '@/store/daily'
 import type { DailyStatus } from '@/store/daily'
 
@@ -14,8 +14,9 @@ const STATUS_ICON: Record<DailyStatus, { icon: React.ElementType; cls: string }>
 }
 
 export function DailyTasksWidget() {
-  const { getTasksForDate } = useDailyStore()
-  const tasks = getTasksForDate(getTodayISO())
+  const todayISO = getTodayISO()
+  const allTasks = useDailyStore(s => s.allTasks)
+  const tasks = allTasks.filter(t => (t.date ?? todayISO) === todayISO)
 
   const sorted = [...tasks].sort((a, b) => {
     const order = { Critical: 0, High: 1, Medium: 2, Low: 3 }
@@ -82,7 +83,7 @@ export function DailyTasksWidget() {
                     'flex-1 text-[12px] truncate leading-none transition-colors',
                     isDone ? 'line-through text-white/25' : 'text-white/65 group-hover:text-white/90'
                   )}>
-                    {task.title}
+                    {sanitizeTitle(task.title)}
                   </span>
                   <span
                     className="shrink-0 text-[10px] font-bold px-1.5 py-0.5 rounded"

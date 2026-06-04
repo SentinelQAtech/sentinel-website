@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { motion } from 'framer-motion'
 import { Plus, Search, Bug, X, Maximize2, Minimize2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
@@ -9,35 +9,9 @@ import { BugTable } from './bug-table'
 import { BugStats } from './bug-stats'
 import { cn } from '@/lib/utils'
 import { useI18nStore } from '@/store/i18n'
-import { useBugsStore } from '@/store/bugs'
+import { useBugsStore, defaultReporter, defaultProject } from '@/store/bugs'
 import { useQAImporterStore } from '@/store/qa-importer'
 import type { Bug as BugType, BugSeverity, BugStatus, Priority } from '@/types'
-
-const defaultReporter = {
-  id: '1',
-  email: 'raphael@sentinel.tech',
-  username: 'raphacastilho',
-  name: 'Raphael Castilho',
-  role: 'ADMIN' as const,
-  isActive: true,
-  createdAt: new Date().toISOString(),
-}
-
-const defaultProject = {
-  id: 'manual-project',
-  name: 'Manual Intake',
-  description: '',
-  status: 'ACTIVE' as const,
-  priority: 'MEDIUM' as const,
-  progress: 0,
-  tags: [],
-  coverColor: '#6366f1',
-  ownerId: defaultReporter.id,
-  owner: defaultReporter,
-  members: [],
-  createdAt: new Date().toISOString(),
-  updatedAt: new Date().toISOString(),
-}
 
 type SeverityFilter = 'ALL' | BugSeverity
 type StatusFilter = 'ALL' | BugStatus
@@ -50,15 +24,25 @@ export function BugsClient() {
   const [status, setStatus] = useState<StatusFilter>('ALL')
   const bugs = useBugsStore(s => s.bugs)
   const addBugToStore = useBugsStore(s => s.addBug)
+  const syncFromQA = useBugsStore(s => s.syncFromQAImporter)
+  const qaItems = useQAImporterStore(s => s.items)
   const [reportOpen, setReportOpen] = useState(false)
   const [selectedBug, setSelectedBug] = useState<BugType | null>(null)
   const [fullscreen, setFullscreen] = useState(false)
   const [quickFilter, setQuickFilter] = useState<'total' | 'open' | 'critical' | 'resolved'>('total')
 
+  // Fingerprint only the fields syncFromQAImporter actually reads so that
+  // unrelated QA edits (notes, comments, etc.) do not trigger a full rebuild
+  // and localStorage write.
+  const qaFingerprint = useMemo(
+    () => qaItems.map(i => `${i.id}|${i.title}|${i.priority}|${i.qaCategory}|${i.status}|${i.source}`).join('\n'),
+    [qaItems]
+  )
+
   useEffect(() => {
-    const importedItems = useQAImporterStore.getState().items
-    if (importedItems.length > 0) useBugsStore.getState().importQAItems(importedItems)
-  }, [])
+    syncFromQA(qaItems)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [qaFingerprint, syncFromQA])
 
   const filtered = bugs.filter(b => {
     const matchSearch = b.title.toLowerCase().includes(search.toLowerCase()) ||
@@ -251,8 +235,8 @@ function BugDetailModal({ bug, fullscreen, onToggleFullscreen, onClose }: { bug:
   return (
     <div className="fixed inset-0 z-50 grid place-items-center p-4">
       <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={onClose} />
-      <div className={cn('relative dropdown-panel overflow-hidden', fullscreen ? 'w-[calc(100vw-2rem)] h-[calc(100vh-2rem)]' : 'w-full max-w-3xl max-h-[calc(100vh-2rem)]')}>
-        <div className="flex items-center justify-between px-5 py-4 border-b border-white/[0.08]">
+      <div className={cn('relative dropdown-panel flex flex-col', fullscreen ? 'w-[calc(100vw-2rem)] h-[calc(100vh-2rem)]' : 'w-full max-w-3xl max-h-[calc(100vh-2rem)]')}>
+        <div className="flex items-center justify-between px-5 py-4 border-b border-white/[0.08] shrink-0">
           <div>
             <p className="text-xs font-mono text-primary">{bug.bugId}</p>
             <h2 className="text-base font-semibold text-white">{bug.title}</h2>
@@ -266,7 +250,7 @@ function BugDetailModal({ bug, fullscreen, onToggleFullscreen, onClose }: { bug:
             </button>
           </div>
         </div>
-        <div className="p-5 overflow-y-auto max-h-[calc(100vh-8rem)] space-y-5">
+        <div className="p-5 overflow-y-auto flex-1 space-y-5">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
             <Info label={t('severity')} value={bug.severity} />
             <Info label={t('priority')} value={bug.priority} />

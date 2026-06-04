@@ -3,7 +3,7 @@ import { persist } from 'zustand/middleware'
 import type { Bug, BugSeverity, BugStatus, Priority, Project, User } from '@/types'
 import type { QAItem, QAPriority } from './qa-importer'
 
-const defaultReporter: User = {
+export const defaultReporter: User = {
   id: '1',
   email: 'raphael@sentinel.tech',
   username: 'raphacastilho',
@@ -13,7 +13,7 @@ const defaultReporter: User = {
   createdAt: new Date().toISOString(),
 }
 
-const defaultProject: Project = {
+export const defaultProject: Project = {
   id: 'manual-project',
   name: 'Manual Intake',
   description: '',
@@ -32,7 +32,7 @@ const defaultProject: Project = {
 interface BugsState {
   bugs: Bug[]
   addBug: (bug: Bug) => void
-  importQAItems: (items: QAItem[]) => void
+  syncFromQAImporter: (items: QAItem[]) => void
 }
 
 export const useBugsStore = create<BugsState>()(
@@ -43,15 +43,18 @@ export const useBugsStore = create<BugsState>()(
       addBug: (bug) =>
         set(state => ({ bugs: [bug, ...state.bugs.filter(item => item.id !== bug.id)] })),
 
-      importQAItems: (items) =>
+      syncFromQAImporter: (items) =>
         set(state => {
-          const next = [...state.bugs]
+          // Keep only manually created bugs (not derived from QA Importer)
+          const manualBugs = state.bugs.filter(b => !b.id.startsWith('qa-bug-'))
+          const qaBugs: Bug[] = []
+
           items.filter(isBugItem).forEach(item => {
             const id = `qa-bug-${item.id}`
-            const existingIndex = next.findIndex(bug => bug.id === id)
-            const bug: Bug = {
+            const existing = state.bugs.find(b => b.id === id)
+            qaBugs.push({
               id,
-              bugId: item.issueKey || `BUG-${String(next.length + 1).padStart(3, '0')}`,
+              bugId: item.issueKey || `BUG-${String(qaBugs.length + 1).padStart(3, '0')}`,
               title: item.title,
               description: buildQABugDescription(item) || 'Bug importado via QA Importer.',
               severity: mapQAPriorityToSeverity(item.priority),
@@ -67,17 +70,16 @@ export const useBugsStore = create<BugsState>()(
                 id: item.project || item.client || defaultProject.id,
                 name: item.project || item.client || defaultProject.name,
               },
-              createdAt: existingIndex >= 0 ? next[existingIndex].createdAt : item.importedAt,
+              createdAt: existing?.createdAt ?? item.importedAt,
               updatedAt: new Date().toISOString(),
               resolvedAt: item.qaCategory === 'Done' ? new Date().toISOString() : undefined,
-            }
-            if (existingIndex >= 0) next[existingIndex] = { ...next[existingIndex], ...bug }
-            else next.unshift(bug)
+            })
           })
-          return { bugs: next }
+
+          return { bugs: [...qaBugs, ...manualBugs] }
         }),
     }),
-    { name: 'sentinel-core-bugs', version: 1 }
+    { name: 'sentinel-core-bugs', version: 2 }
   )
 )
 

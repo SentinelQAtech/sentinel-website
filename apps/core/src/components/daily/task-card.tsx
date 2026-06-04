@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Check, ChevronDown, Trash2, Loader2, Ban, ExternalLink } from 'lucide-react'
-import { cn } from '@/lib/utils'
+import { cn, sanitizeTitle } from '@/lib/utils'
 import {
   useDailyStore,
   PRIORITY_CONFIG, TYPE_CONFIG, STATUS_CONFIG,
@@ -25,10 +25,12 @@ function parseNotes(notes?: string): { link: string | null; text: string } {
   }
 }
 
+
 export function TaskCard({ task }: TaskCardProps) {
   const { toggleTask, removeTask, updateTask } = useDailyStore()
   const [expanded, setExpanded] = useState(false)
 
+  const title    = sanitizeTitle(task.title)
   const done     = task.status === 'done'
   const blocked  = task.status === 'blocked'
   const priority = PRIORITY_CONFIG[task.priority]
@@ -83,7 +85,7 @@ export function TaskCard({ task }: TaskCardProps) {
             blocked && 'text-red-400/70'
           )}
         >
-          {task.title}
+          {title}
         </button>
 
         {/* Badges row */}
