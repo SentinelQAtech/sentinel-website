@@ -123,7 +123,8 @@ export function ImportPanel({ qaFilterEnabled, onQaFilterChange, onImport, onSuc
     setExtItems([])
     setExtListOpen(false)
     try {
-      const res = await fetch('/api/qa-import')
+      const base = process.env.NEXT_PUBLIC_BASE_PATH ?? ''
+      const res = await fetch(`${base}/api/qa-import`)
       if (!res.ok) throw new Error(`HTTP ${res.status}`)
       const data = await res.json() as { items: ParsedQAItem[]; count: number }
       if (data.items.length === 0) { setExtResult({ count: 0 }); return }
