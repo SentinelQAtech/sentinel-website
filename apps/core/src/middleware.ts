@@ -87,8 +87,16 @@ export async function middleware(req: NextRequest) {
   }
 
   // ── Supabase session check ────────────────────────────────────────────────
-  // In local/mock mode, skip Supabase entirely and allow all routes.
-  if (process.env.NEXT_PUBLIC_AUTH_MODE === 'local') {
+  // Skip auth when in local mode OR when Supabase env vars are not configured.
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
+  const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+  if (
+    process.env.NEXT_PUBLIC_AUTH_MODE === 'local' ||
+    !supabaseUrl ||
+    !supabaseKey ||
+    supabaseUrl.includes('REPLACE_WITH') ||
+    supabaseKey.includes('REPLACE_WITH')
+  ) {
     return NextResponse.next({ request: req })
   }
 
