@@ -58,10 +58,11 @@ export const useProjectsStore = create<ProjectsState>()(
         set(s => {
           const now = new Date().toISOString()
 
-          // Build unique map: project name → { client, color }
+          // Only create projects for items with an explicit project name.
+          // Never fall back to client name — the client is the company, not the project.
           const seen = new Map<string, { id: string; name: string; client: string; color: string }>()
           items.forEach(item => {
-            const name = (item.project?.trim() || item.client?.trim())
+            const name = item.project?.trim()
             if (!name) return
             const id = `qa-proj-${name.toLowerCase().replace(/[^a-z0-9]+/g, '-')}`
             if (!seen.has(id)) {
