@@ -128,7 +128,7 @@ export const PRIORITY_CONFIG: Record<QAPriority, { color: string; label: string 
 
 const INITIAL_ITEMS: QAItem[] = []
 
-function getLocalISODate() {
+export function getLocalISODate() {
   const now = new Date()
   const tzOffset = now.getTimezoneOffset() * 60000
   return new Date(now.getTime() - tzOffset).toISOString().slice(0, 10)
@@ -272,7 +272,8 @@ export const useQAImporterStore = create<QAImporterStore>()(
           return {
             items: s.items.map(i => {
               if (!ids.includes(i.id)) return i
-              if (i.sentToDaily) return i
+              // Skip only if already sent TODAY — allow re-sending on a new day
+              if (i.sentToDaily && i.dailyDate === today) return i
               return {
                 ...i,
                 sentToDaily: true,

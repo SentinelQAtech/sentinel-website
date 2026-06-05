@@ -7,7 +7,7 @@ import { Send, Layers, Upload, X, ClipboardList, CheckCircle2, Clock, ShieldAler
 import { cn } from '@/lib/utils'
 import {
   useQAImporterStore,
-  type QAItem, type QAItemSource, type ArchivedSession, PRIORITY_ORDER, QA_CATEGORY_CONFIG,
+  type QAItem, type QAItemSource, type ArchivedSession, PRIORITY_ORDER, QA_CATEGORY_CONFIG, getLocalISODate,
 } from '@/store/qa-importer'
 import { useDailyStore, getTodayISO, type DailyPriority, type DailyType } from '@/store/daily'
 import type { ParsedQAItem } from '@/lib/qa-parser'
@@ -79,16 +79,18 @@ export function TasksClient() {
 
   // ── Stats ─────────────────────────────────────────────────
 
+  const todayISO = getLocalISODate()
+
   const stats = useMemo(() => {
     const items = store.items
     return {
       total:     items.length,
-      pending:   items.filter(i => !i.sentToDaily && i.qaCategory !== 'Done' && i.qaCategory !== 'Blocked').length,
-      daily:     items.filter(i => i.sentToDaily).length,
+      pending:   items.filter(i => (!i.sentToDaily || i.dailyDate !== todayISO) && i.qaCategory !== 'Done' && i.qaCategory !== 'Blocked').length,
+      daily:     items.filter(i => i.sentToDaily && i.dailyDate === todayISO).length,
       done:      items.filter(i => i.qaCategory === 'Done').length,
       blocked:   items.filter(i => i.qaCategory === 'Blocked').length,
     }
-  }, [store.items])
+  }, [store.items, todayISO])
 
   // ── Derived data ──────────────────────────────────────────
 
@@ -155,14 +157,16 @@ export function TasksClient() {
     setTimeout(() => setSentFeedback(null), 3000)
   }, [addTask, store])
 
+  const isNotSentToday = (i: QAItem) => !i.sentToDaily || i.dailyDate !== todayISO
+
   const sendSelectedToDaily = useCallback(() => {
-    store.items.filter(i => selected.has(i.id) && !i.sentToDaily).forEach(sendItemToDaily)
+    store.items.filter(i => selected.has(i.id) && isNotSentToday(i)).forEach(sendItemToDaily)
     setSelected(new Set())
-  }, [selected, store.items, sendItemToDaily])
+  }, [selected, store.items, sendItemToDaily, todayISO])
 
   const sendAllToDaily = useCallback(() => {
-    store.items.filter(i => !i.sentToDaily).forEach(sendItemToDaily)
-  }, [store.items, sendItemToDaily])
+    store.items.filter(isNotSentToday).forEach(sendItemToDaily)
+  }, [store.items, sendItemToDaily, todayISO])
 
   const handleImport = useCallback((items: ParsedQAItem[], tabSource: 'text' | 'csv' | 'extension') => {
     const source: QAItemSource = tabSource === 'csv' ? 'csv' : tabSource === 'extension' ? 'extension' : 'manual'
@@ -172,7 +176,7 @@ export function TasksClient() {
   const markDone    = (id: string) => store.updateItem(id, { qaCategory: 'Done',    status: 'Done'    })
   const markBlocked = (id: string) => store.updateItem(id, { qaCategory: 'Blocked', status: 'Blocked' })
 
-  const selectedPending = [...selected].filter(id => !store.items.find(i => i.id === id)?.sentToDaily)
+  const selectedPending = [...selected].filter(id => isNotSentToday(store.items.find(i => i.id === id)!))
 
   // ── Render ────────────────────────────────────────────────
 
@@ -327,7 +331,7 @@ export function TasksClient() {
             <button
               type="button"
               onClick={sendAllToDaily}
-              disabled={store.items.every(i => i.sentToDaily)}
+              disabled={store.items.every(i => !isNotSentToday(i))}
               className="flex items-center gap-1.5 text-xs text-white/35 hover:text-white/60 transition-colors disabled:opacity-30"
             >
               <Send className="w-3 h-3" />

@@ -2,7 +2,7 @@
 
 import { ExternalLink, Send, CheckCircle, AlertCircle, Trash2, Clock, Puzzle, Table2, PenLine, Maximize2, FileText, MessageSquare, GitPullRequest, Link2 } from 'lucide-react'
 import { cn } from '@/lib/utils'
-import { type QAItem, QA_CATEGORY_CONFIG, PRIORITY_CONFIG } from '@/store/qa-importer'
+import { type QAItem, QA_CATEGORY_CONFIG, PRIORITY_CONFIG, getLocalISODate } from '@/store/qa-importer'
 
 interface Props {
   item: QAItem
@@ -205,10 +205,10 @@ export function QACard({ item, selected, onToggleSelect, onSendToDaily, onMarkDo
         </div>
 
         <div className="flex shrink-0 items-center gap-1 opacity-55 transition-opacity duration-150 group-hover:opacity-100">
-          {!item.sentToDaily && (
+          {(!item.sentToDaily || item.dailyDate !== getLocalISODate()) && (
             <button
               onClick={() => onSendToDaily(item)}
-              title="Send to Daily"
+              title={item.sentToDaily ? 'Reenviar para o Daily de hoje' : 'Send to Daily'}
               className="inline-flex h-7 items-center gap-1 rounded-lg px-2 text-[10px] font-semibold text-primary/80 transition-all duration-150 hover:bg-primary/10 hover:text-primary"
             >
               <Send className="h-3 w-3" />
