@@ -9,6 +9,7 @@ import {
   type QAItem,
   type QADailyStatus,
 } from '@/store/qa-importer'
+import { useDailyStore, type DailyStatus } from '@/store/daily'
 import { QAResolutionDialog } from '@/components/qa-importer/qa-resolution-dialog'
 import { QACopilotPanel } from '@/components/daily/qa-copilot-panel'
 import { QACardPreviewDialog } from '@/components/daily/qa-card-preview-dialog'
@@ -26,7 +27,21 @@ export function QADailyCockpit({ selectedDate }: { selectedDate: string }) {
   const updateDailyState = useQAImporterStore(s => s.updateDailyState)
   const moveDailyItem = useQAImporterStore(s => s.moveDailyItem)
   const saveResolution = useQAImporterStore(s => s.saveResolution)
+  const updateTask = useDailyStore(s => s.updateTask)
   const [resolutionItem, setResolutionItem] = useState<QAItem | null>(null)
+
+  const QA_TO_DAILY_STATUS: Record<QADailyStatus, DailyStatus> = {
+    todo:    'todo',
+    doing:   'in_progress',
+    done:    'done',
+    blocked: 'blocked',
+  }
+
+  // Keep useDailyStore task in sync when QA cockpit status changes
+  const setQAStatus = (itemId: string, status: QADailyStatus) => {
+    updateDailyState(itemId, { dailyStatus: status })
+    updateTask(`qai-${itemId}`, { status: QA_TO_DAILY_STATUS[status] })
+  }
   const [resolutionOpen, setResolutionOpen] = useState(false)
   const [copiedId, setCopiedId] = useState<string | null>(null)
   const [focusItemId, setFocusItemId] = useState<string | null>(null)
@@ -80,7 +95,7 @@ export function QADailyCockpit({ selectedDate }: { selectedDate: string }) {
 
   const startItem = (item: QAItem | null) => {
     if (!item) return
-    updateDailyState(item.id, { dailyStatus: 'doing' })
+    setQAStatus(item.id, 'doing')
     setFocusItemId(item.id)
   }
 
@@ -345,13 +360,13 @@ export function QADailyCockpit({ selectedDate }: { selectedDate: string }) {
                 {/* Actions */}
                 <div className="flex flex-col items-end gap-1.5 shrink-0">
                   <div className="flex items-center gap-1">
-                    <ActionButton label="Doing" onClick={() => updateDailyState(item.id, { dailyStatus: 'doing' })} active={status === 'doing'}>
+                    <ActionButton label="Doing" onClick={() => setQAStatus(item.id, 'doing')} active={status === 'doing'}>
                       <PlayCircle className="h-3.5 w-3.5" />
                     </ActionButton>
-                    <ActionButton label="Done" onClick={() => updateDailyState(item.id, { dailyStatus: 'done' })} active={status === 'done'}>
+                    <ActionButton label="Done" onClick={() => setQAStatus(item.id, 'done')} active={status === 'done'}>
                       <CheckCircle2 className="h-3.5 w-3.5" />
                     </ActionButton>
-                    <ActionButton label="Blocked" onClick={() => updateDailyState(item.id, { dailyStatus: 'blocked' })} active={status === 'blocked'}>
+                    <ActionButton label="Blocked" onClick={() => setQAStatus(item.id, 'blocked')} active={status === 'blocked'}>
                       <ShieldAlert className="h-3.5 w-3.5" />
                     </ActionButton>
                   </div>
@@ -393,6 +408,9 @@ export function QADailyCockpit({ selectedDate }: { selectedDate: string }) {
         onOpenChange={setResolutionOpen}
         onSave={(id, resolution) => {
           saveResolution(id, resolution)
+          // saveResolution updates QA dailyStatus — mirror to useDailyStore
+          const resolvedStatus: QADailyStatus = resolution.result === 'PASS' ? 'done' : 'blocked'
+          updateTask(`qai-${id}`, { status: QA_TO_DAILY_STATUS[resolvedStatus] })
           setResolutionOpen(false)
           const nextItem = useQAImporterStore.getState().items.find(item => item.id === id) ?? null
           setResolutionItem(nextItem)
@@ -402,7 +420,7 @@ export function QADailyCockpit({ selectedDate }: { selectedDate: string }) {
               .sort((a, b) => (a.dailyOrder ?? 0) - (b.dailyOrder ?? 0))
             const upcomingItem = getNextOpenItem(updatedDailyItems, id)
             if (upcomingItem) {
-              updateDailyState(upcomingItem.id, { dailyStatus: 'doing' })
+              setQAStatus(upcomingItem.id, 'doing')
               setFocusItemId(upcomingItem.id)
             } else {
               setFocusItemId(null)
