@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useMemo, type KeyboardEvent } from 'react'
+import { useState, useMemo, useEffect, useRef, type KeyboardEvent } from 'react'
 import { motion } from 'framer-motion'
 import {
   User, Mail, AtSign, Shield, Camera, Check, ArrowLeft,
@@ -63,6 +63,20 @@ export default function ProfilePage() {
   const [skills,      setSkills]      = useState<string[]>(teamMember?.skills ?? [])
   const [skillInput,  setSkillInput]  = useState('')
   const [saved,       setSaved]       = useState(false)
+  const fileInputRef  = useRef<HTMLInputElement>(null)
+  const [avatarPreview, setAvatarPreview] = useState<string | undefined>(user?.avatar)
+
+  // Sync form fields when stores hydrate after first render
+  const didSyncRef = useRef(false)
+  useEffect(() => {
+    if (didSyncRef.current || !teamMember) return
+    didSyncRef.current = true
+    setBio(teamMember.bio ?? '')
+    setTitle(teamMember.title ?? '')
+    setGithub(teamMember.github ?? '')
+    setLinkedin(teamMember.linkedin ?? '')
+    setSkills(teamMember.skills ?? [])
+  }, [teamMember])
 
   if (!user) return null
 
@@ -80,6 +94,18 @@ export default function ProfilePage() {
 
   function handleSkillKeyDown(e: KeyboardEvent<HTMLInputElement>) {
     if (e.key === 'Enter' || e.key === ',') { e.preventDefault(); addSkill() }
+  }
+
+  function handleAvatarChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0]
+    if (!file) return
+    const reader = new FileReader()
+    reader.onload = (ev) => {
+      const dataUrl = ev.target?.result as string
+      setAvatarPreview(dataUrl)
+      updateUser({ avatar: dataUrl })
+    }
+    reader.readAsDataURL(file)
   }
 
   function handleSave() {
@@ -143,18 +169,29 @@ export default function ProfilePage() {
             <div className="p-6">
               <div className="relative inline-block">
                 <div
-                  className="w-20 h-20 rounded-2xl flex items-center justify-center mx-auto"
+                  className="w-20 h-20 rounded-2xl flex items-center justify-center mx-auto overflow-hidden"
                   style={{
-                    background: `linear-gradient(135deg, ${accent}50, ${accent}20)`,
+                    background: avatarPreview ? 'transparent' : `linear-gradient(135deg, ${accent}50, ${accent}20)`,
                     border: `1px solid ${accent}40`,
                   }}
                 >
-                  <span className="text-2xl font-bold text-white">{initials}</span>
+                  {avatarPreview
+                    ? <img src={avatarPreview} alt="Avatar" className="w-full h-full object-cover" />
+                    : <span className="text-2xl font-bold text-white">{initials}</span>
+                  }
                 </div>
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept="image/*"
+                  className="hidden"
+                  onChange={handleAvatarChange}
+                />
                 <button
                   type="button"
                   aria-label="Alterar foto de perfil"
                   title="Alterar foto"
+                  onClick={() => fileInputRef.current?.click()}
                   className="absolute -bottom-1.5 -right-1.5 w-7 h-7 rounded-lg bg-surface-800 border border-white/[0.12] flex items-center justify-center text-white/50 hover:text-white hover:bg-surface-700 transition-colors"
                 >
                   <Camera className="w-3.5 h-3.5" />

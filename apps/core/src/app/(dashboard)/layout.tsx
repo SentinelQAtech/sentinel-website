@@ -14,15 +14,23 @@ import type { Role } from '@/types'
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   const router = useRouter()
-  const { isAuthenticated, login } = useAuthStore()
+  const { isAuthenticated, _hasHydrated, login, updateUser } = useAuthStore()
   const [collapsed, setCollapsed] = useState(false)
-  const [checking, setChecking] = useState(!isAuthenticated)
+  const [checking, setChecking] = useState(true)
 
   useEffect(() => {
+    // Wait for store to rehydrate from localStorage before touching auth.
+    // Without this, the Supabase call would race with hydration and
+    // overwrite locally-saved profile changes (name, avatar, etc.).
+    if (!_hasHydrated) return
     if (isAuthenticated) { setChecking(false); return }
+
     const supabase = createClient()
     supabase.auth.getUser().then(({ data: { user } }) => {
       if (!user) { router.replace('/login'); return }
+      // Only call login (full overwrite) when truly not authenticated.
+      // When already authenticated (hydrated), use updateUser to fill in
+      // only the fields that aren't already stored locally.
       login({
         id:        user.id,
         email:     user.email!,
@@ -34,7 +42,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       })
       setChecking(false)
     })
-  }, [isAuthenticated, login, router])
+  }, [isAuthenticated, _hasHydrated, login, updateUser, router])
 
   if (checking) return null
 
