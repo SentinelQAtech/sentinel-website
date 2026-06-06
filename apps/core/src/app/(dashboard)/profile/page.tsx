@@ -8,9 +8,9 @@ import {
 } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
-import { useAuthStore } from '@/store/auth'
+import { useUser, useUpdateUser } from '@/hooks/useAuth'
 import { useTeamStore } from '@/store/team'
-import { useBugsStore } from '@/store/bugs'
+import { useBugs } from '@/hooks/useBugs'
 import { useSprintsStore } from '@/store/sprints'
 import { cn } from '@/lib/utils'
 
@@ -34,9 +34,11 @@ const ROLE_COLOR: Record<string, string> = {
 
 export default function ProfilePage() {
   const router   = useRouter()
-  const { user, updateUser } = useAuthStore()
+  const user = useUser()
+  const updateUserMutation = useUpdateUser()
   const { members, updateMember } = useTeamStore()
-  const bugs     = useBugsStore(s => s.bugs)
+  const { data: bugsResult } = useBugs()
+  const bugs = bugsResult?.data ?? []
   const sprints  = useSprintsStore(s => s.sprints)
 
   // Match logged-in user to their team card by email or username
@@ -103,13 +105,13 @@ export default function ProfilePage() {
     reader.onload = (ev) => {
       const dataUrl = ev.target?.result as string
       setAvatarPreview(dataUrl)
-      updateUser({ avatar: dataUrl })
+      updateUserMutation.mutate({ avatar: dataUrl })
     }
     reader.readAsDataURL(file)
   }
 
   function handleSave() {
-    updateUser({ name: name.trim() || user!.name, username: username.trim() || user!.username })
+    updateUserMutation.mutate({ name: name.trim() || user!.name, username: username.trim() || user!.username })
     if (teamMember) {
       updateMember(teamMember.user.id, {
         bio:      bio.trim(),
