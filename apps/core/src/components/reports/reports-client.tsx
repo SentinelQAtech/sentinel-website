@@ -9,7 +9,7 @@ import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card'
 import { useCompaniesStore } from '@/store/companies'
 import { useNotificationsStore } from '@/store/notifications'
 import { useQAImporterStore } from '@/store/qa-importer'
-import { useProjectsStore } from '@/store/projects'
+import { useProjects } from '@/hooks/useProjects'
 import { useBugsStore } from '@/store/bugs'
 
 import { TEAM, TEAM_STORAGE_KEY, type TeamMember } from '@/lib/team-data'
@@ -35,7 +35,7 @@ export function ReportsClient() {
   const qaItems = useQAImporterStore(s => s.items)
   const imports = useQAImporterStore(s => s.history)
   const notifications = useNotificationsStore(s => s.notifications)
-  const projects = useProjectsStore(s => s.projects)
+  const { data: projects = [] } = useProjects()
   const bugs = useBugsStore(s => s.bugs)
   const tasks = useQAImporterStore(s => s.items)
   const members = useRealTeam()

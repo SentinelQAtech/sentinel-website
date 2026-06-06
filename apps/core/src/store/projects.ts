@@ -1,3 +1,15 @@
+/**
+ * @deprecated Use React Query hooks from `@/hooks/useProjects` instead.
+ *   - useProjects()         → GET /api/v1/projects
+ *   - useProject(id)        → GET /api/v1/projects/:id
+ *   - useCreateProject()    → POST /api/v1/projects
+ *   - useUpdateProject()    → PATCH /api/v1/projects/:id
+ *   - useDeleteProject()    → DELETE /api/v1/projects/:id
+ *
+ * This store is kept only for legacy consumers (syncFromQAImporter)
+ * that need bulk local creation. Will be removed after API batch endpoint.
+ */
+
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
 import type { Project } from '@/types'

@@ -9,10 +9,8 @@ import { ProjectCard } from './project-card'
 import { cn } from '@/lib/utils'
 import { COMPANIES, type CompanyKey } from '@/lib/companies'
 import { useI18nStore } from '@/store/i18n'
-import { useProjectsStore } from '@/store/projects'
+import { useProjects, useCreateProject, useDeleteProject } from '@/hooks/useProjects'
 import type { Priority, Project } from '@/types'
-
-const owner1 = { id: '1', email: 'rapha@sentinel.tech', username: 'raphacastilho', name: 'Raphael Castilho', role: 'ADMIN' as const, isActive: true, createdAt: '' }
 
 type ViewMode = 'grid' | 'list'
 type FilterStatus = 'ALL' | 'ACTIVE' | 'PAUSED' | 'COMPLETED' | 'ARCHIVED'
@@ -27,9 +25,9 @@ export function ProjectsClient() {
   const [status, setStatus]       = useState<FilterStatus>('ALL')
   const [company, setCompany]     = useState<FilterCompany>('ALL')
   const [priority, setPriority]   = useState<FilterPriority>('ALL')
-  const projects = useProjectsStore(s => s.projects)
-  const addProjectToStore = useProjectsStore(s => s.addProject)
-  const deleteProjectFromStore = useProjectsStore(s => s.deleteProject)
+  const { data: projects = [] } = useProjects()
+  const createProject = useCreateProject()
+  const deleteProjectMutation = useDeleteProject()
   const [filtersOpen, setFiltersOpen] = useState(false)
   const [newOpen, setNewOpen]     = useState(false)
   const [deleteTarget, setDeleteTarget] = useState<Project | null>(null)
@@ -44,14 +42,9 @@ export function ProjectsClient() {
     return matchSearch && matchStatus && matchCompany && matchPriority
   })
 
-  const addProject = (project: Project) => {
-    addProjectToStore(project)
-    setNewOpen(false)
-  }
-
   const deleteProject = () => {
     if (!deleteTarget || confirmText !== deleteTarget.name) return
-    deleteProjectFromStore(deleteTarget.id)
+    deleteProjectMutation.mutate(deleteTarget.id)
     setDeleteTarget(null)
     setConfirmText('')
   }
@@ -224,7 +217,7 @@ export function ProjectsClient() {
         )}
       </motion.div>
 
-      {newOpen && <NewProjectModal onClose={() => setNewOpen(false)} onCreate={addProject} />}
+      {newOpen && <NewProjectModal onClose={() => setNewOpen(false)} />}
 
       {deleteTarget && (
         <div className="fixed inset-0 z-50 grid place-items-center p-4">
@@ -266,7 +259,7 @@ export function ProjectsClient() {
   )
 }
 
-function NewProjectModal({ onClose, onCreate }: { onClose: () => void; onCreate: (project: Project) => void }) {
+function NewProjectModal({ onClose }: { onClose: () => void }) {
   useI18nStore(s => s.locale)
   const t = useI18nStore(s => s.t)
   const [name, setName] = useState('')
@@ -274,29 +267,23 @@ function NewProjectModal({ onClose, onCreate }: { onClose: () => void; onCreate:
   const [clientName, setClientName] = useState<CompanyKey>('Concept-USA')
   const [projectPriority, setProjectPriority] = useState<Priority>('MEDIUM')
   const [endDate, setEndDate] = useState('')
+  const createProject = useCreateProject()
 
   const create = () => {
     if (!name.trim()) return
     const company = COMPANIES[clientName]
-    onCreate({
-      id: String(Date.now()),
-      name: name.trim(),
-      description: description.trim() || 'Novo projeto criado pela tela Projects.',
-      status: 'ACTIVE',
-      priority: projectPriority,
-      progress: 0,
-      tags: ['novo'],
-      clientName,
-      coverColor: company.color,
-      ownerId: owner1.id,
-      owner: owner1,
-      members: [],
-      startDate: new Date().toISOString().slice(0, 10),
-      endDate: endDate || undefined,
-      _count: { tasks: 0, bugs: 0, sprints: 0 },
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-    })
+    createProject.mutate(
+      {
+        name: name.trim(),
+        description: description.trim() || 'Novo projeto criado pela tela Projects.',
+        priority: projectPriority,
+        clientName,
+        coverColor: company.color,
+        tags: ['novo'],
+        endDate: endDate || undefined,
+      },
+      { onSuccess: () => onClose() }
+    )
   }
 
   const inputCls = 'w-full px-3 py-2.5 rounded-lg text-sm bg-white/[0.04] border border-white/[0.08] text-white placeholder-white/25 outline-none focus:border-primary/50'

@@ -8,7 +8,7 @@ import { FolderKanban, Bug, CheckSquare, Zap, Users, TrendingUp, TrendingDown, M
 import { cn } from '@/lib/utils'
 import { useI18nStore } from '@/store/i18n'
 import { TEAM, TEAM_STORAGE_KEY, type TeamMember } from '@/lib/team-data'
-import { useProjectsStore } from '@/store/projects'
+import { useProjects } from '@/hooks/useProjects'
 import { useBugsStore } from '@/store/bugs'
 import { useQAImporterStore } from '@/store/qa-importer'
 
@@ -131,7 +131,8 @@ function AnimatedMetricCard({ item, index }: { item: MetricItem; index: number }
 
 export function DashboardMetrics() {
   const teamCount = useTeamCount()
-  const projectCount = useProjectsStore(s => s.projects.filter(project => project.status === 'ACTIVE').length)
+  const { data: allProjects = [] } = useProjects()
+  const projectCount = allProjects.filter(project => project.status === 'ACTIVE').length
   const openBugs = useBugsStore(s => s.bugs.filter(bug => bug.status !== 'RESOLVED' && bug.status !== 'CLOSED').length)
   const criticalBugs = useBugsStore(s => s.bugs.filter(bug => bug.severity === 'CRITICAL').length)
   const tasksDone = useQAImporterStore(s => s.items.filter(i => i.qaCategory === 'Done').length)

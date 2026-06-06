@@ -4,13 +4,13 @@ import { useMemo } from 'react'
 import Link from 'next/link'
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card'
 import { useI18nStore } from '@/store/i18n'
-import { useProjectsStore } from '@/store/projects'
+import { useProjects } from '@/hooks/useProjects'
 import { ArrowUpRight, FolderKanban } from 'lucide-react'
 
 export function ActiveProjects() {
   useI18nStore(s => s.locale)
   const t = useI18nStore(s => s.t)
-  const allProjects = useProjectsStore(s => s.projects)
+  const { data: allProjects = [] } = useProjects()
   const projects = useMemo(
     () => allProjects.filter(project => project.status === 'ACTIVE'),
     [allProjects]

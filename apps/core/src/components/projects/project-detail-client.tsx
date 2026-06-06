@@ -7,14 +7,25 @@ import { Progress } from '@/components/ui/progress'
 import { PriorityBadge } from '@/components/ui/badge'
 import { cn, formatDate, projectStatusConfig } from '@/lib/utils'
 import { getCompany } from '@/lib/companies'
-import { useProjectsStore } from '@/store/projects'
+import { useProject } from '@/hooks/useProjects'
 
 interface ProjectDetailClientProps {
   projectId: string
 }
 
 export function ProjectDetailClient({ projectId }: ProjectDetailClientProps) {
-  const project = useProjectsStore(s => s.projects.find(item => item.id === projectId))
+  const { data: project, isLoading } = useProject(projectId)
+
+  if (isLoading) {
+    return (
+      <div className="flex min-h-[60vh] flex-col items-center justify-center text-center">
+        <div className="mb-4 flex h-14 w-14 items-center justify-center rounded-2xl border border-white/[0.08] bg-white/[0.04]">
+          <div className="h-6 w-6 animate-spin rounded-full border-2 border-white/20 border-t-white/60" />
+        </div>
+        <p className="text-sm text-white/40">Carregando projeto...</p>
+      </div>
+    )
+  }
 
   if (!project) {
     return (
