@@ -7,10 +7,7 @@ import { motion } from 'framer-motion'
 import { FolderKanban, Bug, CheckSquare, Zap, Users, TrendingUp, TrendingDown, Minus } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { useI18nStore } from '@/store/i18n'
-import { TEAM, TEAM_STORAGE_KEY, type TeamMember } from '@/lib/team-data'
-import { useProjects } from '@/hooks/useProjects'
-import { useBugsStore } from '@/store/bugs'
-import { useQAImporterStore } from '@/store/qa-importer'
+import { useDashboardStats } from '@/hooks/useReports'
 
 function useCounter(target: number, duration = 900, delay = 0) {
   const [value, setValue] = useState(0)
@@ -57,24 +54,6 @@ const METRICS: MetricItem[] = [
   { titleKey: 'dashboardMetricActiveSprints',  value: 0, delta: { value: 0, labelKey: 'noChange' }, icon: <Zap className="w-4 h-4" />,          color: 'purple',  href: '/sprints'  },
   { titleKey: 'dashboardMetricTeamMembers',    value: 0, delta: { value: 0, labelKey: 'noChange' }, icon: <Users className="w-4 h-4" />,        color: 'cyan',    href: '/team'     },
 ]
-
-function useTeamCount() {
-  const [count, setCount] = useState(TEAM.filter(member => member.user.isActive).length)
-
-  useEffect(() => {
-    try {
-      const saved = window.localStorage.getItem(TEAM_STORAGE_KEY)
-      if (saved) {
-        const members = JSON.parse(saved) as TeamMember[]
-        setCount(members.filter(member => member.user.isActive).length)
-      }
-    } catch {
-      setCount(TEAM.filter(member => member.user.isActive).length)
-    }
-  }, [])
-
-  return count
-}
 
 function AnimatedMetricCard({ item, index }: { item: MetricItem; index: number }) {
   useI18nStore(s => s.locale)
@@ -130,18 +109,13 @@ function AnimatedMetricCard({ item, index }: { item: MetricItem; index: number }
 }
 
 export function DashboardMetrics() {
-  const teamCount = useTeamCount()
-  const { data: allProjects = [] } = useProjects()
-  const projectCount = allProjects.filter(project => project.status === 'ACTIVE').length
-  const openBugs = useBugsStore(s => s.bugs.filter(bug => bug.status !== 'RESOLVED' && bug.status !== 'CLOSED').length)
-  const criticalBugs = useBugsStore(s => s.bugs.filter(bug => bug.severity === 'CRITICAL').length)
-  const tasksDone = useQAImporterStore(s => s.items.filter(i => i.qaCategory === 'Done').length)
+  const { data: stats } = useDashboardStats()
   const metrics = METRICS.map(item =>
-    item.titleKey === 'dashboardMetricTeamMembers' ? { ...item, value: teamCount } :
-    item.titleKey === 'dashboardMetricActiveProjects' ? { ...item, value: projectCount } :
-    item.titleKey === 'dashboardMetricOpenBugs' ? { ...item, value: openBugs } :
-    item.titleKey === 'dashboardMetricCriticalBugs' ? { ...item, value: criticalBugs } :
-    item.titleKey === 'dashboardMetricTasksDone' ? { ...item, value: tasksDone } :
+    item.titleKey === 'dashboardMetricTeamMembers' ? { ...item, value: stats?.teamMembers ?? 0 } :
+    item.titleKey === 'dashboardMetricActiveProjects' ? { ...item, value: stats?.activeProjects ?? 0 } :
+    item.titleKey === 'dashboardMetricOpenBugs' ? { ...item, value: stats?.openBugs ?? 0 } :
+    item.titleKey === 'dashboardMetricCriticalBugs' ? { ...item, value: stats?.criticalBugs ?? 0 } :
+    item.titleKey === 'dashboardMetricTasksDone' ? { ...item, value: stats?.tasksCompleted ?? 0 } :
     item
   )
 

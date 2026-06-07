@@ -3,14 +3,15 @@
 import { useMemo } from 'react'
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card'
 import { useI18nStore } from '@/store/i18n'
-import { useBugsStore } from '@/store/bugs'
+import { useBugs } from '@/hooks/useBugs'
 import Link from 'next/link'
 import { ArrowUpRight, AlertTriangle } from 'lucide-react'
 
 export function CriticalBugs() {
   useI18nStore(s => s.locale)
   const t = useI18nStore(s => s.t)
-  const allBugs = useBugsStore(s => s.bugs)
+  const { data: bugsResult } = useBugs()
+  const allBugs = bugsResult?.data ?? []
   const bugs = useMemo(
     () => allBugs.filter(bug => bug.severity === 'CRITICAL' || bug.severity === 'HIGH'),
     [allBugs]
