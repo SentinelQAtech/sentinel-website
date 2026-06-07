@@ -1,52 +1,21 @@
 'use client'
 
-import { useEffect, useState } from 'react'
-import { useRouter } from 'next/navigation'
+import { useState } from 'react'
 import { Sidebar } from '@/components/layout/sidebar'
 import { Header } from '@/components/layout/header'
 import { AIFloatingButton } from '@/components/ai/ai-floating-button'
 import { AIPanel } from '@/components/ai/ai-panel'
 import { CommandPalette } from '@/components/ai/command-palette'
-import { useAuthStore } from '@/store/auth'
-import { createClient } from '@/lib/supabase/client'
+import { AuthGuard } from '@/components/auth-guard'
 import { cn } from '@/lib/utils'
-import type { Role } from '@/types'
+import { useSocketNotifications } from '@/hooks/useSocketNotifications'
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
-  const router = useRouter()
-  const { isAuthenticated, _hasHydrated, login, updateUser } = useAuthStore()
   const [collapsed, setCollapsed] = useState(false)
-  const [checking, setChecking] = useState(true)
-
-  useEffect(() => {
-    // Wait for store to rehydrate from localStorage before touching auth.
-    // Without this, the Supabase call would race with hydration and
-    // overwrite locally-saved profile changes (name, avatar, etc.).
-    if (!_hasHydrated) return
-    if (isAuthenticated) { setChecking(false); return }
-
-    const supabase = createClient()
-    supabase.auth.getUser().then(({ data: { user } }) => {
-      if (!user) { router.replace('/login'); return }
-      // Only call login (full overwrite) when truly not authenticated.
-      // When already authenticated (hydrated), use updateUser to fill in
-      // only the fields that aren't already stored locally.
-      login({
-        id:        user.id,
-        email:     user.email!,
-        username:  user.user_metadata?.username ?? user.email!.split('@')[0],
-        name:      user.user_metadata?.full_name ?? user.user_metadata?.name ?? user.email!.split('@')[0],
-        role:      (user.user_metadata?.role as Role) ?? 'ADMIN',
-        isActive:  true,
-        createdAt: user.created_at,
-      })
-      setChecking(false)
-    })
-  }, [isAuthenticated, _hasHydrated, login, updateUser, router])
-
-  if (checking) return null
+  useSocketNotifications()
 
   return (
+    <AuthGuard>
     <div className="flex h-screen overflow-hidden bg-surface-950">
       <div className="fixed inset-0 dot-grid opacity-30 pointer-events-none" />
       <div className="fixed inset-0 pointer-events-none">
@@ -67,5 +36,6 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       <AIPanel />
       <CommandPalette />
     </div>
+    </AuthGuard>
   )
 }
