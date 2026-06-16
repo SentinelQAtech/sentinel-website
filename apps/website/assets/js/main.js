@@ -52,7 +52,7 @@
       languageExpanded: "Close language menu",
       nav: ["Services", "Engagement", "Platform", "Process", "Contact", "Core"],
       hero: {
-        eyebrow: "Quality engineering for reliable releases",
+        eyebrow: "QA & Test Engineering",
         title: "Quality engineering that makes releases safer.",
         subtitle: "Quality You Can Trust.",
         text: "Sentinel Tech - QA helps digital teams reduce production risk through structured manual testing, automation, API validation, performance checks, and operational QA routines.",
@@ -75,7 +75,7 @@
       services: {
         eyebrow: "Services",
         title: "QA coverage for modern digital products.",
-        text: "Manual, automation, API, performance, web, mobile, and operational QA support for teams that need release confidence.",
+        text: "A focused quality layer that gives teams clarity before production and confidence at release.",
         cards: [
           ["Manual Testing", "Functional, regression, smoke, exploratory, usability, and responsive validation."],
           ["Automation Testing", "Reliable test automation with Playwright, Cypress, and Selenium for critical flows."],
@@ -98,7 +98,7 @@
       platform: {
         eyebrow: "Internal platform",
         title: "Sentinel Core keeps our QA operations connected.",
-        text: "A private operational layer for tracking projects, bugs, dailies, QA evidence, and team knowledge.",
+        text: "A private operational layer for projects, bugs, dailies, QA evidence, and team knowledge. Clients see the result: cleaner execution and steadier releases.",
         button: "Open Sentinel Core",
         cards: [
           ["Core", "Internal QA Operations", "Projects, boards, bugs, clients, daily routines, reports, and notifications."],
@@ -148,7 +148,7 @@
       languageExpanded: "Fechar menu de idioma",
       nav: ["Serviços", "Atuação", "Plataforma", "Processo", "Contato", "Core"],
       hero: {
-        eyebrow: "Engenharia de qualidade para releases confiáveis",
+        eyebrow: "QA & Engenharia de Testes",
         title: "Engenharia de qualidade que torna releases mais seguros.",
         subtitle: "Qualidade em que você pode confiar.",
         text: "A Sentinel Tech - QA ajuda times digitais a reduzir risco em produção com testes manuais estruturados, automação, validação de APIs, checagens de performance e rotinas operacionais de QA.",
@@ -171,7 +171,7 @@
       services: {
         eyebrow: "Serviços",
         title: "Cobertura de QA para produtos digitais modernos.",
-        text: "QA manual, automação, APIs, performance, web, mobile e operação para times que precisam de confiança no release.",
+        text: "Uma camada de qualidade focada que traz clareza antes da produção e confiança no release.",
         cards: [
           ["Testes Manuais", "Validação funcional, regressão, smoke, exploratória, usabilidade e responsividade."],
           ["Testes Automatizados", "Automação confiável com Playwright, Cypress e Selenium para fluxos críticos."],
@@ -194,7 +194,7 @@
       platform: {
         eyebrow: "Plataforma interna",
         title: "O Sentinel Core mantém nossa operação de QA conectada.",
-        text: "Uma camada operacional privada para acompanhar projetos, bugs, dailies, evidências de QA e conhecimento do time.",
+        text: "Uma camada operacional privada para projetos, bugs, dailies, evidências de QA e conhecimento do time. O cliente vê o resultado: execução mais limpa e releases mais estáveis.",
         button: "Abrir Sentinel Core",
         cards: [
           ["Core", "Operações internas de QA", "Projetos, boards, bugs, clientes, rotinas diárias, relatórios e notificações."],
@@ -244,7 +244,7 @@
       languageExpanded: "Cerrar menú de idioma",
       nav: ["Servicios", "Modelo", "Plataforma", "Proceso", "Contacto", "Core"],
       hero: {
-        eyebrow: "Ingeniería de calidad para releases confiables",
+        eyebrow: "QA & Ingeniería de Pruebas",
         title: "Ingeniería de calidad que hace los releases más seguros.",
         subtitle: "Calidad en la que puedes confiar.",
         text: "Sentinel Tech - QA ayuda a equipos digitales a reducir riesgo en producción con pruebas manuales estructuradas, automatización, validación de APIs, checks de performance y rutinas operativas de QA.",
@@ -267,7 +267,7 @@
       services: {
         eyebrow: "Servicios",
         title: "Cobertura de QA para productos digitales modernos.",
-        text: "QA manual, automatización, APIs, performance, web, mobile y operación para equipos que necesitan confianza en sus releases.",
+        text: "Una capa de calidad enfocada que aporta claridad antes de producción y confianza en el release.",
         cards: [
           ["Pruebas Manuales", "Validación funcional, regresión, smoke, exploratoria, usabilidad y responsividad."],
           ["Pruebas Automatizadas", "Automatización confiable con Playwright, Cypress y Selenium para flujos críticos."],
@@ -290,7 +290,7 @@
       platform: {
         eyebrow: "Plataforma interna",
         title: "Sentinel Core mantiene conectada nuestra operación de QA.",
-        text: "Una capa operativa privada para seguir proyectos, bugs, dailies, evidencias de QA y conocimiento del equipo.",
+        text: "Una capa operativa privada para proyectos, bugs, dailies, evidencias de QA y conocimiento del equipo. El cliente ve el resultado: ejecución más limpia y releases más estables.",
         button: "Abrir Sentinel Core",
         cards: [
           ["Core", "Operaciones internas de QA", "Proyectos, boards, bugs, clientes, rutinas diarias, reportes y notificaciones."],
@@ -342,7 +342,7 @@
     proofCards: ".proof-card",
     serviceCards: ".service-card",
     engagementCards: ".engagement-card",
-    platformCards: ".platform-card",
+    platformCards: ".panel-row",
     processCards: ".process-step",
   };
 
@@ -452,8 +452,8 @@
     text("#contact .eyebrow", t.contact.eyebrow);
     text("#contact h2", t.contact.title);
     text("#contact .contact-copy > p", t.contact.text);
-    text(".contact-note strong", t.contact.mapTitle);
-    text(".contact-note span", t.contact.mapText);
+    text(".contact-summary strong", t.contact.mapTitle);
+    text(".contact-summary span", t.contact.mapText);
     text("label[for='name']", t.contact.name);
     text("label[for='email']", t.contact.email);
     text("label[for='message']", t.contact.message);
