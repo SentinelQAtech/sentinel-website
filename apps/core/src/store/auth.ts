@@ -1,3 +1,11 @@
+// ─── DEPRECATED — Use @/hooks/useAuth instead ────────────────────────────────
+// Migrated to React Query + API auth service.
+// - useCurrentUser()  → replaces reading `user` / `isAuthenticated`
+// - useLogin()        → replaces `login()`
+// - useLogout()       → replaces `logout()`
+// - useUpdateUser()   → replaces `updateUser()`
+// -----------------------------------------------------------------------------
+
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
 import type { User } from '@/types'

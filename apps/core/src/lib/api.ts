@@ -8,6 +8,11 @@ export const api = axios.create({
   headers: { 'Content-Type': 'application/json' },
 })
 
+export async function exchangeSupabaseSession(accessToken: string) {
+  const { data } = await axios.post(`${API_URL}/api/v1/auth/supabase`, { accessToken })
+  return data as { accessToken: string; refreshToken: string }
+}
+
 // Attach bearer token on every request
 api.interceptors.request.use(config => {
   if (typeof window !== 'undefined') {

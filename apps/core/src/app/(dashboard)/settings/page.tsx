@@ -7,7 +7,7 @@ import {
   LogOut, Trash2, Check, ChevronRight,
 } from 'lucide-react'
 import { useRouter } from 'next/navigation'
-import { useAuthStore } from '@/store/auth'
+import { useLogout } from '@/hooks/useAuth'
 import { cn } from '@/lib/utils'
 
 function Toggle({ checked, onChange }: { checked: boolean; onChange: (v: boolean) => void }) {
@@ -73,7 +73,7 @@ function SettingRow({
 
 export default function SettingsPage() {
   const router   = useRouter()
-  const { logout } = useAuthStore()
+  const logoutMutation = useLogout()
 
   // Notificação prefs
   const [notifBugs,    setNotifBugs]    = useState(true)
@@ -93,7 +93,7 @@ export default function SettingsPage() {
   }
 
   function handleLogout() {
-    logout()
+    logoutMutation.mutate()
     router.push('/login')
   }
 

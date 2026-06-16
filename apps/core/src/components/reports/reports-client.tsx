@@ -7,10 +7,10 @@ import {
 } from 'lucide-react'
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card'
 import { useCompaniesStore } from '@/store/companies'
-import { useNotificationsStore } from '@/store/notifications'
+import { useNotifications } from '@/hooks/useNotifications'
 import { useQAImporterStore } from '@/store/qa-importer'
 import { useProjects } from '@/hooks/useProjects'
-import { useBugsStore } from '@/store/bugs'
+import { useDashboardStats } from '@/hooks/useReports'
 
 import { TEAM, TEAM_STORAGE_KEY, type TeamMember } from '@/lib/team-data'
 import { cn } from '@/lib/utils'
@@ -34,9 +34,10 @@ export function ReportsClient() {
   const companies = useCompaniesStore(s => s.companies)
   const qaItems = useQAImporterStore(s => s.items)
   const imports = useQAImporterStore(s => s.history)
-  const notifications = useNotificationsStore(s => s.notifications)
+  const { data: notificationsData } = useNotifications()
+  const notifications = notificationsData ?? []
+  const { data: stats } = useDashboardStats()
   const { data: projects = [] } = useProjects()
-  const bugs = useBugsStore(s => s.bugs)
   const tasks = useQAImporterStore(s => s.items)
   const members = useRealTeam()
 
@@ -56,7 +57,7 @@ export function ReportsClient() {
   const operationalRows = [
     { label: 'Projetos ativos', value: projects.filter(project => project.status === 'ACTIVE').length, note: 'Projetos cadastrados manualmente' },
     { label: 'Tasks no board', value: tasks.length, note: 'Inclui cards importados do QA Importer' },
-    { label: 'Bugs abertos', value: bugs.filter(bug => bug.status !== 'RESOLVED' && bug.status !== 'CLOSED').length, note: 'Bugs registrados e importados' },
+    { label: 'Bugs abertos', value: stats?.openBugs ?? 0, note: 'Bugs registrados na API' },
     { label: 'Itens QA importados', value: qaItems.length, note: `${pendingQA.length} pendentes, ${sentQA.length} enviados ao Daily` },
   ]
 

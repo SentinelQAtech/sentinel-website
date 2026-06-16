@@ -5,8 +5,8 @@ import type { ReactNode } from 'react'
 import { useRouter } from 'next/navigation'
 import { Bell, Bug, CheckCheck, Filter, FolderKanban, MessageSquare, Search, Zap, AlertCircle } from 'lucide-react'
 import { cn } from '@/lib/utils'
-import { useNotificationsStore } from '@/store/notifications'
-import type { NotificationItem } from '@/store/notifications'
+import { useNotifications, useMarkAsRead, useMarkAllAsRead } from '@/hooks/useNotifications'
+import type { NotificationItem } from '@/hooks/useNotifications'
 
 const TYPE_ICON: Record<NotificationItem['type'], ReactNode> = {
   bug: <Bug className="h-4 w-4" />,
@@ -20,7 +20,10 @@ type FilterMode = 'all' | 'unread' | NotificationItem['type']
 
 export default function NotificationsPage() {
   const router = useRouter()
-  const { notifications, markAsRead, markAllAsRead } = useNotificationsStore()
+  const { data: notificationsData } = useNotifications()
+  const markAsRead = useMarkAsRead()
+  const markAllAsRead = useMarkAllAsRead()
+  const notifications = notificationsData ?? []
   const [query, setQuery] = useState('')
   const [filter, setFilter] = useState<FilterMode>('all')
 
@@ -40,7 +43,7 @@ export default function NotificationsPage() {
   }, [filter, notifications, query])
 
   const openNotification = (notification: NotificationItem) => {
-    markAsRead(notification.id)
+    markAsRead.mutate(notification.id)
     router.push(notification.href)
   }
 
@@ -57,7 +60,7 @@ export default function NotificationsPage() {
           </p>
         </div>
         <button
-          onClick={markAllAsRead}
+          onClick={() => markAllAsRead.mutate()}
           disabled={unread === 0}
           className={cn(
             'flex h-10 items-center justify-center gap-2 rounded-xl border px-4 text-sm font-semibold transition-colors',

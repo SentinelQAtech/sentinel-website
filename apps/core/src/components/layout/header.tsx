@@ -5,9 +5,8 @@ import { Avatar } from '@/components/ui/avatar'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
 import { useState, useRef, useEffect } from 'react'
-import { useAuthStore } from '@/store/auth'
-import { createClient } from '@/lib/supabase/client'
-import { useNotificationsStore } from '@/store/notifications'
+import { useUser, useLogout } from '@/hooks/useAuth'
+import { useUnreadCount } from '@/hooks/useNotifications'
 import { useRouter } from 'next/navigation'
 import { SearchModal } from './search-modal'
 import { NotificationsPanel } from './notifications-panel'
@@ -17,7 +16,8 @@ import { useI18nStore } from '@/store/i18n'
 
 export function Header() {
   const router = useRouter()
-  const { user, logout } = useAuthStore()
+  const user = useUser()
+  const logoutMutation = useLogout()
   useI18nStore(s => s.locale)
   const t = useI18nStore(s => s.t)
 
@@ -28,7 +28,7 @@ export function Header() {
 
   const menuRef  = useRef<HTMLDivElement>(null)
   const bellRef  = useRef<HTMLButtonElement>(null)
-  const unreadCount = useNotificationsStore(s => s.notifications.filter(n => !n.read).length)
+  const { data: unreadCount = 0 } = useUnreadCount()
 
   // Close user menu on outside click
   useEffect(() => {
@@ -54,9 +54,7 @@ export function Header() {
   }, [])
 
   const handleLogout = async () => {
-    const supabase = createClient()
-    await supabase.auth.signOut()
-    logout()
+    await logoutMutation.mutateAsync()
     router.push('/login')
   }
 

@@ -6,8 +6,8 @@ import { useRouter } from 'next/navigation'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Bell, Bug, Zap, FolderKanban, CheckCheck, X, AlertCircle, MessageSquare } from 'lucide-react'
 import { cn } from '@/lib/utils'
-import { useNotificationsStore } from '@/store/notifications'
-import type { NotificationItem } from '@/store/notifications'
+import { useNotifications, useMarkAsRead, useMarkAllAsRead } from '@/hooks/useNotifications'
+import type { NotificationItem } from '@/hooks/useNotifications'
 
 const TYPE_ICON: Record<NotificationItem['type'], ReactNode> = {
   bug:     <Bug className="w-3.5 h-3.5" />,
@@ -26,11 +26,14 @@ interface NotificationsPanelProps {
 export function NotificationsPanel({ open, onClose, anchorRef }: NotificationsPanelProps) {
   const router = useRouter()
   const panelRef = useRef<HTMLDivElement>(null)
-  const { notifications, markAsRead, markAllAsRead } = useNotificationsStore()
+  const { data: notificationsData } = useNotifications()
+  const markAsRead = useMarkAsRead()
+  const markAllAsRead = useMarkAllAsRead()
+  const notifications = notificationsData ?? []
   const unread = notifications.filter(n => !n.read).length
 
   const openNotification = (notification: NotificationItem) => {
-    markAsRead(notification.id)
+    markAsRead.mutate(notification.id)
     onClose()
     router.push(notification.href)
   }
@@ -73,7 +76,7 @@ export function NotificationsPanel({ open, onClose, anchorRef }: NotificationsPa
             </div>
             <div className="flex items-center gap-1">
               <button
-                onClick={markAllAsRead}
+                onClick={() => markAllAsRead.mutate()}
                 disabled={unread === 0}
                 title="Marcar todas como lidas"
                 className={cn(

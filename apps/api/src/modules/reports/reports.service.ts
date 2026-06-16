@@ -20,7 +20,7 @@ export class ReportsService {
   async getDashboardStats(userId: string) {
     const [
       totalProjects, activeProjects, openBugs, criticalBugs,
-      tasksCompleted, tasksPending, activeSprints,
+      tasksCompleted, tasksPending, activeSprints, teamMembers,
     ] = await Promise.all([
       this.prisma.project.count({ where: { OR: [{ ownerId: userId }, { members: { some: { userId } } }] } }),
       this.prisma.project.count({ where: { status: 'ACTIVE', OR: [{ ownerId: userId }, { members: { some: { userId } } }] } }),
@@ -29,9 +29,10 @@ export class ReportsService {
       this.prisma.task.count({ where: { status: 'DONE' } }),
       this.prisma.task.count({ where: { status: { not: 'DONE' } } }),
       this.prisma.sprint.count({ where: { status: 'ACTIVE' } }),
+      this.prisma.user.count({ where: { isActive: true } }),
     ])
 
-    return { totalProjects, activeProjects, openBugs, criticalBugs, tasksCompleted, tasksPending, activeSprints }
+    return { totalProjects, activeProjects, openBugs, criticalBugs, tasksCompleted, tasksPending, activeSprints, teamMembers }
   }
 
   async getBugTrend(days = 30) {

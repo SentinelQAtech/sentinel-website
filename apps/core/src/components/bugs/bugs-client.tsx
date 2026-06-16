@@ -1,16 +1,17 @@
 'use client'
 
-import { useEffect, useMemo, useState } from 'react'
+import { useState } from 'react'
 import { motion } from 'framer-motion'
-import { Plus, Search, Bug, X, Maximize2, Minimize2 } from 'lucide-react'
+import { Plus, Search, Bug, X, Maximize2, Minimize2, Loader2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { BugTable } from './bug-table'
 import { BugStats } from './bug-stats'
 import { cn } from '@/lib/utils'
 import { useI18nStore } from '@/store/i18n'
-import { useBugsStore, defaultReporter, defaultProject } from '@/store/bugs'
+import { useBugs, useCreateBug, useBulkSyncBugs } from '@/hooks/useBugs'
 import { useQAImporterStore } from '@/store/qa-importer'
+import { defaultReporter, defaultProject } from '@/store/bugs'
 import type { Bug as BugType, BugSeverity, BugStatus, Priority } from '@/types'
 
 type SeverityFilter = 'ALL' | BugSeverity
@@ -22,42 +23,31 @@ export function BugsClient() {
   const [search, setSearch] = useState('')
   const [severity, setSeverity] = useState<SeverityFilter>('ALL')
   const [status, setStatus] = useState<StatusFilter>('ALL')
-  const bugs = useBugsStore(s => s.bugs)
-  const addBugToStore = useBugsStore(s => s.addBug)
-  const syncFromQA = useBugsStore(s => s.syncFromQAImporter)
-  const qaItems = useQAImporterStore(s => s.items)
   const [reportOpen, setReportOpen] = useState(false)
   const [selectedBug, setSelectedBug] = useState<BugType | null>(null)
   const [fullscreen, setFullscreen] = useState(false)
   const [quickFilter, setQuickFilter] = useState<'total' | 'open' | 'critical' | 'resolved'>('total')
 
-  // Fingerprint only the fields syncFromQAImporter actually reads so that
-  // unrelated QA edits (notes, comments, etc.) do not trigger a full rebuild
-  // and localStorage write.
-  const qaFingerprint = useMemo(
-    () => qaItems.map(i => `${i.id}|${i.title}|${i.priority}|${i.qaCategory}|${i.status}|${i.source}`).join('\n'),
-    [qaItems]
-  )
+  // Primary data source: React Query
+  const { data: paginated, isLoading: isBugsLoading, isError: isBugsError } = useBugs()
+  const bugs = paginated?.data ?? []
+  const createBug = useCreateBug()
 
-  useEffect(() => {
-    syncFromQA(qaItems)
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [qaFingerprint, syncFromQA])
-
-  const filtered = bugs.filter(b => {
-    const matchSearch = b.title.toLowerCase().includes(search.toLowerCase()) ||
-      b.bugId.toLowerCase().includes(search.toLowerCase())
-    const matchSev = severity === 'ALL' || b.severity === severity
-    const matchStatus = status === 'ALL' || b.status === status
-    return matchSearch && matchSev && matchStatus
-  })
-
+  // Compute stats from the latest data
   const stats = {
     total: bugs.length,
     open: bugs.filter(b => b.status === 'OPEN').length,
     critical: bugs.filter(b => b.severity === 'CRITICAL').length,
     resolved: bugs.filter(b => b.status === 'RESOLVED' || b.status === 'CLOSED').length,
   }
+
+  const filtered = bugs.filter(b => {
+    const matchSearch = search === '' || b.title.toLowerCase().includes(search.toLowerCase()) ||
+      b.bugId.toLowerCase().includes(search.toLowerCase())
+    const matchSev = severity === 'ALL' || b.severity === severity
+    const matchStatus = status === 'ALL' || b.status === status
+    return matchSearch && matchSev && matchStatus
+  })
 
   const applyQuickFilter = (filter: 'total' | 'open' | 'critical' | 'resolved') => {
     setQuickFilter(filter)
@@ -77,14 +67,42 @@ export function BugsClient() {
   }
 
   const addBug = (bug: BugType) => {
-    addBugToStore(bug)
-    setReportOpen(false)
-    applyQuickFilter('total')
+    createBug.mutate({
+      title: bug.title,
+      description: bug.description,
+      severity: bug.severity,
+      priority: bug.priority,
+      projectId: bug.projectId,
+      environment: bug.environment,
+      tags: bug.tags,
+    }, {
+      onSuccess: () => {
+        setReportOpen(false)
+        applyQuickFilter('total')
+      },
+    })
+  }
+
+  if (isBugsLoading) {
+    return (
+      <div className="flex items-center justify-center py-32">
+        <Loader2 className="w-6 h-6 text-primary animate-spin" />
+      </div>
+    )
+  }
+
+  if (isBugsError) {
+    return (
+      <div className="glass-card flex flex-col items-center justify-center py-20 text-center">
+        <Bug className="w-12 h-12 text-red-400/50 mb-4" />
+        <p className="text-white/50 font-medium">Erro ao carregar bugs</p>
+        <p className="text-white/30 text-sm mt-1">Tente recarregar a pagina</p>
+      </div>
+    )
   }
 
   return (
     <div className="space-y-6 animate-fade-in-up">
-      {/* Header */}
       <div className="flex items-center justify-between gap-4">
         <div>
           <h1 className="text-2xl font-bold text-white flex items-center gap-2">
@@ -98,10 +116,8 @@ export function BugsClient() {
         </Button>
       </div>
 
-      {/* Stats */}
       <BugStats stats={stats} active={quickFilter} onFilter={applyQuickFilter} />
 
-      {/* Filters */}
       <div className="flex items-center gap-3 flex-wrap">
         <div className="flex-1 min-w-[200px] max-w-sm">
           <Input
@@ -112,7 +128,6 @@ export function BugsClient() {
           />
         </div>
 
-        {/* Severity filter */}
         <div className="flex items-center gap-1 p-1 bg-white/[0.04] border border-white/[0.08] rounded-lg">
           {(['ALL', 'CRITICAL', 'HIGH', 'MEDIUM', 'LOW'] as SeverityFilter[]).map(s => (
             <button
@@ -128,7 +143,6 @@ export function BugsClient() {
           ))}
         </div>
 
-        {/* Status filter */}
         <div className="flex items-center gap-1 p-1 bg-white/[0.04] border border-white/[0.08] rounded-lg">
           {(['ALL', 'OPEN', 'IN_PROGRESS', 'IN_REVIEW', 'RESOLVED', 'CLOSED'] as StatusFilter[]).map(s => (
             <button
@@ -145,10 +159,16 @@ export function BugsClient() {
         </div>
       </div>
 
-      {/* Table */}
       <BugTable bugs={filtered} onOpenBug={bug => { setSelectedBug(bug); setFullscreen(false) }} />
 
-      {reportOpen && <ReportBugModal onClose={() => setReportOpen(false)} onCreate={addBug} nextNumber={bugs.length + 1} />}
+      {reportOpen && (
+        <ReportBugModal
+          onClose={() => setReportOpen(false)}
+          onCreate={addBug}
+          nextNumber={bugs.length + 1}
+          isPending={createBug.isPending}
+        />
+      )}
       {selectedBug && (
         <BugDetailModal
           bug={selectedBug}
@@ -161,7 +181,7 @@ export function BugsClient() {
   )
 }
 
-function ReportBugModal({ onClose, onCreate, nextNumber }: { onClose: () => void; onCreate: (bug: BugType) => void; nextNumber: number }) {
+function ReportBugModal({ onClose, onCreate, nextNumber, isPending }: { onClose: () => void; onCreate: (bug: BugType) => void; nextNumber: number; isPending?: boolean }) {
   useI18nStore(s => s.locale)
   const t = useI18nStore(s => s.t)
   const [title, setTitle] = useState('')
@@ -221,7 +241,14 @@ function ReportBugModal({ onClose, onCreate, nextNumber }: { onClose: () => void
           </div>
           <div className="flex justify-end gap-3">
             <Button variant="outline" onClick={onClose}>{t('cancel')}</Button>
-            <Button variant="glow" onClick={create} disabled={!title.trim() || !description.trim()} leftIcon={<Plus className="w-4 h-4" />}>{t('createBug')}</Button>
+            <Button
+              variant="glow"
+              onClick={create}
+              disabled={!title.trim() || !description.trim() || isPending}
+              leftIcon={isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : <Plus className="w-4 h-4" />}
+            >
+              {isPending ? t('creating') ?? 'Criando...' : t('createBug')}
+            </Button>
           </div>
         </div>
       </div>

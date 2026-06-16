@@ -11,7 +11,11 @@ concurrency:
   cancel-in-progress: true
 
 env:
-  NODE_VERSION: "20"
+  # GitHub runners inject NODE_OPTIONS=--use-system-ca (via npm's node-options
+  # config, applied to lifecycle scripts), a flag only valid on Node 22+.
+  # Pinning Node 22 lets it parse instead of crashing `npm ci` with exit
+  # code 9 (as it did on Node 20). Matches the Node version Vercel builds with.
+  NODE_VERSION: "22"
 
 jobs:
   quality:
@@ -31,6 +35,9 @@ jobs:
 
       - name: Install dependencies
         run: npm ci
+
+      - name: Generate Prisma client
+        run: npm run db:generate
 
       - name: Turbo cache
         uses: actions/cache@v4

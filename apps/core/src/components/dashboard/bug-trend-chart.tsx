@@ -1,12 +1,12 @@
 'use client'
 
 import {
-  AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, Legend,
+  AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip,
   ResponsiveContainer
 } from 'recharts'
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card'
-import { useMemo, useState } from 'react'
-import { useBugsStore } from '@/store/bugs'
+import { useState } from 'react'
+import { useBugTrend } from '@/hooks/useReports'
 
 const CustomTooltip = ({ active, payload, label }: any) => {
   if (!active || !payload?.length) return null
@@ -30,29 +30,8 @@ type Range = '7d' | '30d' | '90d'
 
 export function BugTrendChart() {
   const [range, setRange] = useState<Range>('30d')
-  const bugs = useBugsStore(s => s.bugs)
-
-  const data = useMemo(() => {
-    const days = range === '7d' ? 7 : range === '90d' ? 90 : 30
-    const today = new Date()
-    today.setHours(0, 0, 0, 0)
-
-    return Array.from({ length: days }, (_, index) => {
-      const date = new Date(today)
-      date.setDate(today.getDate() - (days - 1 - index))
-      const dateKey = date.toISOString().slice(0, 10)
-      const label = date.toLocaleDateString('pt-BR', { day: '2-digit', month: 'short' }).replace('.', '')
-
-      const opened = bugs.filter(bug => bug.createdAt?.slice(0, 10) === dateKey).length
-      const resolved = bugs.filter(bug => bug.resolvedAt?.slice(0, 10) === dateKey).length
-      const closed = bugs.filter(bug => {
-        const updatedKey = bug.updatedAt?.slice(0, 10)
-        return updatedKey === dateKey && (bug.status === 'RESOLVED' || bug.status === 'CLOSED')
-      }).length
-
-      return { date: label, opened, closed, resolved }
-    })
-  }, [bugs, range])
+  const days = range === '7d' ? 7 : range === '90d' ? 90 : 30
+  const { data: trend = [] } = useBugTrend(days)
 
   return (
     <Card className="h-full">
@@ -76,7 +55,7 @@ export function BugTrendChart() {
       </CardHeader>
       <CardContent className="pt-4">
         <ResponsiveContainer width="100%" height={260}>
-          <AreaChart data={data} margin={{ top: 5, right: 10, left: -20, bottom: 0 }}>
+            <AreaChart data={trend} margin={{ top: 5, right: 10, left: -20, bottom: 0 }}>
             <defs>
               <linearGradient id="gradOpened" x1="0" y1="0" x2="0" y2="1">
                 <stop offset="5%"  stopColor="#ef4444" stopOpacity={0.3} />
@@ -85,10 +64,6 @@ export function BugTrendChart() {
               <linearGradient id="gradClosed" x1="0" y1="0" x2="0" y2="1">
                 <stop offset="5%"  stopColor="#10b981" stopOpacity={0.3} />
                 <stop offset="95%" stopColor="#10b981" stopOpacity={0.02} />
-              </linearGradient>
-              <linearGradient id="gradResolved" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="5%"  stopColor="#6366f1" stopOpacity={0.3} />
-                <stop offset="95%" stopColor="#6366f1" stopOpacity={0.02} />
               </linearGradient>
             </defs>
             <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.04)" />
@@ -106,7 +81,6 @@ export function BugTrendChart() {
             <Tooltip content={<CustomTooltip />} />
             <Area type="monotone" dataKey="opened"   name="Opened"   stroke="#ef4444" fill="url(#gradOpened)"   strokeWidth={2} dot={false} />
             <Area type="monotone" dataKey="closed"   name="Closed"   stroke="#10b981" fill="url(#gradClosed)"   strokeWidth={2} dot={false} />
-            <Area type="monotone" dataKey="resolved" name="Resolved" stroke="#6366f1" fill="url(#gradResolved)" strokeWidth={2} dot={false} />
           </AreaChart>
         </ResponsiveContainer>
         {/* Legend */}
@@ -114,7 +88,6 @@ export function BugTrendChart() {
           {[
             { color: '#ef4444', label: 'Opened'   },
             { color: '#10b981', label: 'Closed'   },
-            { color: '#6366f1', label: 'Resolved' },
           ].map(({ color, label }) => (
             <div key={label} className="flex items-center gap-1.5 text-xs text-white/50">
               <span className="w-3 h-0.5 rounded-full" style={{ background: color }} />
