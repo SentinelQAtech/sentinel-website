@@ -40,7 +40,9 @@ api.interceptors.response.use(
           original.headers.Authorization = `Bearer ${data.accessToken}`
           return api(original)
         } catch {
-          localStorage.clear()
+          localStorage.removeItem('accessToken')
+          localStorage.removeItem('refreshToken')
+          localStorage.removeItem('userId')
           window.location.href = withCoreBasePath('/login')
         }
       }

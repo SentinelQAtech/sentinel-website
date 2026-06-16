@@ -41,7 +41,8 @@ app.sentinelqa.tech
 Responsabilidades:
 
 - Servir a landing page publica.
-- Servir `/learning` e `/extension` como paginas publicas simples.
+- Servir `/extension` como pagina publica simples.
+- Redirecionar `/learning` para `https://learning.sentinelqa.tech/`.
 - Redirecionar `app.sentinelqa.tech` para `sentinelqa.tech/core/dashboard`.
 - Reescrever `/core/*` para o projeto `sentinel-core`.
 
@@ -84,7 +85,8 @@ apps/core/vercel.json
 https://sentinelqa.tech                    -> site publico
 https://sentinelqa.tech/core               -> redirect para /core/dashboard
 https://sentinelqa.tech/core/dashboard     -> Sentinel Core
-https://sentinelqa.tech/learning/          -> Sentinel Learning
+https://learning.sentinelqa.tech/          -> Sentinel Learning
+https://sentinelqa.tech/learning/          -> redirect para learning.sentinelqa.tech
 https://sentinelqa.tech/extension/         -> Sentinel Extension
 https://app.sentinelqa.tech                -> redirect para /core/dashboard
 ```
@@ -122,6 +124,7 @@ Depois do deploy, validar:
 curl.exe -k -I https://sentinelqa.tech
 curl.exe -k -I https://sentinelqa.tech/core
 curl.exe -k -I https://sentinelqa.tech/core/dashboard
+curl.exe -k -I https://learning.sentinelqa.tech/
 curl.exe -k -I https://sentinelqa.tech/learning/
 curl.exe -k -I https://sentinelqa.tech/extension/
 curl.exe -k -I https://app.sentinelqa.tech

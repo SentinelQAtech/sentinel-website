@@ -19,7 +19,7 @@ D:\DEV\01_COMPANIES\SentinelQAtech\sentinel-website
 | Site publico | `apps/website` | HTML, CSS e JavaScript | Ativo no dominio principal | Entrada institucional da Sentinel Tech - QA em `sentinelqa.tech`. |
 | Sentinel Core | `apps/core` | Next.js 15, React 19 e Tailwind | Ativo em `/core/dashboard` | Plataforma interna de operacoes QA. Usa `NEXT_PUBLIC_BASE_PATH=/core` no deploy. |
 | API | `apps/api` | NestJS, Prisma e TypeScript | Estrutural e buildando | Deve evoluir como fonte real de dados do Core. |
-| Sentinel Learning | `apps/learning` | Next.js 15 e Tailwind | No monorepo, ainda nao publicado como app completo | A rota publica `/learning/` hoje e uma pagina estatica de transicao em `apps/website/learning`. |
+| Sentinel Learning | Projeto Vercel `sentinel-learning` | HTML, CSS e JavaScript | Ativo em `learning.sentinelqa.tech` | A rota publica antiga `/learning/` no site principal deve redirecionar para o subdominio atual. |
 | Sentinel Extension | `tools/core-extension` | Chrome Extension Manifest V3 | Versionada no monorepo | A rota publica `/extension/` apresenta a extensao; a extensao em si nao roda no Vercel. |
 | Prisma | `prisma` | Schema de dados | Base de persistencia planejada | Deve ser mantido alinhado com a API. |
 | Docs | `docs` | Documentacao operacional | Fonte de contexto para IAs e operacao | O arquivo mestre e `MASTER_CURRENT_STATE-SENTINEL-2026.md`. |
@@ -52,7 +52,8 @@ sentinel-website/
 | `https://sentinelqa.tech` | Site publico | Marca, servicos, processo e contato. |
 | `https://sentinelqa.tech/core` | Sentinel Core | Redirect para `/core/dashboard`. |
 | `https://sentinelqa.tech/core/dashboard` | Sentinel Core | Plataforma interna operacional. |
-| `https://sentinelqa.tech/learning/` | Sentinel Learning | Pagina publica de transicao enquanto o app completo e preparado. |
+| `https://learning.sentinelqa.tech/` | Sentinel Learning | Experiencia atual do Learning. |
+| `https://sentinelqa.tech/learning/` | Sentinel Learning | Redirect legado para `learning.sentinelqa.tech`. |
 | `https://sentinelqa.tech/extension/` | Sentinel Extension | Documentacao/download/instrucoes da extensao. |
 | `https://app.sentinelqa.tech` | Alias interno | Redirect para `sentinelqa.tech/core/dashboard`. |
 

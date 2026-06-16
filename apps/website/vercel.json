@@ -35,6 +35,21 @@
   ],
   "redirects": [
     {
+      "source": "/learning",
+      "destination": "https://learning.sentinelqa.tech/",
+      "permanent": true
+    },
+    {
+      "source": "/learning/",
+      "destination": "https://learning.sentinelqa.tech/",
+      "permanent": true
+    },
+    {
+      "source": "/learning/:path*",
+      "destination": "https://learning.sentinelqa.tech/:path*",
+      "permanent": true
+    },
+    {
       "source": "/core",
       "destination": "/core/dashboard",
       "permanent": false

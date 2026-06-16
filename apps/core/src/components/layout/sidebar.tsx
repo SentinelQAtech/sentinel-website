@@ -70,7 +70,7 @@ const navGroups: NavGroup[] = [
     labelKey: 'extras',
     items: [
       { labelKey: 'calendar', href: '/calendar',                         icon: CalendarDays                       },
-      { labelKey: 'learning', href: 'https://sentinelqa.tech/learning/', icon: GraduationCap, external: true },
+      { labelKey: 'learning', href: 'https://learning.sentinelqa.tech/', icon: GraduationCap, external: true },
     ],
   },
 ]

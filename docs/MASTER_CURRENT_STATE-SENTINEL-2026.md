@@ -255,13 +255,14 @@ A API existe estruturalmente e deve ser evoluida como fonte real de dados. O Cor
 URL publica atual:
 
 ```text
-https://sentinelqa.tech/learning/
+https://learning.sentinelqa.tech/
 ```
 
 Codigo:
 
 ```text
-apps/learning
+Projeto Vercel: sentinel-learning
+Rota legada: sentinelqa.tech/learning -> learning.sentinelqa.tech
 ```
 
 Objetivo:
@@ -383,7 +384,8 @@ Rotas atuais:
 sentinelqa.tech              Site publico Sentinel Tech - QA
 sentinelqa.tech/core         Redireciona para /core/dashboard
 sentinelqa.tech/core/dashboard Sentinel Core
-sentinelqa.tech/learning     Sentinel Learning
+learning.sentinelqa.tech     Sentinel Learning
+sentinelqa.tech/learning     Redirect legado para learning.sentinelqa.tech
 sentinelqa.tech/extension    Sentinel Extension
 app.sentinelqa.tech          Redireciona para sentinelqa.tech/core/dashboard
 ```

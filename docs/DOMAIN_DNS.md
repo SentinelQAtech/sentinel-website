@@ -43,7 +43,8 @@ npx.cmd vercel domains inspect www.sentinelqa.tech --scope castilho-raphael-5448
 | `sentinelqa.tech` | Site institucional publico |
 | `www.sentinelqa.tech` | Alias do site institucional |
 | `sentinelqa.tech/core` | Sentinel Core |
-| `sentinelqa.tech/learning` | Sentinel Learning |
+| `learning.sentinelqa.tech` | Sentinel Learning atual |
+| `sentinelqa.tech/learning` | Redirect legado para `learning.sentinelqa.tech` |
 | `sentinelqa.tech/extension` | Documentacao/download da extensao |
 | `app.sentinelqa.tech` | Redirect para `sentinelqa.tech/core` |
 

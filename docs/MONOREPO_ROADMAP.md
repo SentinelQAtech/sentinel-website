@@ -21,7 +21,8 @@ Recomendacao:
 
 - `sentinelqa.tech`: site institucional.
 - `sentinelqa.tech/core`: Sentinel Core.
-- `sentinelqa.tech/learning`: Sentinel Learning.
+- `learning.sentinelqa.tech`: Sentinel Learning.
+- `sentinelqa.tech/learning`: redirect legado para `learning.sentinelqa.tech`.
 - `sentinelqa.tech/extension`: pagina/download/docs da extensao.
 - `app.sentinelqa.tech`: redirect para `sentinelqa.tech/core`.
 
@@ -33,15 +34,15 @@ Status: importacao estrutural concluida; amadurecimento continua.
 
 Estrutura atual:
 
-- `apps/website`: site publico e paginas estaticas de `/learning/` e `/extension/`.
+- `apps/website`: site publico, redirect legado de `/learning/` e pagina estatica de `/extension/`.
 - `apps/core`: Sentinel Core.
 - `apps/api`: API NestJS.
-- `apps/learning`: app Next.js do Sentinel Learning, ainda nao publicado como experiencia completa.
+- Projeto Vercel `sentinel-learning`: Sentinel Learning atual em `learning.sentinelqa.tech`.
 - `tools/core-extension`: extensao Chrome.
 
 Proximos passos desta fase:
 
-1. Decidir quando `/learning/` deixara de ser pagina estatica e passara a servir o app `apps/learning`.
+1. Manter `/learning/` como redirect legado para `learning.sentinelqa.tech`.
 2. Evoluir a pagina `/extension/` para documentacao/download mais completa.
 3. Garantir que todo app tenha README ou nota operacional minima.
 

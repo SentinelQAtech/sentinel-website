@@ -83,14 +83,14 @@ Modulos principais:
 
 Area de aprendizado e conteudo em:
 
-`https://sentinelqa.tech/learning/`
+`https://learning.sentinelqa.tech/`
 
-Hoje existe em duas camadas:
+Hoje existe em dois pontos operacionais:
 
-- `apps/website/learning`: pagina publica estatica de transicao em `https://sentinelqa.tech/learning/`.
-- `apps/learning`: app Next.js completo em desenvolvimento dentro do monorepo.
+- Projeto Vercel `sentinel-learning`: experiencia atual em `https://learning.sentinelqa.tech/`.
+- `https://sentinelqa.tech/learning/`: rota legada que deve redirecionar para o subdominio atual.
 
-A decisao de publicar o app completo de Learning fica para uma etapa posterior.
+O Core deve apontar diretamente para `https://learning.sentinelqa.tech/`.
 
 ### Sentinel Extension
 
@@ -171,7 +171,8 @@ Status verificado em 18/05/2026:
 - `https://sentinelqa.tech` esta online.
 - `https://sentinelqa.tech/core` redireciona para `/core/dashboard`.
 - `https://sentinelqa.tech/core/dashboard` esta online.
-- `https://sentinelqa.tech/learning/` esta online.
+- `https://learning.sentinelqa.tech/` esta online.
+- `https://sentinelqa.tech/learning/` deve redirecionar para o Learning atual.
 - `https://sentinelqa.tech/extension/` esta online.
 - `https://app.sentinelqa.tech` redireciona para o Core.
 

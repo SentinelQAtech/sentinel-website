@@ -5,7 +5,8 @@ Objetivo:
 ```text
 sentinelqa.tech              Site publico Sentinel Tech - QA
 sentinelqa.tech/core         Sentinel Core
-sentinelqa.tech/learning     Sentinel Learning
+learning.sentinelqa.tech     Sentinel Learning
+sentinelqa.tech/learning     Redirect legado para learning.sentinelqa.tech
 sentinelqa.tech/extension    Sentinel Extension
 app.sentinelqa.tech          Redirect para sentinelqa.tech/core
 ```
@@ -16,7 +17,8 @@ Usar Vercel Multi-Zones:
 
 - Um projeto Vercel para o site publico, servindo `apps/website`.
 - Um projeto Vercel para o Sentinel Core, servindo `apps/core` com `NEXT_PUBLIC_BASE_PATH=/core`.
-- Um projeto Vercel para o Learning, servindo `apps/learning` com `NEXT_PUBLIC_BASE_PATH=/learning` quando ele for preparado para base path.
+- Um projeto Vercel separado para o Learning, servindo `learning.sentinelqa.tech`.
+- A rota `sentinelqa.tech/learning` deve existir apenas como redirect legado para `learning.sentinelqa.tech`.
 - A extensao fica versionada em `tools/core-extension`; a rota `/extension` deve ser uma pagina publica de download/instrucoes.
 
 ## Sentinel Core
