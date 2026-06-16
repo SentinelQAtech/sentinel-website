@@ -12,6 +12,10 @@ concurrency:
 
 env:
   NODE_VERSION: "20"
+  # GitHub runners inject NODE_OPTIONS=--use-system-ca, a flag only valid on
+  # Node 22+. On Node 20 it makes every `node` invocation (incl. Prisma's
+  # preinstall) exit with code 9 and breaks `npm ci`. Clear it for all steps.
+  NODE_OPTIONS: ""
 
 jobs:
   quality:
