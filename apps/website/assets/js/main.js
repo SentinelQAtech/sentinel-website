@@ -44,6 +44,18 @@
 
   if (!switcher || !toggle || !code || !menu || !options.length) return;
 
+  const flagEl = document.getElementById("languageFlag");
+  const flags = {
+    "pt-BR": '<svg viewBox="0 0 20 14" xmlns="http://www.w3.org/2000/svg"><rect width="20" height="14" fill="#009b3a"/><polygon points="10,1.5 18.5,7 10,12.5 1.5,7" fill="#ffdf00"/><circle cx="10" cy="7" r="3" fill="#002776"/></svg>',
+    "en-US": '<svg viewBox="0 0 20 14" xmlns="http://www.w3.org/2000/svg"><rect width="20" height="14" fill="#b22234"/><rect y="2" width="20" height="2" fill="#fff"/><rect y="6" width="20" height="2" fill="#fff"/><rect y="10" width="20" height="2" fill="#fff"/><rect width="9" height="8" fill="#3c3b6e"/></svg>',
+    es: '<svg viewBox="0 0 20 14" xmlns="http://www.w3.org/2000/svg"><rect width="20" height="14" fill="#aa151b"/><rect y="3.5" width="20" height="7" fill="#f1bf00"/></svg>',
+  };
+
+  options.forEach(function (option) {
+    const f = option.querySelector(".language-flag");
+    if (f) f.innerHTML = flags[option.getAttribute("data-lang-option")] || "";
+  });
+
   const copy = {
     "en-US": {
       code: "EN",
@@ -360,6 +372,7 @@
     const t = copy[lang] || copy["en-US"];
     document.documentElement.lang = t.htmlLang;
     code.textContent = t.code;
+    if (flagEl) flagEl.innerHTML = flags[lang] || flags["en-US"];
     toggle.setAttribute("aria-label", t.languageLabel);
     toggle.setAttribute("aria-expanded", "false");
     switcher.classList.remove("active");
