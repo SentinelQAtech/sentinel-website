@@ -7,48 +7,29 @@ import { Eye, EyeOff, ArrowRight, Lock, Mail, AlertCircle } from 'lucide-react'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import { motion } from 'framer-motion'
-import { createClient } from '@/lib/supabase/client'
-import { useAuthStore } from '@/store/auth'
+import { useLogin } from '@/hooks/useAuth'
 import { brandLogoIcon } from '@/lib/routes'
-import type { Role } from '@/types'
 
 export default function LoginPage() {
   const router = useRouter()
-  const login = useAuthStore(s => s.login)
+  const loginMutation = useLogin()
 
   const [email, setEmail]               = useState('')
   const [password, setPassword]         = useState('')
   const [showPassword, setShowPassword] = useState(false)
-  const [loading, setLoading]           = useState(false)
   const [error, setError]               = useState('')
 
   const handleSubmit = async (e: React.SyntheticEvent<HTMLFormElement>) => {
     e.preventDefault()
     setError('')
-    setLoading(true)
 
-    const supabase = createClient()
-    const { data, error: authError } = await supabase.auth.signInWithPassword({ email, password })
-
-    if (authError || !data.user) {
+    try {
+      await loginMutation.mutateAsync({ email, password })
+      router.push('/dashboard')
+      router.refresh()
+    } catch {
       setError('E-mail ou senha incorretos.')
-      setLoading(false)
-      return
     }
-
-    const u = data.user
-    login({
-      id:            u.id,
-      email:         u.email!,
-      username:      u.user_metadata?.username ?? u.email!.split('@')[0],
-      name:          u.user_metadata?.full_name ?? u.user_metadata?.name ?? u.email!.split('@')[0],
-      role:          (u.user_metadata?.role as Role) ?? 'ADMIN',
-      isActive:      true,
-      createdAt:     u.created_at,
-    })
-
-    router.push('/dashboard')
-    router.refresh()
   }
 
   return (
@@ -136,7 +117,7 @@ export default function LoginPage() {
               className="w-full mt-2"
               size="lg"
               variant="glow"
-              loading={loading}
+              loading={loginMutation.isPending}
               rightIcon={<ArrowRight className="w-4 h-4" />}
             >
               Entrar

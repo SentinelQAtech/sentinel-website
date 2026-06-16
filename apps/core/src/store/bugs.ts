@@ -1,5 +1,19 @@
+/**
+ * @deprecated Use React Query hooks from `@/hooks/useBugs` instead.
+ *   - useBugs(filters?)     → GET /api/v1/bugs
+ *   - useBug(id)            → GET /api/v1/bugs/:id
+ *   - useCreateBug()        → POST /api/v1/bugs
+ *   - useUpdateBug()        → PATCH /api/v1/bugs/:id
+ *   - useDeleteBug()        → DELETE /api/v1/bugs/:id
+ *   - useBugStats()         → GET /api/v1/bugs/stats
+ *   - useBulkSyncBugs()     → POST /api/v1/bugs/bulk-sync
+ *
+ * This store is kept only for legacy consumers (dashboard, profile, reports)
+ * that still read from the Zustand store directly. Will be removed after
+ * all consumers are migrated to React Query.
+ */
+
 import { create } from 'zustand'
-import { persist } from 'zustand/middleware'
 import type { Bug, BugSeverity, BugStatus, Priority, Project, User } from '@/types'
 import type { QAItem, QAPriority } from './qa-importer'
 
@@ -36,51 +50,48 @@ interface BugsState {
 }
 
 export const useBugsStore = create<BugsState>()(
-  persist(
-    (set) => ({
-      bugs: [],
+  (set) => ({
+    bugs: [],
 
-      addBug: (bug) =>
-        set(state => ({ bugs: [bug, ...state.bugs.filter(item => item.id !== bug.id)] })),
+    addBug: (bug) =>
+      set(state => ({ bugs: [bug, ...state.bugs.filter(item => item.id !== bug.id)] })),
 
-      syncFromQAImporter: (items) =>
-        set(state => {
-          // Keep only manually created bugs (not derived from QA Importer)
-          const manualBugs = state.bugs.filter(b => !b.id.startsWith('qa-bug-'))
-          const qaBugs: Bug[] = []
+    syncFromQAImporter: (items) =>
+      set(state => {
+        // Keep only manually created bugs (not derived from QA Importer)
+        const manualBugs = state.bugs.filter(b => !b.id.startsWith('qa-bug-'))
+        const qaBugs: Bug[] = []
 
-          items.filter(isBugItem).forEach(item => {
-            const id = `qa-bug-${item.id}`
-            const existing = state.bugs.find(b => b.id === id)
-            qaBugs.push({
-              id,
-              bugId: item.issueKey || `BUG-${String(qaBugs.length + 1).padStart(3, '0')}`,
-              title: item.title,
-              description: buildQABugDescription(item) || 'Bug importado via QA Importer.',
-              severity: mapQAPriorityToSeverity(item.priority),
-              priority: mapQAPriorityToPriority(item.priority),
-              status: mapQAStatusToBugStatus(item),
-              environment: item.project || item.client || undefined,
-              tags: [item.client, item.sprint, item.qaCategory, item.source].filter(Boolean) as string[],
-              projectId: item.project || item.client || defaultProject.id,
-              reporterId: defaultReporter.id,
-              reporter: defaultReporter,
-              project: {
-                ...defaultProject,
-                id: item.project || item.client || defaultProject.id,
-                name: item.project || item.client || defaultProject.name,
-              },
-              createdAt: existing?.createdAt ?? item.importedAt,
-              updatedAt: new Date().toISOString(),
-              resolvedAt: item.qaCategory === 'Done' ? new Date().toISOString() : undefined,
-            })
+        items.filter(isBugItem).forEach(item => {
+          const id = `qa-bug-${item.id}`
+          const existing = state.bugs.find(b => b.id === id)
+          qaBugs.push({
+            id,
+            bugId: item.issueKey || `BUG-${String(qaBugs.length + 1).padStart(3, '0')}`,
+            title: item.title,
+            description: buildQABugDescription(item) || 'Bug importado via QA Importer.',
+            severity: mapQAPriorityToSeverity(item.priority),
+            priority: mapQAPriorityToPriority(item.priority),
+            status: mapQAStatusToBugStatus(item),
+            environment: item.project || item.client || undefined,
+            tags: [item.client, item.sprint, item.qaCategory, item.source].filter(Boolean) as string[],
+            projectId: item.project || item.client || defaultProject.id,
+            reporterId: defaultReporter.id,
+            reporter: defaultReporter,
+            project: {
+              ...defaultProject,
+              id: item.project || item.client || defaultProject.id,
+              name: item.project || item.client || defaultProject.name,
+            },
+            createdAt: existing?.createdAt ?? item.importedAt,
+            updatedAt: new Date().toISOString(),
+            resolvedAt: item.qaCategory === 'Done' ? new Date().toISOString() : undefined,
           })
+        })
 
-          return { bugs: [...qaBugs, ...manualBugs] }
-        }),
-    }),
-    { name: 'sentinel-core-bugs', version: 2 }
-  )
+        return { bugs: [...qaBugs, ...manualBugs] }
+      }),
+  })
 )
 
 // All QA items are trackable — the Bugs module is the QA tracking board

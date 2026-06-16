@@ -22,7 +22,7 @@ import { ActivityHeatmap }    from '@/components/dashboard/activity-heatmap'
 import { BurndownChart }      from '@/components/dashboard/burndown-chart'
 import { QACoverageDonut }    from '@/components/dashboard/qa-coverage-donut'
 import { LayoutEditor }       from '@/components/dashboard/layout-editor'
-import { useAuthStore }           from '@/store/auth'
+import { useUser }                from '@/hooks/useAuth'
 import { useDashboardLayoutStore } from '@/store/dashboard-layout'
 import { cn, formatDate } from '@/lib/utils'
 
@@ -112,7 +112,7 @@ function WidgetNode({ id }: { id: string }) {
 }
 
 export default function DashboardPage() {
-  const user      = useAuthStore(s => s.user)
+  const user      = useUser()
   const userId    = user?.id ?? 'guest'
   const firstName = user?.name.split(' ')[0] ?? ''
 

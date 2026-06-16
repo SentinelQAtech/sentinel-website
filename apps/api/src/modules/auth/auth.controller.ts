@@ -7,6 +7,7 @@ import { AuthService } from './auth.service'
 import { RegisterDto } from './dto/register.dto'
 import { LoginDto } from './dto/login.dto'
 import { RefreshTokenDto } from './dto/refresh-token.dto'
+import { SupabaseLoginDto } from './dto/supabase-login.dto'
 import { LocalAuthGuard } from './guards/local-auth.guard'
 import { JwtAuthGuard } from './guards/jwt-auth.guard'
 
@@ -29,6 +30,14 @@ export class AuthController {
   @ApiOperation({ summary: 'Login and get JWT tokens' })
   login(@Request() req: any) {
     return this.authService.login(req.user)
+  }
+
+  @Post('supabase')
+  @HttpCode(HttpStatus.OK)
+  @Throttle({ default: { limit: 5, ttl: 300000 } })
+  @ApiOperation({ summary: 'Exchange Supabase session token for internal JWT' })
+  supabase(@Body() dto: SupabaseLoginDto) {
+    return this.authService.supabaseLogin(dto.accessToken)
   }
 
   @Post('refresh')

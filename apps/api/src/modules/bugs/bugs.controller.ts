@@ -53,6 +53,12 @@ export class BugsController {
     return this.bugs.update(id, dto, req.user.id)
   }
 
+  @Post('bulk-sync')
+  @ApiOperation({ summary: 'Bulk sync bugs from QA Importer' })
+  bulkSync(@Body() dto: { items: any[] }, @Request() req: any) {
+    return this.bugs.bulkSync(dto.items, req.user.id)
+  }
+
   @Delete(':id')
   @HttpCode(HttpStatus.NO_CONTENT)
   @ApiOperation({ summary: 'Delete bug' })

@@ -27,11 +27,17 @@
     "test:e2e:core": "npm run test:e2e --workspace @sentinel-core/core --",
     "db:generate": "cd apps/api && npx prisma generate",
     "db:migrate": "cd apps/api && npx prisma migrate dev",
+    "db:seed": "cd apps/api && npx prisma db seed",
     "db:studio": "cd apps/api && npx prisma studio"
+  },
+  "prisma": {
+    "schema": "prisma/schema.prisma",
+    "seed": "tsx prisma/seed.ts"
   },
   "devDependencies": {
     "@types/node": "^22.0.0",
     "prettier": "^3.3.3",
+    "tsx": "^4.22.4",
     "turbo": "^2.3.0"
   },
   "engines": {
@@ -39,6 +45,7 @@
   },
   "dependencies": {
     "@dnd-kit/modifiers": "^9.0.0",
+    "@vercel/speed-insights": "^2.0.0",
     "next": "^15.1.0",
     "react": "^19.0.0",
     "react-dom": "^19.0.0"

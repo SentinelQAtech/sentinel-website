@@ -132,6 +132,74 @@ export class BugsService {
     return updated
   }
 
+  async bulkSync(items: any[], _userId: string) {
+    let synced = 0
+    for (const item of items) {
+      const id = `qa-bug-${item.id}`
+      const existing = await this.prisma.bug.findUnique({ where: { id } })
+
+      const bugData = {
+        id,
+        bugId: item.issueKey || `QA-${String(synced + 1).padStart(3, '0')}`,
+        title: item.title,
+        description: this.buildQABugDescription(item),
+        severity: this.mapQAPriority(item.priority),
+        priority: this.mapQAPriority(item.priority),
+        status: this.mapQAStatus(item.status, item.qaCategory),
+        environment: item.project || item.client || null,
+        tags: [item.client, item.sprint, item.qaCategory, item.source].filter(Boolean),
+        projectId: item.project || item.client || 'manual-project',
+        reporterId: _userId,
+      }
+
+      if (existing) {
+        await this.prisma.bug.update({ where: { id }, data: bugData })
+      } else {
+        await this.prisma.bug.create({
+          data: {
+            ...bugData,
+            bugId: bugData.bugId,
+          },
+        })
+      }
+      synced++
+    }
+
+    return { synced }
+  }
+
+  private buildQABugDescription(item: any): string {
+    const parts: string[] = []
+    if (item.notes) parts.push(item.notes)
+    if (item.description) parts.push(`Descricao:\n${item.description}`)
+    if (item.comments?.length) {
+      parts.push(item.comments.slice(0, 5).map((c: any, i: number) => `Comentario ${i + 1}: ${c.body}`).join('\n\n'))
+    }
+    if (item.pullRequests?.length) {
+      parts.push(item.pullRequests.map((p: any) => `PR: ${p.text || p.url} - ${p.url}`).join('\n'))
+    }
+    if (item.externalLinks?.length) {
+      parts.push(item.externalLinks.map((l: any) => `Link: ${l.text || l.url} - ${l.url}`).join('\n'))
+    }
+    if (item.link) parts.push(`Jira: ${item.link}`)
+    return parts.length > 0 ? parts.join('\n\n') : 'Bug importado via QA Importer.'
+  }
+
+  private mapQAPriority(priority: string): any {
+    if (priority === 'Critical') return 'CRITICAL'
+    if (priority === 'High') return 'HIGH'
+    if (priority === 'Low') return 'LOW'
+    return 'MEDIUM'
+  }
+
+  private mapQAStatus(status: string, qaCategory: string): any {
+    const s = (status || '').toLowerCase()
+    if (qaCategory === 'Done' || s.includes('done') || s.includes('closed')) return 'RESOLVED'
+    if (qaCategory === 'Review' || s.includes('review')) return 'IN_REVIEW'
+    if (qaCategory === 'In Testing' || s.includes('progress') || s.includes('testing')) return 'IN_PROGRESS'
+    return 'OPEN'
+  }
+
   async remove(id: string) {
     await this.findOne(id)
     return this.prisma.bug.delete({ where: { id } })

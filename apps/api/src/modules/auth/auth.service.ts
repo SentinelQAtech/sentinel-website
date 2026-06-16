@@ -1,18 +1,23 @@
-import { Injectable, UnauthorizedException, ConflictException } from '@nestjs/common'
+import { Injectable, UnauthorizedException, ConflictException, Logger } from '@nestjs/common'
 import { JwtService } from '@nestjs/jwt'
 import { ConfigService } from '@nestjs/config'
+import * as crypto from 'crypto'
 import * as bcrypt from 'bcrypt'
 import { UsersService } from '../users/users.service'
 import { PrismaService } from '../../prisma/prisma.service'
 import { RegisterDto } from './dto/register.dto'
+import { SupabaseService } from './supabase/supabase.service'
 
 @Injectable()
 export class AuthService {
+  private readonly logger = new Logger(AuthService.name)
+
   constructor(
     private readonly users: UsersService,
     private readonly jwt: JwtService,
     private readonly config: ConfigService,
     private readonly prisma: PrismaService,
+    private readonly supabase: SupabaseService,
   ) {}
 
   async validateUser(email: string, password: string) {
@@ -47,6 +52,50 @@ export class AuthService {
     })
 
     return this.login(user)
+  }
+
+  async supabaseLogin(accessToken: string) {
+    if (!this.supabase.isEnabled) {
+      throw new UnauthorizedException('Supabase auth bridge is not configured')
+    }
+
+    const supabaseUser = await this.supabase.verifyToken(accessToken)
+
+    if (!supabaseUser.email) {
+      throw new UnauthorizedException('Supabase user has no email')
+    }
+
+    // Find or create local user linked by email
+    let localUser = await this.users.findByEmail(supabaseUser.email)
+
+    if (localUser) {
+      // Update Supabase ID if not set
+      await this.prisma.user.update({
+        where: { id: localUser.id },
+        data: { lastSeen: new Date() },
+      })
+    } else {
+      // Create new local user from Supabase data
+      const metadata = supabaseUser.user_metadata
+      const username = metadata?.username
+        ?? supabaseUser.email.split('@')[0].toLowerCase().replace(/[^a-z0-9_-]/g, '_')
+
+      const dummyHash = await bcrypt.hash(crypto.randomUUID(), 12)
+
+      localUser = await this.prisma.user.create({
+        data: {
+          email: supabaseUser.email,
+          username,
+          name: metadata?.full_name ?? metadata?.name ?? username,
+          passwordHash: dummyHash,
+          role: 'DEVELOPER',
+        },
+      })
+
+      this.logger.log(`Created local user from Supabase: ${supabaseUser.email}`)
+    }
+
+    return this.login({ id: localUser.id, email: localUser.email, role: localUser.role })
   }
 
   async refreshTokens(userId: string, refreshToken: string) {

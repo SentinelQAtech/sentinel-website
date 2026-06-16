@@ -7,17 +7,18 @@ import { motion, AnimatePresence } from 'framer-motion'
 import {
   Plus, Zap, ArrowUpRight, Users, Bug, KanbanSquare,
   FolderKanban, X, Calendar, Trash2, CheckCircle2,
-  Clock, Ban,
+  Clock, Ban, Loader2, AlertCircle,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Avatar } from '@/components/ui/avatar'
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card'
 import { cn } from '@/lib/utils'
-import { useSprintsStore, type Sprint } from '@/store/sprints'
+import { useSprints, useCreateSprint, useUpdateSprint, useDeleteSprint } from '@/hooks/useSprints'
+import { useProjects } from '@/hooks/useProjects'
 import { useTeamStore } from '@/store/team'
 import { useI18nStore } from '@/store/i18n'
 import { getTodayISO } from '@/store/daily'
-import type { SprintStatus } from '@/types'
+import type { Sprint, SprintStatus } from '@/types'
 
 // ─── Status config ────────────────────────────────────────────
 
@@ -147,8 +148,8 @@ function SprintCard({ sprint, onDelete, onStatusChange }: {
 
 // ─── Nova Sprint Modal ────────────────────────────────────────
 
-function NewSprintModal({ onClose }: { onClose: () => void }) {
-  const addSprint = useSprintsStore(s => s.addSprint)
+function NewSprintModal({ projectId, onClose }: { projectId: string; onClose: () => void }) {
+  const createSprint = useCreateSprint()
   const [name,      setName]      = useState('')
   const [goal,      setGoal]      = useState('')
   const [startDate, setStartDate] = useState(getTodayISO())
@@ -161,13 +162,14 @@ function NewSprintModal({ onClose }: { onClose: () => void }) {
 
   const create = () => {
     if (!name.trim() || !startDate || !endDate) return
-    addSprint({
+    createSprint.mutate({
       name: name.trim(),
       goal: goal.trim() || undefined,
       status,
       startDate,
       endDate,
       capacity: capacity ? Number(capacity) : undefined,
+      projectId,
     })
     onClose()
   }
@@ -293,9 +295,17 @@ function EmptyState({ onNew }: { onNew: () => void }) {
 export function SprintsClient() {
   useI18nStore(s => s.locale)
   const t = useI18nStore(s => s.t)
-  const sprints       = useSprintsStore(s => s.sprints)
-  const updateSprint  = useSprintsStore(s => s.updateSprint)
-  const deleteSprint  = useSprintsStore(s => s.deleteSprint)
+
+  // Project context
+  const { data: projects, isLoading: projectsLoading } = useProjects()
+  const [selectedProjectId, setSelectedProjectId] = useState('')
+  const effectiveProjectId = selectedProjectId || projects?.[0]?.id || ''
+
+  // Sprint data
+  const { data: sprints = [], isLoading, isError } = useSprints(effectiveProjectId)
+  const updateSprint  = useUpdateSprint()
+  const deleteSprint  = useDeleteSprint()
+
   const members       = useTeamStore(s => s.members)
   const activeMembers = members.filter(m => m.user.isActive)
 
@@ -312,6 +322,10 @@ export function SprintsClient() {
     { label: 'Concluídas', value: completed.length,  color: '#06b6d4' },
   ]
 
+  const noProject = !effectiveProjectId && !projectsLoading
+
+  const hasProjects = projects && projects.length > 0
+
   return (
     <div className="space-y-6 animate-fade-in-up">
       {/* Header */}
@@ -325,13 +339,59 @@ export function SprintsClient() {
             {active.length} {t('activeSprintsWithStatus')}
           </p>
         </div>
-        <Button variant="glow" onClick={() => setCreateOpen(true)} leftIcon={<Plus className="w-4 h-4" />}>
-          {t('newSprint')}
-        </Button>
+        <div className="flex items-center gap-3">
+          {hasProjects && (
+            <select
+              title="Selecionar projeto"
+              value={selectedProjectId || projects[0].id}
+              onChange={e => setSelectedProjectId(e.target.value)}
+              className="px-3 py-1.5 rounded-lg text-xs font-medium bg-white/[0.06] border border-white/[0.1] text-white/70 hover:text-white outline-none transition-colors cursor-pointer"
+            >
+              {projects.map(p => (
+                <option key={p.id} value={p.id}>{p.name}</option>
+              ))}
+            </select>
+          )}
+          {effectiveProjectId && (
+            <Button variant="glow" onClick={() => setCreateOpen(true)} leftIcon={<Plus className="w-4 h-4" />}>
+              {t('newSprint')}
+            </Button>
+          )}
+        </div>
       </div>
 
+      {/* Loading state */}
+      {isLoading && (
+        <div className="flex items-center justify-center py-20">
+          <Loader2 className="w-6 h-6 text-white/40 animate-spin" />
+        </div>
+      )}
+
+      {/* Error state */}
+      {isError && !isLoading && effectiveProjectId && (
+        <Card>
+          <CardContent className="flex min-h-[200px] flex-col items-center justify-center text-center gap-3">
+            <AlertCircle className="w-8 h-8 text-red-400" />
+            <p className="text-sm text-white/60">Erro ao carregar sprints</p>
+            <Button variant="outline" onClick={() => window.location.reload()}>
+              Tentar novamente
+            </Button>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* No project state */}
+      {noProject && !isLoading && (
+        <Card>
+          <CardContent className="flex min-h-[200px] flex-col items-center justify-center text-center gap-3">
+            <FolderKanban className="w-8 h-8 text-white/30" />
+            <p className="text-sm text-white/60">Selecione um projeto para ver as sprints</p>
+          </CardContent>
+        </Card>
+      )}
+
       {/* Stats bar */}
-      {sprints.length > 0 && (
+      {sprints.length > 0 && !isLoading && !isError && (
         <div className="grid grid-cols-4 gap-3">
           {stats.map(s => (
             <div key={s.label} className="glass-card border border-white/[0.07] px-4 py-3 flex items-center gap-3">
@@ -345,9 +405,9 @@ export function SprintsClient() {
       <div className="grid grid-cols-12 gap-5">
         {/* Sprint list */}
         <div className="col-span-12 lg:col-span-8 space-y-4">
-          {sprints.length === 0 ? (
+          {!isLoading && !isError && effectiveProjectId && sprints.length === 0 ? (
             <EmptyState onNew={() => setCreateOpen(true)} />
-          ) : (
+          ) : !isLoading && !isError ? (
             <>
               {active.length > 0 && (
                 <div>
@@ -355,8 +415,8 @@ export function SprintsClient() {
                   <AnimatePresence>
                     {active.map(sp => (
                       <SprintCard key={sp.id} sprint={sp}
-                        onDelete={() => deleteSprint(sp.id)}
-                        onStatusChange={status => updateSprint(sp.id, { status })}
+                        onDelete={() => deleteSprint.mutate(sp.id)}
+                        onStatusChange={status => updateSprint.mutate({ id: sp.id, status })}
                       />
                     ))}
                   </AnimatePresence>
@@ -370,8 +430,8 @@ export function SprintsClient() {
                     <AnimatePresence>
                       {planning.map(sp => (
                         <SprintCard key={sp.id} sprint={sp}
-                          onDelete={() => deleteSprint(sp.id)}
-                          onStatusChange={status => updateSprint(sp.id, { status })}
+                          onDelete={() => deleteSprint.mutate(sp.id)}
+                          onStatusChange={status => updateSprint.mutate({ id: sp.id, status })}
                         />
                       ))}
                     </AnimatePresence>
@@ -386,8 +446,8 @@ export function SprintsClient() {
                     <AnimatePresence>
                       {completed.map(sp => (
                         <SprintCard key={sp.id} sprint={sp}
-                          onDelete={() => deleteSprint(sp.id)}
-                          onStatusChange={status => updateSprint(sp.id, { status })}
+                          onDelete={() => deleteSprint.mutate(sp.id)}
+                          onStatusChange={status => updateSprint.mutate({ id: sp.id, status })}
                         />
                       ))}
                     </AnimatePresence>
@@ -395,7 +455,7 @@ export function SprintsClient() {
                 </div>
               )}
             </>
-          )}
+          ) : null}
         </div>
 
         {/* Sidebar */}
@@ -446,7 +506,9 @@ export function SprintsClient() {
 
       {/* Modal */}
       <AnimatePresence>
-        {createOpen && <NewSprintModal onClose={() => setCreateOpen(false)} />}
+        {createOpen && effectiveProjectId && (
+          <NewSprintModal projectId={effectiveProjectId} onClose={() => setCreateOpen(false)} />
+        )}
       </AnimatePresence>
     </div>
   )

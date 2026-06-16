@@ -11,10 +11,8 @@
  */
 
 import { create } from 'zustand'
-import { persist } from 'zustand/middleware'
 import type { Project } from '@/types'
 import type { QAItem } from './qa-importer'
-import { createUserWorkspaceStorage } from '@/lib/workspace-storage'
 
 const _qaOwner = {
   id: '1',
@@ -47,72 +45,65 @@ interface ProjectsState {
 }
 
 export const useProjectsStore = create<ProjectsState>()(
-  persist(
-    (set) => ({
-      projects: [],
+  (set) => ({
+    projects: [],
 
-      addProject: (project) =>
-        set(state => ({
-          projects: [project, ...state.projects.filter(item => item.id !== project.id)],
-        })),
+    addProject: (project) =>
+      set(state => ({
+        projects: [project, ...state.projects.filter(item => item.id !== project.id)],
+      })),
 
-      deleteProject: (id) =>
-        set(state => ({ projects: state.projects.filter(project => project.id !== id) })),
+    deleteProject: (id) =>
+      set(state => ({ projects: state.projects.filter(project => project.id !== id) })),
 
-      updateProject: (id, updates) =>
-        set(state => ({
-          projects: state.projects.map(project =>
-            project.id === id ? { ...project, ...updates, updatedAt: new Date().toISOString() } : project
-          ),
-        })),
+    updateProject: (id, updates) =>
+      set(state => ({
+        projects: state.projects.map(project =>
+          project.id === id ? { ...project, ...updates, updatedAt: new Date().toISOString() } : project
+        ),
+      })),
 
-      syncFromQAImporter: (items) =>
-        set(s => {
-          const now = new Date().toISOString()
+    syncFromQAImporter: (items) =>
+      set(s => {
+        const now = new Date().toISOString()
 
-          // Only create projects for items with an explicit project name.
-          // Never fall back to client name — the client is the company, not the project.
-          const seen = new Map<string, { id: string; name: string; client: string; color: string }>()
-          items.forEach(item => {
-            const name = item.project?.trim()
-            if (!name) return
-            const id = `qa-proj-${name.toLowerCase().replace(/[^a-z0-9]+/g, '-')}`
-            if (!seen.has(id)) {
-              seen.set(id, { id, name, client: item.client ?? '', color: clientColor(item.client ?? '') })
-            }
+        // Only create projects for items with an explicit project name.
+        // Never fall back to client name — the client is the company, not the project.
+        const seen = new Map<string, { id: string; name: string; client: string; color: string }>()
+        items.forEach(item => {
+          const name = item.project?.trim()
+          if (!name) return
+          const id = `qa-proj-${name.toLowerCase().replace(/[^a-z0-9]+/g, '-')}`
+          if (!seen.has(id)) {
+            seen.set(id, { id, name, client: item.client ?? '', color: clientColor(item.client ?? '') })
+          }
+        })
+
+        const existingIds = new Set(s.projects.map(p => p.id))
+        const toAdd: Project[] = []
+
+        seen.forEach(({ id, name, client, color }) => {
+          if (existingIds.has(id)) return
+          toAdd.push({
+            id,
+            name,
+            description: client ? `Projeto QA — ${client}` : 'Projeto QA',
+            status:      'ACTIVE',
+            priority:    'MEDIUM',
+            progress:    0,
+            tags:        client ? [client] : [],
+            clientName:  client || undefined,
+            coverColor:  color,
+            ownerId:     _qaOwner.id,
+            owner:       _qaOwner,
+            members:     [],
+            createdAt:   now,
+            updatedAt:   now,
           })
+        })
 
-          const existingIds = new Set(s.projects.map(p => p.id))
-          const toAdd: Project[] = []
-
-          seen.forEach(({ id, name, client, color }) => {
-            if (existingIds.has(id)) return
-            toAdd.push({
-              id,
-              name,
-              description: client ? `Projeto QA — ${client}` : 'Projeto QA',
-              status:      'ACTIVE',
-              priority:    'MEDIUM',
-              progress:    0,
-              tags:        client ? [client] : [],
-              clientName:  client || undefined,
-              coverColor:  color,
-              ownerId:     _qaOwner.id,
-              owner:       _qaOwner,
-              members:     [],
-              createdAt:   now,
-              updatedAt:   now,
-            })
-          })
-
-          if (toAdd.length === 0) return s
-          return { projects: [...toAdd, ...s.projects] }
-        }),
-    }),
-    {
-      name: 'sentinel-core-projects',
-      version: 2,
-      storage: createUserWorkspaceStorage(),
-    }
-  )
+        if (toAdd.length === 0) return s
+        return { projects: [...toAdd, ...s.projects] }
+      }),
+  })
 )
