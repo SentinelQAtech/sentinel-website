@@ -2,6 +2,7 @@
 
 import { useQuery, useMutation, useQueryClient, useInfiniteQuery } from '@tanstack/react-query'
 import { api } from '@/lib/api'
+import { normalizeBugsResponse } from '@/lib/bugs-contract'
 import type { Bug, BugSeverity, BugStatus, Priority, User } from '@/types'
 
 // ─── Query Key Factory ─────────────────────────────────────────
@@ -208,10 +209,11 @@ export function useBugs(filters?: BugFilters) {
         })
       }
       const query = params.toString()
-      const { data } = await api.get<PaginatedBugs>(`/bugs${query ? `?${query}` : ''}`)
+      const { data } = await api.get<PaginatedBugs | ApiBug[]>(`/bugs${query ? `?${query}` : ''}`)
+      const normalized = normalizeBugsResponse<ApiBug>(data)
       return {
-        ...data,
-        data: data.data.map(mapBug),
+        ...normalized,
+        data: normalized.data.map(mapBug),
       }
     },
   })

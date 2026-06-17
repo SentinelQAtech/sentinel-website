@@ -2,7 +2,14 @@ import type { NextConfig } from 'next'
 
 const isDev = process.env.NODE_ENV === 'development'
 const basePath = process.env.NEXT_PUBLIC_BASE_PATH?.trim() || undefined
-const apiUrl = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:3001'
+const configuredApiUrl = process.env.NEXT_PUBLIC_API_URL?.trim()
+
+if (!configuredApiUrl && !isDev) {
+  throw new Error('NEXT_PUBLIC_API_URL must be configured outside local development')
+}
+
+const apiUrl = configuredApiUrl || 'http://localhost:3001'
+const apiOrigin = new URL(apiUrl).origin
 
 const securityHeaders = [
   { key: 'X-DNS-Prefetch-Control',    value: 'on' },
@@ -19,7 +26,7 @@ const securityHeaders = [
       "style-src 'self' 'unsafe-inline'",
       "img-src 'self' data: blob: https:",
       "font-src 'self' https://fonts.gstatic.com",
-      `connect-src 'self' ${isDev ? apiUrl : ''} https://api.anthropic.com https://*.supabase.co wss://*.supabase.co`,
+      `connect-src 'self' ${apiOrigin} https://api.anthropic.com https://*.supabase.co wss://*.supabase.co`,
       "frame-ancestors 'none'",
     ].join('; '),
   },

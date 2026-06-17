@@ -12,6 +12,7 @@ import { useI18nStore } from '@/store/i18n'
 import { useBugs, useCreateBug, useBulkSyncBugs } from '@/hooks/useBugs'
 import { useQAImporterStore } from '@/store/qa-importer'
 import { defaultReporter, defaultProject } from '@/store/bugs'
+import { getBugsLoadErrorMessage } from '@/lib/bugs-contract'
 import type { Bug as BugType, BugSeverity, BugStatus, Priority } from '@/types'
 
 type SeverityFilter = 'ALL' | BugSeverity
@@ -29,7 +30,12 @@ export function BugsClient() {
   const [quickFilter, setQuickFilter] = useState<'total' | 'open' | 'critical' | 'resolved'>('total')
 
   // Primary data source: React Query
-  const { data: paginated, isLoading: isBugsLoading, isError: isBugsError } = useBugs()
+  const {
+    data: paginated,
+    error: bugsError,
+    isLoading: isBugsLoading,
+    isError: isBugsError,
+  } = useBugs()
   const bugs = paginated?.data ?? []
   const createBug = useCreateBug()
 
@@ -96,7 +102,7 @@ export function BugsClient() {
       <div className="glass-card flex flex-col items-center justify-center py-20 text-center">
         <Bug className="w-12 h-12 text-red-400/50 mb-4" />
         <p className="text-white/50 font-medium">Erro ao carregar bugs</p>
-        <p className="text-white/30 text-sm mt-1">Tente recarregar a pagina</p>
+        <p className="text-white/30 text-sm mt-1">{getBugsLoadErrorMessage(bugsError)}</p>
       </div>
     )
   }

@@ -26,6 +26,7 @@
     "verify:web": "npm run verify:core",
     "test:e2e:core": "npm run test:e2e --workspace @sentinel-core/core --",
     "smoke:operational:s0": "tsx scripts/operational-smoke-test-0.ts",
+    "test:bugs-preview": "tsx --test apps/core/src/lib/bugs-contract.test.ts apps/api/src/config/cors.test.ts apps/api/src/modules/auth/supabase/supabase-config.test.ts",
     "db:generate": "cd apps/api && npx prisma generate",
     "db:migrate": "cd apps/api && npx prisma migrate dev",
     "db:seed": "cd apps/api && npx prisma db seed",

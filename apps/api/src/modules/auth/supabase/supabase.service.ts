@@ -1,5 +1,6 @@
 import { Injectable, Logger, OnModuleInit } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
+import { resolveSupabaseServerKey } from './supabase-config'
 
 interface SupabaseUser {
   id: string
@@ -16,11 +17,14 @@ export class SupabaseService implements OnModuleInit {
 
   onModuleInit() {
     const supabaseUrl = this.config.get('SUPABASE_URL')
-    const serviceRoleKey = this.config.get('SUPABASE_SERVICE_ROLE_KEY')
+    const serverKey = resolveSupabaseServerKey({
+      SUPABASE_SERVICE_ROLE_KEY: this.config.get('SUPABASE_SERVICE_ROLE_KEY'),
+      SUPABASE_PUBLISHABLE_KEY: this.config.get('SUPABASE_PUBLISHABLE_KEY'),
+    })
 
-    if (supabaseUrl && serviceRoleKey) {
+    if (supabaseUrl && serverKey) {
       const { createClient } = require('@supabase/supabase-js')
-      this.adminClient = createClient(supabaseUrl, serviceRoleKey, {
+      this.adminClient = createClient(supabaseUrl, serverKey, {
         auth: { persistSession: false },
       })
       this.logger.log('Supabase admin client initialized')
