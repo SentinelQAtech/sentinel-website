@@ -2,6 +2,7 @@ import type { NextConfig } from 'next'
 
 const isDev = process.env.NODE_ENV === 'development'
 const basePath = process.env.NEXT_PUBLIC_BASE_PATH?.trim() || undefined
+const apiUrl = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:3001'
 
 const securityHeaders = [
   { key: 'X-DNS-Prefetch-Control',    value: 'on' },
@@ -18,7 +19,7 @@ const securityHeaders = [
       "style-src 'self' 'unsafe-inline'",
       "img-src 'self' data: blob: https:",
       "font-src 'self' https://fonts.gstatic.com",
-      "connect-src 'self' https://api.anthropic.com https://*.supabase.co wss://*.supabase.co",
+      `connect-src 'self' ${isDev ? apiUrl : ''} https://api.anthropic.com https://*.supabase.co wss://*.supabase.co`,
       "frame-ancestors 'none'",
     ].join('; '),
   },
@@ -45,7 +46,7 @@ const nextConfig: NextConfig = {
     return [
       {
         source:      '/api/:path*',
-        destination: `${process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:3001'}/:path*`,
+        destination: `${apiUrl}/:path*`,
       },
     ]
   },

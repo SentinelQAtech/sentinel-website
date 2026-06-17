@@ -272,3 +272,39 @@ Checkpoint: `b3dcb38`
 - `npm.cmd run test:e2e:core -- tests/e2e/navigation.spec.ts --reporter=list`
 
 Resultado: type-checks e builds passaram. O build do Core manteve warnings preexistentes de lint fora do escopo desta fase. Playwright nao concluiu no ambiente local: a suite completa e um spec isolado de navegacao ficaram presos ate timeout de 3 minutos.
+
+---
+
+## Phase 3 — Operational QA Validation
+
+Data: 17/06/2026
+
+### Documento adicionado
+
+- `docs/stabilization/OPERATIONAL_QA_VALIDATION_REPORT.md`
+
+### Resultado
+
+- Fluxo operacional backend-first passou via API:
+  - criar QA Item;
+  - recuperar apos refresh;
+  - enviar para Daily;
+  - marcar Doing;
+  - refletir no Board como `in_testing`;
+  - mover para Blocked;
+  - refletir Daily como Blocked;
+  - marcar Done;
+  - novo login via API;
+  - persistir estado final.
+- Validacao manual visual pela UI ainda esta bloqueada no login local.
+
+### Correcoes encontradas durante a validacao
+
+- Auth local do Core passou a respeitar `NEXT_PUBLIC_AUTH_MODE=local`.
+- CSP de desenvolvimento passou a permitir conexao com `NEXT_PUBLIC_API_URL`.
+
+### Blockers restantes
+
+- Banco existente precisa ser baselineado em Prisma Migrate.
+- API local com Prisma deve usar conexao direta ou configuracao compativel com pooler Supabase.
+- Login local pela UI/browser ainda precisa ser depurado separadamente.

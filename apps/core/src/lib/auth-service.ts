@@ -12,6 +12,10 @@ const ACCESS_TOKEN_KEY = 'accessToken'
 const REFRESH_TOKEN_KEY = 'refreshToken'
 const USER_ID_KEY = 'userId'
 
+function isLocalAuthMode(): boolean {
+  return process.env.NEXT_PUBLIC_AUTH_MODE === 'local'
+}
+
 export function getStoredAccessToken(): string | null {
   if (typeof window === 'undefined') return null
   return localStorage.getItem(ACCESS_TOKEN_KEY)
@@ -33,6 +37,18 @@ export function clearTokens(): void {
 }
 
 export async function getCurrentUser(): Promise<User | null> {
+  if (isLocalAuthMode()) {
+    if (!getStoredAccessToken()) return null
+
+    try {
+      const { data } = await api.get<User>('/auth/me')
+      return data
+    } catch {
+      clearTokens()
+      return null
+    }
+  }
+
   const supabase = createClient()
   const { data, error } = await supabase.auth.getUser()
   if (error || !data.user) return null
@@ -54,6 +70,15 @@ function toAppUser(user: SupabaseUser): User {
 }
 
 export async function loginWithEmail(email: string, password: string): Promise<AuthResult> {
+  if (isLocalAuthMode()) {
+    clearTokens()
+    const { data: tokens } = await api.post<AuthTokens>('/auth/login', { email, password })
+    storeTokens(tokens, '')
+    const { data: user } = await api.get<User>('/auth/me')
+    localStorage.setItem(USER_ID_KEY, user.id)
+    return { user, tokens }
+  }
+
   const supabase = createClient()
   const { data, error } = await supabase.auth.signInWithPassword({ email, password })
   if (error || !data.user) throw new Error(error?.message ?? 'Falha na autenticação')
