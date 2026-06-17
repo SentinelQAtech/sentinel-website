@@ -25,7 +25,7 @@ interface Command {
 const NAV_COMMANDS: Command[] = [
   { id: 'nav-dashboard', type: 'navigate', label: 'Dashboard',    icon: <LayoutDashboard className="w-4 h-4" />, href: '/dashboard'   },
   { id: 'nav-daily',     type: 'navigate', label: 'Daily',        icon: <CheckSquare     className="w-4 h-4" />, href: '/daily'       },
-  { id: 'nav-qa',        type: 'navigate', label: 'Tasks',  icon: <ClipboardCheck  className="w-4 h-4" />, href: '/tasks' },
+  { id: 'nav-qa',        type: 'navigate', label: 'QA Inbox',      icon: <ClipboardCheck  className="w-4 h-4" />, href: '/qa-inbox'   },
   { id: 'nav-calendar',  type: 'navigate', label: 'Calendar',     icon: <CalendarDays    className="w-4 h-4" />, href: '/calendar'    },
   { id: 'nav-kanban',    type: 'navigate', label: 'Kanban',       icon: <Kanban          className="w-4 h-4" />, href: '/kanban'      },
   { id: 'nav-reports',   type: 'navigate', label: 'Reports',      icon: <BarChart3       className="w-4 h-4" />, href: '/reports'     },

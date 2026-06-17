@@ -50,13 +50,13 @@ export function ReportsClient() {
   const readiness = useMemo(() => [
     { label: 'Clientes ativos', value: activeCompanies.length, icon: BriefcaseBusiness, color: 'text-cyan-300', href: '/companies' },
     { label: 'Time ativo', value: activeMembers.length, icon: Users, color: 'text-indigo-300', href: '/team' },
-    { label: 'QA pendente', value: pendingQA.length, icon: ClipboardCheck, color: 'text-amber-300', href: '/tasks' },
+    { label: 'QA pendente', value: pendingQA.length, icon: ClipboardCheck, color: 'text-amber-300', href: '/qa-inbox' },
     { label: 'Notificacoes abertas', value: unreadNotifications.length, icon: Bell, color: 'text-violet-300', href: '/notifications' },
   ], [activeCompanies.length, activeMembers.length, pendingQA.length, unreadNotifications.length])
 
   const operationalRows = [
     { label: 'Projetos ativos', value: projects.filter(project => project.status === 'ACTIVE').length, note: 'Projetos cadastrados manualmente' },
-    { label: 'Tasks no board', value: tasks.length, note: 'Inclui cards importados do QA Importer' },
+    { label: 'QA Items no board', value: tasks.length, note: 'Inclui cards importados do QA Inbox' },
     { label: 'Bugs abertos', value: stats?.openBugs ?? 0, note: 'Bugs registrados na API' },
     { label: 'Itens QA importados', value: qaItems.length, note: `${pendingQA.length} pendentes, ${sentQA.length} enviados ao Daily` },
   ]

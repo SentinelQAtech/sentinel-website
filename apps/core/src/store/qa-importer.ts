@@ -124,6 +124,23 @@ export const PRIORITY_CONFIG: Record<QAPriority, { color: string; label: string 
   Unknown:  { color: '#64748b', label: 'Unknown'  },
 }
 
+function dailyStatusFromCategory(category?: QACategory): QADailyStatus | undefined {
+  if (!category) return undefined
+  if (category === 'Done') return 'done'
+  if (category === 'Blocked') return 'blocked'
+  if (category === 'In Testing' || category === 'Review' || category === 'Bug Validation' || category === 'Regression') return 'doing'
+  return 'todo'
+}
+
+function normalizeWorkflowUpdates(updates: Partial<QAItem>): Partial<QAItem> {
+  if (!updates.qaCategory) return updates
+  return {
+    ...updates,
+    status: updates.status ?? updates.qaCategory,
+    dailyStatus: updates.dailyStatus ?? dailyStatusFromCategory(updates.qaCategory),
+  }
+}
+
 // ─── Initial data ─────────────────────────────────────────────
 
 const INITIAL_ITEMS: QAItem[] = []
@@ -256,7 +273,10 @@ export const useQAImporterStore = create<QAImporterStore>()(
       },
 
       updateItem: (id, updates) =>
-        set(s => ({ items: s.items.map(i => i.id === id ? { ...i, ...updates } : i) })),
+        set(s => {
+          const normalized = normalizeWorkflowUpdates(updates)
+          return { items: s.items.map(i => i.id === id ? { ...i, ...normalized } : i) }
+        }),
 
       removeItem: (id) =>
         set(s => ({ items: s.items.filter(i => i.id !== id) })),

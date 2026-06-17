@@ -48,7 +48,7 @@ export function BugTable({ bugs, onOpenBug }: BugTableProps) {
             >
               <td className="px-4 py-3.5">
                 <Link
-                  href="/tasks"
+                  href="/qa-inbox"
                   className="font-mono text-xs text-primary/80 hover:text-primary flex items-center gap-1 transition-colors"
                 >
                   {bug.bugId}

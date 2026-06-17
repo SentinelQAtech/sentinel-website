@@ -9,7 +9,6 @@ import {
   useQAImporterStore,
   type QAItem, type QAItemSource, type ArchivedSession, PRIORITY_ORDER, QA_CATEGORY_CONFIG, getLocalISODate,
 } from '@/store/qa-importer'
-import { useDailyStore, getTodayISO, type DailyPriority, type DailyType } from '@/store/daily'
 import type { ParsedQAItem } from '@/lib/qa-parser'
 
 import { QAFiltersBar, DEFAULT_FILTERS, type QAFilterState } from './qa-filters'
@@ -17,26 +16,6 @@ import { QACard }          from './qa-card'
 import { ImportPanel }     from './import-panel'
 import { ImportHistory }   from './import-history'
 import { FormattedText }   from './formatted-text'
-
-const VALID_CLIENTS   = new Set(['UOL', 'Concepta', 'ScrumLaunch', 'Ambev', 'Pessoal'])
-const DAILY_PRIORITY  = new Set(['Critical', 'High', 'Medium', 'Low'])
-
-function mapToDailyType(cat: QAItem['qaCategory']): DailyType {
-  if (cat === 'Review') return 'Review'
-  if (cat === 'Blocked') return 'QA Planning'
-  return 'Testing'
-}
-
-function mapToDailyPriority(p: QAItem['priority']): DailyPriority {
-  return DAILY_PRIORITY.has(p) ? (p as DailyPriority) : 'Medium'
-}
-
-function buildEnrichedNotes(item: QAItem): string {
-  const comments = item.comments?.slice(0, 5).map((c, i) => `Comentario ${i + 1}: ${c.body}`).join('\n\n')
-  const prs      = item.pullRequests?.map(l => `PR: ${l.text || l.url} - ${l.url}`).join('\n')
-  const links    = item.externalLinks?.slice(0, 8).map(l => `Link: ${l.text || l.url} - ${l.url}`).join('\n')
-  return [item.notes, item.description && `Descricao:\n${item.description}`, comments, prs, links].filter(Boolean).join('\n\n')
-}
 
 function cleanJiraText(value: string) {
   return value
@@ -61,11 +40,10 @@ function formatCommentDate(value?: string) {
   return date.toLocaleString('pt-BR', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' })
 }
 
-// ─── TasksClient ──────────────────────────────────────────
+// ─── QA Inbox Client ──────────────────────────────────────
 
 export function TasksClient() {
   const store   = useQAImporterStore()
-  const addTask = useDailyStore(s => s.addTask)
 
   const [filters,       setFilters]       = useState<QAFilterState>(DEFAULT_FILTERS)
   const [selected,      setSelected]      = useState<Set<string>>(new Set())
@@ -149,24 +127,21 @@ export function TasksClient() {
   }, [])
 
   const sendItemToDaily = useCallback((item: QAItem) => {
-    const client    = VALID_CLIENTS.has(item.client) ? item.client : 'Pessoal'
-    const titleParts = [item.issueKey && `[${item.issueKey}]`, item.title].filter(Boolean)
-    addTask({ id: `qai-${item.id}`, qaSourceId: item.id, date: getTodayISO(), client, title: titleParts.join(' '), type: mapToDailyType(item.qaCategory), priority: mapToDailyPriority(item.priority), status: 'todo', notes: buildEnrichedNotes(item) || undefined })
     store.markSentToDaily([item.id])
     setSentFeedback(`"${item.title}" enviado para o Daily`)
     setTimeout(() => setSentFeedback(null), 3000)
-  }, [addTask, store])
+  }, [store])
 
-  const isNotSentToday = (i: QAItem) => !i.sentToDaily || i.dailyDate !== todayISO
+  const isNotSentToday = useCallback((i: QAItem) => !i.sentToDaily || i.dailyDate !== todayISO, [todayISO])
 
   const sendSelectedToDaily = useCallback(() => {
     store.items.filter(i => selected.has(i.id) && isNotSentToday(i)).forEach(sendItemToDaily)
     setSelected(new Set())
-  }, [selected, store.items, sendItemToDaily, todayISO])
+  }, [selected, store.items, sendItemToDaily, isNotSentToday])
 
   const sendAllToDaily = useCallback(() => {
     store.items.filter(isNotSentToday).forEach(sendItemToDaily)
-  }, [store.items, sendItemToDaily, todayISO])
+  }, [store.items, sendItemToDaily, isNotSentToday])
 
   const handleImport = useCallback((items: ParsedQAItem[], tabSource: 'text' | 'csv' | 'extension') => {
     const source: QAItemSource = tabSource === 'csv' ? 'csv' : tabSource === 'extension' ? 'extension' : 'manual'
@@ -190,11 +165,11 @@ export function TasksClient() {
             <ClipboardList className="h-5 w-5 text-primary" />
           </div>
           <div>
-            <h1 className="text-xl font-bold text-white">Tasks</h1>
+            <h1 className="text-xl font-bold text-white">QA Inbox</h1>
             <p className="text-xs text-white/35 mt-0.5">
               {store.items.length > 0
-                ? `${store.items.length} task${store.items.length !== 1 ? 's' : ''} · gerencie e envie para o Daily`
-                : 'Importe tasks para começar'}
+                ? `${store.items.length} item${store.items.length !== 1 ? 's' : ''} · revise e envie para Today`
+                : 'Importe itens QA para começar'}
             </p>
           </div>
         </div>
@@ -243,7 +218,7 @@ export function TasksClient() {
               >
                 <div className="flex items-center gap-2 text-xs text-amber-300/80">
                   <AlertTriangle className="h-3.5 w-3.5 shrink-0" />
-                  <span>Arquivar <strong className="text-amber-300">{stats.total} tasks</strong> e limpar o board? O histórico fica salvo.</span>
+                  <span>Arquivar <strong className="text-amber-300">{stats.total} itens QA</strong> e limpar o board? O histórico fica salvo.</span>
                 </div>
                 <div className="flex items-center gap-2 shrink-0">
                   <button type="button" onClick={() => setConfirmArchive(false)}
@@ -269,7 +244,7 @@ export function TasksClient() {
       {/* Main layout */}
       <div className="grid grid-cols-12 gap-5">
 
-        {/* ── Tasks list ── */}
+        {/* ── QA Inbox list ── */}
         <div className="col-span-12 flex flex-col gap-4">
 
           <QAFiltersBar
@@ -412,9 +387,9 @@ export function TasksClient() {
                   <Upload className="h-5 w-5 text-primary" />
                 </div>
                 <div>
-                  <Dialog.Title className="text-base font-bold text-white">Importar Tasks</Dialog.Title>
+                  <Dialog.Title className="text-base font-bold text-white">Importar itens QA</Dialog.Title>
                   <Dialog.Description className="text-xs text-white/40 mt-0.5">
-                    Selecione a empresa e importe suas tasks
+                    Selecione a empresa e importe os itens que entraram para QA
                   </Dialog.Description>
                 </div>
               </div>
@@ -525,7 +500,7 @@ function SessionRow({ session, isExpanded, onToggle }: { session: ArchivedSessio
 
         {/* Result counts */}
         <div className="flex items-center gap-1.5 shrink-0">
-          <span className="text-[11px] font-semibold text-white/35">{counts.total} tasks</span>
+          <span className="text-[11px] font-semibold text-white/35">{counts.total} itens</span>
           {counts.pass > 0    && <CountBadge value={counts.pass}    label="P" color="text-emerald-400 bg-emerald-500/10 border-emerald-500/20" />}
           {counts.fail > 0    && <CountBadge value={counts.fail}    label="F" color="text-red-400 bg-red-500/10 border-red-500/20" />}
           {counts.partial > 0 && <CountBadge value={counts.partial} label="~" color="text-amber-400 bg-amber-500/10 border-amber-500/20" />}
@@ -606,10 +581,10 @@ function EmptyState({ hasItems, onImport }: { hasItems: boolean; onImport: () =>
       </div>
       <div className="text-center">
         <p className="text-sm font-semibold text-white/50">
-          {hasItems ? 'Nenhuma task corresponde aos filtros' : 'Nenhuma task importada ainda'}
+          {hasItems ? 'Nenhum item QA corresponde aos filtros' : 'Nenhum item QA importado ainda'}
         </p>
         <p className="text-xs text-white/25 mt-1">
-          {hasItems ? 'Tente ajustar os filtros' : 'Use o botão Importar para adicionar tasks'}
+          {hasItems ? 'Tente ajustar os filtros' : 'Use o botão Importar para adicionar itens QA'}
         </p>
       </div>
       {!hasItems && (
@@ -619,7 +594,7 @@ function EmptyState({ hasItems, onImport }: { hasItems: boolean; onImport: () =>
           className="flex items-center gap-2 rounded-xl bg-primary/15 border border-primary/25 px-4 py-2 text-sm font-semibold text-primary hover:bg-primary/25 transition-colors"
         >
           <Upload className="h-4 w-4" />
-          Importar tasks
+          Importar itens QA
         </button>
       )}
     </div>

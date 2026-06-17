@@ -142,7 +142,7 @@ export function QAQuickAction() {
           }
         </button>
         <button
-          onClick={() => router.push('/qa-importer')}
+          onClick={() => router.push('/qa-inbox')}
           title="Abrir QA Importer completo"
           className="flex h-full items-center justify-center rounded-xl border border-white/[0.08] px-3 text-white/40 hover:text-white/70 hover:bg-white/[0.04]"
         >

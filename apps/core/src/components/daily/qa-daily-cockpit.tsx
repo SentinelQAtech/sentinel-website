@@ -8,8 +8,8 @@ import {
   useQAImporterStore,
   type QAItem,
   type QADailyStatus,
+  type QACategory,
 } from '@/store/qa-importer'
-import { useDailyStore, type DailyStatus } from '@/store/daily'
 import { QAResolutionDialog } from '@/components/qa-importer/qa-resolution-dialog'
 import { QACopilotPanel } from '@/components/daily/qa-copilot-panel'
 import { QACardPreviewDialog } from '@/components/daily/qa-card-preview-dialog'
@@ -25,22 +25,22 @@ const statusConfig: Record<QADailyStatus, { label: string; color: string; bg: st
 export function QADailyCockpit({ selectedDate }: { selectedDate: string }) {
   const items = useQAImporterStore(s => s.items)
   const updateDailyState = useQAImporterStore(s => s.updateDailyState)
+  const updateItem = useQAImporterStore(s => s.updateItem)
   const moveDailyItem = useQAImporterStore(s => s.moveDailyItem)
   const saveResolution = useQAImporterStore(s => s.saveResolution)
-  const updateTask = useDailyStore(s => s.updateTask)
   const [resolutionItem, setResolutionItem] = useState<QAItem | null>(null)
 
-  const QA_TO_DAILY_STATUS: Record<QADailyStatus, DailyStatus> = {
-    todo:    'todo',
-    doing:   'in_progress',
-    done:    'done',
-    blocked: 'blocked',
+  const DAILY_TO_QA_CATEGORY: Record<QADailyStatus, QACategory> = {
+    todo:    'Ready for QA',
+    doing:   'In Testing',
+    done:    'Done',
+    blocked: 'Blocked',
   }
 
-  // Keep useDailyStore task in sync when QA cockpit status changes
+  // Daily and Board must point to the same QA item state.
   const setQAStatus = (itemId: string, status: QADailyStatus) => {
     updateDailyState(itemId, { dailyStatus: status })
-    updateTask(`qai-${itemId}`, { status: QA_TO_DAILY_STATUS[status] })
+    updateItem(itemId, { qaCategory: DAILY_TO_QA_CATEGORY[status], status: DAILY_TO_QA_CATEGORY[status] })
   }
   const [resolutionOpen, setResolutionOpen] = useState(false)
   const [copiedId, setCopiedId] = useState<string | null>(null)
@@ -281,7 +281,7 @@ export function QADailyCockpit({ selectedDate }: { selectedDate: string }) {
               Importe cards reais do Jira e envie para o Daily para montar sua fila de execução.
             </p>
             <Link
-              href="/tasks"
+              href="/qa-inbox"
               className="mt-4 inline-flex h-8 items-center justify-center rounded-lg border border-primary/25 bg-primary/10 px-3 text-xs font-semibold text-primary hover:bg-primary/15"
             >
               Abrir QA Importer
@@ -408,9 +408,6 @@ export function QADailyCockpit({ selectedDate }: { selectedDate: string }) {
         onOpenChange={setResolutionOpen}
         onSave={(id, resolution) => {
           saveResolution(id, resolution)
-          // saveResolution updates QA dailyStatus — mirror to useDailyStore
-          const resolvedStatus: QADailyStatus = resolution.result === 'PASS' ? 'done' : 'blocked'
-          updateTask(`qai-${id}`, { status: QA_TO_DAILY_STATUS[resolvedStatus] })
           setResolutionOpen(false)
           const nextItem = useQAImporterStore.getState().items.find(item => item.id === id) ?? null
           setResolutionItem(nextItem)

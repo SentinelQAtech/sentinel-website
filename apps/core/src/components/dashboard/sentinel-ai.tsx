@@ -43,10 +43,10 @@ function useInsights() {
     const historicalOpen = allTasks.filter(t => (t.date ?? todayISO) !== todayISO && t.status !== 'done')
 
     if (criticalQA.length > 0) {
-      focus.push({ label: 'Validar QA critico', detail: `${criticalQA.length} item${criticalQA.length > 1 ? 'ns' : ''} aguardando`, href: '/qa-importer', color: '#ef4444', icon: Bug })
+      focus.push({ label: 'Validar QA critico', detail: `${criticalQA.length} item${criticalQA.length > 1 ? 'ns' : ''} aguardando`, href: '/qa-inbox', color: '#ef4444', icon: Bug })
     }
     if (blockedTasks.length + blockedQA.length > 0) {
-      focus.push({ label: 'Remover bloqueios', detail: `${blockedTasks.length + blockedQA.length} bloqueio${blockedTasks.length + blockedQA.length > 1 ? 's' : ''}`, href: blockedTasks.length > 0 ? '/daily' : '/qa-importer', color: '#8b5cf6', icon: AlertTriangle })
+      focus.push({ label: 'Remover bloqueios', detail: `${blockedTasks.length + blockedQA.length} bloqueio${blockedTasks.length + blockedQA.length > 1 ? 's' : ''}`, href: blockedTasks.length > 0 ? '/daily' : '/qa-inbox', color: '#8b5cf6', icon: AlertTriangle })
     }
     if (criticalTasks.length + highTasks.length > 0) {
       focus.push({ label: 'Executar alta prioridade', detail: `${criticalTasks.length + highTasks.length} tarefa${criticalTasks.length + highTasks.length > 1 ? 's' : ''}`, href: '/daily', color: '#f97316', icon: TrendingUp })
@@ -69,7 +69,7 @@ function useInsights() {
         title: 'QA critico pendente',
         detail: `${criticalQA.length} item${criticalQA.length > 1 ? 'ns' : ''} critico${criticalQA.length > 1 ? 's' : ''} aguardando validacao.`,
         action: 'Abrir QA Importer',
-        href: '/qa-importer',
+        href: '/qa-inbox',
       })
     } else {
       insights.push({
@@ -82,7 +82,7 @@ function useInsights() {
         title: 'QA sem criticos',
         detail: `${pendingQA.length} item${pendingQA.length !== 1 ? 'ns' : ''} QA pendente${pendingQA.length !== 1 ? 's' : ''}, nenhum critico no momento.`,
         action: 'Abrir QA Importer',
-        href: '/qa-importer',
+        href: '/qa-inbox',
       })
     }
 
@@ -111,7 +111,7 @@ function useInsights() {
         title: 'Itens bloqueados',
         detail: `${blockedTasks.length} tarefas e ${blockedQA.length} itens QA estao bloqueados.`,
         action: 'Abrir origem',
-        href: blockedTasks.length > 0 ? '/daily' : '/qa-importer',
+        href: blockedTasks.length > 0 ? '/daily' : '/qa-inbox',
       })
     } else {
       insights.push({

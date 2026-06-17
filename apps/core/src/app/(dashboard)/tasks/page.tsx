@@ -1,5 +1,5 @@
-import { TasksClient } from '@/components/qa-importer/qa-client'
+import { redirect } from 'next/navigation'
 
 export default function TasksPage() {
-  return <TasksClient />
+  redirect('/qa-inbox')
 }

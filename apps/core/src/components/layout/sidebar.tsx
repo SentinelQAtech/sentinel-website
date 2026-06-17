@@ -41,7 +41,7 @@ const navGroups: NavGroup[] = [
     items: [
       { labelKey: 'dashboard', href: '/dashboard', icon: LayoutDashboard },
       { labelKey: 'daily',     href: '/daily',     icon: Activity        },
-      { labelKey: 'tasks',     href: '/tasks',     icon: ClipboardCheck  },
+      { labelKey: 'qaInbox',   href: '/qa-inbox',  icon: ClipboardCheck  },
     ],
   },
   {

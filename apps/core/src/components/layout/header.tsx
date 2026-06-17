@@ -1,8 +1,7 @@
 'use client'
 
-import { Bell, Search, Plus, ChevronDown, LogOut, User, Settings } from 'lucide-react'
+import { Bell, Search, ChevronDown, LogOut, User, Settings } from 'lucide-react'
 import { Avatar } from '@/components/ui/avatar'
-import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
 import { useState, useRef, useEffect } from 'react'
 import { useUser, useLogout } from '@/hooks/useAuth'
@@ -10,7 +9,6 @@ import { useUnreadCount } from '@/hooks/useNotifications'
 import { useRouter } from 'next/navigation'
 import { SearchModal } from './search-modal'
 import { NotificationsPanel } from './notifications-panel'
-import { QuickCreateModal } from './quick-create-modal'
 import { LanguageToggle } from './language-toggle'
 import { useI18nStore } from '@/store/i18n'
 
@@ -24,7 +22,6 @@ export function Header() {
   const [menuOpen, setMenuOpen]     = useState(false)
   const [searchOpen, setSearchOpen] = useState(false)
   const [notifOpen, setNotifOpen]   = useState(false)
-  const [createOpen, setCreateOpen] = useState(false)
 
   const menuRef  = useRef<HTMLDivElement>(null)
   const bellRef  = useRef<HTMLButtonElement>(null)
@@ -78,16 +75,6 @@ export function Header() {
           >
             <Search className="w-3.5 h-3.5" />
           </button>
-
-          {/* Quick create */}
-          <Button
-            size="sm"
-            variant="glow"
-            leftIcon={<Plus className="w-3.5 h-3.5" />}
-            onClick={() => setCreateOpen(true)}
-          >
-            <span className="hidden sm:block">{t('create')}</span>
-          </Button>
 
           <LanguageToggle />
 
@@ -174,7 +161,6 @@ export function Header() {
 
       {/* Modals (rendered outside header flow) */}
       <SearchModal open={searchOpen} onClose={() => setSearchOpen(false)} />
-      <QuickCreateModal open={createOpen} onClose={() => setCreateOpen(false)} />
     </>
   )
 }
