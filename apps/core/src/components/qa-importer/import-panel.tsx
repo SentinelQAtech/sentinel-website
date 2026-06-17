@@ -12,7 +12,7 @@ type TabType = 'text' | 'csv' | 'extension'
 interface Props {
   qaFilterEnabled: boolean
   onQaFilterChange:(enabled: boolean) => void
-  onImport:       (items: ParsedQAItem[], source: TabType) => { added: number; updated: number; total: number }
+  onImport:       (items: ParsedQAItem[], source: TabType) => Promise<{ added: number; updated: number; total: number }>
   onSuccess?:     () => void
 }
 
@@ -84,7 +84,7 @@ export function ImportPanel({ qaFilterEnabled, onQaFilterChange, onImport, onSuc
   const currentInput    = tab === 'text' ? textInput : csvInput
   const setCurrentInput = tab === 'text' ? setTextInput : setCsvInput
 
-  const doImport = useCallback((items: ParsedQAItem[], source: TabType) => {
+  const doImport = useCallback(async (items: ParsedQAItem[], source: TabType) => {
     const withClient = applyClient(items, selectedClient, prefixMap)
     return onImport(withClient, source)
   }, [selectedClient, prefixMap, onImport])
@@ -99,7 +99,7 @@ export function ImportPanel({ qaFilterEnabled, onQaFilterChange, onImport, onSuc
       setExtListOpen(false)
       if (count > 0) {
         const filtered = qaFilterEnabled ? cards.filter(isQARelated) : cards
-        doImport(filtered, 'extension')
+        void doImport(filtered, 'extension')
         setExtItems(filtered)
         setExtResult({ count: filtered.length })
         setExtListOpen(true)
@@ -129,7 +129,7 @@ export function ImportPanel({ qaFilterEnabled, onQaFilterChange, onImport, onSuc
       const data = await res.json() as { items: ParsedQAItem[]; count: number }
       if (data.items.length === 0) { setExtResult({ count: 0 }); return }
       const filtered = qaFilterEnabled ? data.items.filter(isQARelated) : data.items
-      doImport(filtered, 'extension')
+      await doImport(filtered, 'extension')
       setExtItems(filtered)
       setExtResult({ count: filtered.length })
     } catch (err) {
@@ -142,19 +142,21 @@ export function ImportPanel({ qaFilterEnabled, onQaFilterChange, onImport, onSuc
 
   const handlePreview = () => { setPreview(parse()); setShowPreview(true) }
 
-  const handleImport = () => {
+  const handleImport = async () => {
     const items = parse()
     if (items.length === 0) return
     setLoading(true)
-    setTimeout(() => {
+    try {
       const result = doImport(items, tab)
-      setLastResult({ added: result.added, updated: result.updated })
+      const resolved = await result
+      setLastResult({ added: resolved.added, updated: resolved.updated })
       setCurrentInput('')
       setPreview(null)
       setShowPreview(false)
+      if (resolved.added > 0 && onSuccess) onSuccess()
+    } finally {
       setLoading(false)
-      if (result.added > 0 && onSuccess) onSuccess()
-    }, 200)
+    }
   }
 
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {

@@ -72,7 +72,7 @@ export class AuthService {
       // Update Supabase ID if not set
       await this.prisma.user.update({
         where: { id: localUser.id },
-        data: { lastSeen: new Date() },
+        data: { lastSeen: new Date(), supabaseId: supabaseUser.id },
       })
     } else {
       // Create new local user from Supabase data
@@ -88,6 +88,7 @@ export class AuthService {
           username,
           name: metadata?.full_name ?? metadata?.name ?? username,
           passwordHash: dummyHash,
+          supabaseId: supabaseUser.id,
           role: 'DEVELOPER',
         },
       })

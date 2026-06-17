@@ -12,6 +12,7 @@ export type QAItemSource = 'manual' | 'csv' | 'extension'
 export type QAResolutionResult = 'PASS' | 'FAIL' | 'PARTIAL' | 'BLOCKED'
 export type QADailyStatus = 'todo' | 'doing' | 'done' | 'blocked'
 export type QAImportDepth = 'board' | 'deep'
+export type QAWorkflowState = 'inbox' | 'planned' | 'in_testing' | 'review' | 'blocked' | 'done'
 
 export interface QALink {
   url: string
@@ -67,6 +68,7 @@ export interface QAItem {
   importedAt:  string
   sentToDaily: boolean
   qaCategory:  QACategory
+  workflowState?: QAWorkflowState
   resolution?: QAResolution
   dailyStatus?: QADailyStatus
   dailyOrder?: number

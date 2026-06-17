@@ -2,15 +2,14 @@ import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
 import type { KanbanColumnDefinition } from '@/components/kanban/kanban-types'
 
-// Column IDs match QACategory values so drag-and-drop directly updates qaCategory
+// Column IDs match QAItem.workflowState values so drag-and-drop persists to backend.
 export const INITIAL_KANBAN_COLUMNS: KanbanColumnDefinition[] = [
-  { id: 'Ready for QA',   label: 'Ready for QA',   color: '#6366f1', isDefault: true },
-  { id: 'In Testing',     label: 'In Testing',      color: '#06b6d4', isDefault: true },
-  { id: 'Bug Validation', label: 'Bug Validation',  color: '#ef4444', isDefault: true },
-  { id: 'Regression',     label: 'Regression',      color: '#f97316', isDefault: true },
-  { id: 'Review',         label: 'Review',          color: '#10b981', isDefault: true },
-  { id: 'Blocked',        label: 'Blocked',         color: '#f59e0b', isDefault: true },
-  { id: 'Done',           label: 'Done',            color: '#64748b', isDefault: true },
+  { id: 'inbox',      label: 'Inbox',       color: '#6366f1', isDefault: true },
+  { id: 'planned',    label: 'Planned',     color: '#8b5cf6', isDefault: true },
+  { id: 'in_testing', label: 'In Testing',  color: '#06b6d4', isDefault: true },
+  { id: 'review',     label: 'Review',      color: '#10b981', isDefault: true },
+  { id: 'blocked',    label: 'Blocked',     color: '#f59e0b', isDefault: true },
+  { id: 'done',       label: 'Done',        color: '#64748b', isDefault: true },
 ]
 
 type StateSetter<T> = T | ((current: T) => T)

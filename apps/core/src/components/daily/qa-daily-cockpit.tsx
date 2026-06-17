@@ -5,11 +5,16 @@ import Link from 'next/link'
 import { ArrowDown, ArrowUp, Bot, Clipboard, ExternalLink, MessageSquareReply, PlayCircle, ShieldAlert, CheckCircle2, Crosshair, Inbox, Sparkles } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import {
-  useQAImporterStore,
   type QAItem,
   type QADailyStatus,
-  type QACategory,
 } from '@/store/qa-importer'
+import {
+  useMoveQAItemDailyOrder,
+  useQAItems,
+  useRecordQAItemResolution,
+  useUpdateQAItem,
+  useUpdateQAItemDailyStatus,
+} from '@/hooks/useQAItems'
 import { QAResolutionDialog } from '@/components/qa-importer/qa-resolution-dialog'
 import { QACopilotPanel } from '@/components/daily/qa-copilot-panel'
 import { QACardPreviewDialog } from '@/components/daily/qa-card-preview-dialog'
@@ -23,24 +28,16 @@ const statusConfig: Record<QADailyStatus, { label: string; color: string; bg: st
 }
 
 export function QADailyCockpit({ selectedDate }: { selectedDate: string }) {
-  const items = useQAImporterStore(s => s.items)
-  const updateDailyState = useQAImporterStore(s => s.updateDailyState)
-  const updateItem = useQAImporterStore(s => s.updateItem)
-  const moveDailyItem = useQAImporterStore(s => s.moveDailyItem)
-  const saveResolution = useQAImporterStore(s => s.saveResolution)
+  const { data: items = [], isLoading, isError } = useQAItems({ sentToDaily: true, dailyDate: selectedDate })
+  const updateDailyStatus = useUpdateQAItemDailyStatus()
+  const updateQAItem = useUpdateQAItem()
+  const moveDailyOrder = useMoveQAItemDailyOrder()
+  const recordResolution = useRecordQAItemResolution()
   const [resolutionItem, setResolutionItem] = useState<QAItem | null>(null)
-
-  const DAILY_TO_QA_CATEGORY: Record<QADailyStatus, QACategory> = {
-    todo:    'Ready for QA',
-    doing:   'In Testing',
-    done:    'Done',
-    blocked: 'Blocked',
-  }
 
   // Daily and Board must point to the same QA item state.
   const setQAStatus = (itemId: string, status: QADailyStatus) => {
-    updateDailyState(itemId, { dailyStatus: status })
-    updateItem(itemId, { qaCategory: DAILY_TO_QA_CATEGORY[status], status: DAILY_TO_QA_CATEGORY[status] })
+    updateDailyStatus.mutate({ id: itemId, dailyStatus: status })
   }
   const [resolutionOpen, setResolutionOpen] = useState(false)
   const [copiedId, setCopiedId] = useState<string | null>(null)
@@ -58,8 +55,8 @@ export function QADailyCockpit({ selectedDate }: { selectedDate: string }) {
   }, [items, selectedDate, sortMode])
 
   const applyOrder = () => {
-    dailyItems.forEach((item, idx) => {
-      updateDailyState(item.id, { dailyOrder: idx })
+    dailyItems.forEach((item, dailyOrder) => {
+      updateQAItem.mutate({ id: item.id, updates: { dailyOrder } })
     })
     setSortMode('manual')
     setOrderApplied(true)
@@ -115,6 +112,16 @@ export function QADailyCockpit({ selectedDate }: { selectedDate: string }) {
 
   return (
     <section className="glass-card border border-primary/15 p-4 space-y-4">
+      {isError && (
+        <div className="rounded-xl border border-red-500/25 bg-red-500/10 px-3 py-2 text-xs text-red-300">
+          Nao foi possivel carregar os QA Items do Daily pela API.
+        </div>
+      )}
+      {isLoading && (
+        <div className="rounded-xl border border-white/[0.08] bg-white/[0.03] px-3 py-2 text-xs text-white/40">
+          Carregando QA Items do dia...
+        </div>
+      )}
       <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
         <div className="min-w-0 flex-1">
           <div className="flex items-center gap-2.5 mb-1">
@@ -308,11 +315,11 @@ export function QADailyCockpit({ selectedDate }: { selectedDate: string }) {
               <div className="flex items-center gap-3 p-3">
                 {/* Index + reorder */}
                 <div className="flex flex-col items-center gap-0.5 shrink-0">
-                  <IconButton title="Mover para cima" disabled={index === 0} onClick={() => moveDailyItem(item.id, 'up')}>
+                  <IconButton title="Mover para cima" disabled={index === 0} onClick={() => moveDailyOrder.mutate({ id: item.id, direction: 'up' })}>
                     <ArrowUp className="h-3 w-3" />
                   </IconButton>
                   <span className="text-[10px] font-semibold text-white/25">#{index + 1}</span>
-                  <IconButton title="Mover para baixo" disabled={index === dailyItems.length - 1} onClick={() => moveDailyItem(item.id, 'down')}>
+                  <IconButton title="Mover para baixo" disabled={index === dailyItems.length - 1} onClick={() => moveDailyOrder.mutate({ id: item.id, direction: 'down' })}>
                     <ArrowDown className="h-3 w-3" />
                   </IconButton>
                 </div>
@@ -407,15 +414,22 @@ export function QADailyCockpit({ selectedDate }: { selectedDate: string }) {
         open={resolutionOpen}
         onOpenChange={setResolutionOpen}
         onSave={(id, resolution) => {
-          saveResolution(id, resolution)
+          const result = resolution.result.toLowerCase() as 'pass' | 'fail' | 'partial' | 'blocked'
+          recordResolution.mutate({
+            id,
+            payload: {
+              resolution: result,
+              resolutionDetails: {
+                ...resolution,
+                resolvedAt: new Date().toISOString(),
+              },
+              evidence: { text: resolution.evidence },
+              category: resolution.result === 'FAIL' ? 'Bug Validation' : undefined,
+            },
+          })
           setResolutionOpen(false)
-          const nextItem = useQAImporterStore.getState().items.find(item => item.id === id) ?? null
-          setResolutionItem(nextItem)
           if (id === focusItemId) {
-            const updatedDailyItems = useQAImporterStore.getState().items
-              .filter(item => item.sentToDaily && (item.dailyDate ?? selectedDate) === selectedDate)
-              .sort((a, b) => (a.dailyOrder ?? 0) - (b.dailyOrder ?? 0))
-            const upcomingItem = getNextOpenItem(updatedDailyItems, id)
+            const upcomingItem = getNextOpenItem(dailyItems, id)
             if (upcomingItem) {
               setQAStatus(upcomingItem.id, 'doing')
               setFocusItemId(upcomingItem.id)

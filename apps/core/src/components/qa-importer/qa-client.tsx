@@ -9,6 +9,14 @@ import {
   useQAImporterStore,
   type QAItem, type QAItemSource, type ArchivedSession, PRIORITY_ORDER, QA_CATEGORY_CONFIG, getLocalISODate,
 } from '@/store/qa-importer'
+import {
+  useArchiveQAItem,
+  useImportQAItems,
+  useQAItems,
+  useSendQAItemToDaily,
+  useUpdateQAItem,
+  type QAItemInput,
+} from '@/hooks/useQAItems'
 import type { ParsedQAItem } from '@/lib/qa-parser'
 
 import { QAFiltersBar, DEFAULT_FILTERS, type QAFilterState } from './qa-filters'
@@ -44,6 +52,11 @@ function formatCommentDate(value?: string) {
 
 export function TasksClient() {
   const store   = useQAImporterStore()
+  const { data: remoteItems = [], isLoading, isError } = useQAItems()
+  const importQAItems = useImportQAItems()
+  const updateQAItem = useUpdateQAItem()
+  const archiveQAItem = useArchiveQAItem()
+  const sendQAItemToDaily = useSendQAItemToDaily()
 
   const [filters,       setFilters]       = useState<QAFilterState>(DEFAULT_FILTERS)
   const [selected,      setSelected]      = useState<Set<string>>(new Set())
@@ -60,7 +73,7 @@ export function TasksClient() {
   const todayISO = getLocalISODate()
 
   const stats = useMemo(() => {
-    const items = store.items
+    const items = remoteItems
     return {
       total:     items.length,
       pending:   items.filter(i => (!i.sentToDaily || i.dailyDate !== todayISO) && i.qaCategory !== 'Done' && i.qaCategory !== 'Blocked').length,
@@ -68,21 +81,21 @@ export function TasksClient() {
       done:      items.filter(i => i.qaCategory === 'Done').length,
       blocked:   items.filter(i => i.qaCategory === 'Blocked').length,
     }
-  }, [store.items, todayISO])
+  }, [remoteItems, todayISO])
 
   // ── Derived data ──────────────────────────────────────────
 
   const availableClients = useMemo(
-    () => [...new Set(store.items.map(i => i.client).filter(Boolean))].sort(),
-    [store.items]
+    () => [...new Set(remoteItems.map(i => i.client).filter(Boolean))].sort(),
+    [remoteItems]
   )
   const availableSprints = useMemo(
-    () => [...new Set(store.items.map(i => i.sprint ?? '').filter(Boolean))].sort(),
-    [store.items]
+    () => [...new Set(remoteItems.map(i => i.sprint ?? '').filter(Boolean))].sort(),
+    [remoteItems]
   )
 
   const filtered = useMemo(() => {
-    let items = [...store.items]
+    let items = [...remoteItems]
     if (filters.search) {
       const q = filters.search.toLowerCase()
       items = items.filter(i =>
@@ -107,7 +120,7 @@ export function TasksClient() {
       case 'sprint':   items.sort((a, b) => (a.sprint ?? '').localeCompare(b.sprint ?? '')); break
     }
     return items
-  }, [store.items, filters])
+  }, [remoteItems, filters])
 
   const grouped = useMemo(() => {
     if (groupBy === 'none') return null
@@ -127,36 +140,73 @@ export function TasksClient() {
   }, [])
 
   const sendItemToDaily = useCallback((item: QAItem) => {
-    store.markSentToDaily([item.id])
+    sendQAItemToDaily.mutate({ id: item.id, dailyDate: todayISO })
     setSentFeedback(`"${item.title}" enviado para o Daily`)
     setTimeout(() => setSentFeedback(null), 3000)
-  }, [store])
+  }, [sendQAItemToDaily, todayISO])
 
   const isNotSentToday = useCallback((i: QAItem) => !i.sentToDaily || i.dailyDate !== todayISO, [todayISO])
 
   const sendSelectedToDaily = useCallback(() => {
-    store.items.filter(i => selected.has(i.id) && isNotSentToday(i)).forEach(sendItemToDaily)
+    remoteItems.filter(i => selected.has(i.id) && isNotSentToday(i)).forEach(sendItemToDaily)
     setSelected(new Set())
-  }, [selected, store.items, sendItemToDaily, isNotSentToday])
+  }, [selected, remoteItems, sendItemToDaily, isNotSentToday])
 
   const sendAllToDaily = useCallback(() => {
-    store.items.filter(isNotSentToday).forEach(sendItemToDaily)
-  }, [store.items, sendItemToDaily, isNotSentToday])
+    remoteItems.filter(isNotSentToday).forEach(sendItemToDaily)
+  }, [remoteItems, sendItemToDaily, isNotSentToday])
 
-  const handleImport = useCallback((items: ParsedQAItem[], tabSource: 'text' | 'csv' | 'extension') => {
+  const handleImport = useCallback(async (items: ParsedQAItem[], tabSource: 'text' | 'csv' | 'extension') => {
     const source: QAItemSource = tabSource === 'csv' ? 'csv' : tabSource === 'extension' ? 'extension' : 'manual'
-    return store.importItems(items.map(i => ({ ...i, source })), source)
-  }, [store])
+    const payload: QAItemInput[] = items.map(item => ({
+      title: item.title,
+      clientName: item.client,
+      description: item.description,
+      source,
+      externalKey: item.issueKey,
+      externalUrl: item.link,
+      priority: item.priority,
+      category: item.qaCategory,
+      status: item.status || item.qaCategory,
+      notes: item.notes,
+      itemType: item.type,
+      metadata: {
+        sprintName: item.sprint,
+        assignee: item.assignee,
+        comments: item.comments,
+        devNotes: item.devNotes,
+        pullRequests: item.pullRequests,
+        externalLinks: item.externalLinks,
+        importDepth: item.importDepth,
+        deepImportError: item.deepImportError,
+      },
+    }))
+    const result = await importQAItems.mutateAsync({ items: payload })
+    return { added: result.added, updated: result.updated, total: result.total }
+  }, [importQAItems])
 
-  const markDone    = (id: string) => store.updateItem(id, { qaCategory: 'Done',    status: 'Done'    })
-  const markBlocked = (id: string) => store.updateItem(id, { qaCategory: 'Blocked', status: 'Blocked' })
+  const markDone    = (id: string) => updateQAItem.mutate({ id, updates: { category: 'Done', status: 'Done', workflowState: 'done' } })
+  const markBlocked = (id: string) => updateQAItem.mutate({ id, updates: { category: 'Blocked', status: 'Blocked', workflowState: 'blocked' } })
 
-  const selectedPending = [...selected].filter(id => isNotSentToday(store.items.find(i => i.id === id)!))
+  const selectedPending = [...selected].filter(id => {
+    const item = remoteItems.find(i => i.id === id)
+    return item ? isNotSentToday(item) : false
+  })
 
   // ── Render ────────────────────────────────────────────────
 
   return (
     <div className="space-y-5">
+      {isError && (
+        <div className="rounded-xl border border-red-500/25 bg-red-500/10 px-4 py-3 text-sm text-red-300">
+          Nao foi possivel carregar a QA Inbox pela API.
+        </div>
+      )}
+      {isLoading && (
+        <div className="rounded-xl border border-white/[0.08] bg-white/[0.03] px-4 py-3 text-sm text-white/45">
+          Carregando QA Items...
+        </div>
+      )}
 
       {/* Page header */}
       <div className="flex items-center justify-between gap-4">
@@ -167,8 +217,8 @@ export function TasksClient() {
           <div>
             <h1 className="text-xl font-bold text-white">QA Inbox</h1>
             <p className="text-xs text-white/35 mt-0.5">
-              {store.items.length > 0
-                ? `${store.items.length} item${store.items.length !== 1 ? 's' : ''} · revise e envie para Today`
+              {remoteItems.length > 0
+                ? `${remoteItems.length} item${remoteItems.length !== 1 ? 's' : ''} · revise e envie para Today`
                 : 'Importe itens QA para começar'}
             </p>
           </div>
@@ -189,7 +239,7 @@ export function TasksClient() {
       </div>
 
       {/* Stats strip + archive action */}
-      {store.items.length > 0 && (
+      {remoteItems.length > 0 && (
         <div className="space-y-3">
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
             <StatCard icon={<ClipboardList className="h-4 w-4" />} label="Total"      value={stats.total}   />
@@ -228,7 +278,7 @@ export function TasksClient() {
                   </button>
                   <button
                     type="button"
-                    onClick={() => { store.archiveAndClear(); setConfirmArchive(false) }}
+                    onClick={() => { remoteItems.forEach(item => archiveQAItem.mutate(item.id)); setConfirmArchive(false) }}
                     className="flex items-center gap-1.5 rounded-lg bg-amber-500/20 border border-amber-500/30 px-3 py-1.5 text-xs font-semibold text-amber-300 hover:bg-amber-500/30 transition-colors"
                   >
                     <Archive className="h-3 w-3" />
@@ -252,7 +302,7 @@ export function TasksClient() {
             onChange={setFilters}
             availableClients={availableClients}
             availableSprints={availableSprints}
-            total={store.items.length}
+            total={remoteItems.length}
             filtered={filtered.length}
           />
 
@@ -306,7 +356,7 @@ export function TasksClient() {
             <button
               type="button"
               onClick={sendAllToDaily}
-              disabled={store.items.every(i => !isNotSentToday(i))}
+              disabled={remoteItems.every(i => !isNotSentToday(i))}
               className="flex items-center gap-1.5 text-xs text-white/35 hover:text-white/60 transition-colors disabled:opacity-30"
             >
               <Send className="w-3 h-3" />
@@ -330,7 +380,7 @@ export function TasksClient() {
 
           {/* Cards */}
           {filtered.length === 0 ? (
-            <EmptyState hasItems={store.items.length > 0} onImport={() => setImportOpen(true)} />
+            <EmptyState hasItems={remoteItems.length > 0} onImport={() => setImportOpen(true)} />
           ) : grouped ? (
             <div className="space-y-6">
               {[...grouped.entries()].map(([groupKey, groupItems]) => (
@@ -345,7 +395,7 @@ export function TasksClient() {
                       <QACard key={item.id} item={item} selected={selected.has(item.id)}
                         onToggleSelect={toggleSelect} onSendToDaily={sendItemToDaily}
                         onMarkDone={markDone} onMarkBlocked={markBlocked}
-                        onRemove={store.removeItem} onOpen={setDetailItem} />
+                        onRemove={(id) => archiveQAItem.mutate(id)} onOpen={setDetailItem} />
                     ))}
                   </div>
                 </div>
@@ -357,7 +407,7 @@ export function TasksClient() {
                 <QACard key={item.id} item={item} selected={selected.has(item.id)}
                   onToggleSelect={toggleSelect} onSendToDaily={sendItemToDaily}
                   onMarkDone={markDone} onMarkBlocked={markBlocked}
-                  onRemove={store.removeItem} onOpen={setDetailItem} />
+                  onRemove={(id) => archiveQAItem.mutate(id)} onOpen={setDetailItem} />
               ))}
             </div>
           )}

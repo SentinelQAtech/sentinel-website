@@ -211,3 +211,64 @@ O blocker principal continua sendo a ausencia de uma entidade backend oficial pa
 5. Criar relacao `Bug -> QAItem`.
 6. Separar definitivamente FAIL/evidence de criacao automatica de Bug.
 7. Fazer Reports consumirem somente API.
+
+---
+
+## Phase 2 — Backend Source Of Truth For QA Items
+
+Data: 17/06/2026
+Branch: `stabilization/backend-source-of-truth-v1`
+Checkpoint: `b3dcb38`
+
+### Documentos adicionados
+
+- `docs/stabilization/BACKEND_SOURCE_OF_TRUTH_PLAN.md`
+- `docs/stabilization/BACKEND_SOURCE_OF_TRUTH_AUDIT.md`
+- `docs/stabilization/LOCAL_DATA_MIGRATION_PLAN.md`
+- `docs/stabilization/BACKEND_SOURCE_OF_TRUTH_REPORT.md`
+
+### O que foi alterado
+
+- Criado modelo backend `QAItem`.
+- Criada migration `20260617000000_add_qa_items`.
+- Criado modulo API `QAItemsModule`.
+- Criados endpoints de CRUD, importacao e acoes operacionais de QA Items.
+- Criado hook React Query `useQAItems`.
+- QA Inbox passou a consumir API como fonte principal.
+- Daily QA Cockpit passou a consumir API como fonte principal.
+- Board passou a derivar cards de `QAItem.workflowState` remoto.
+- `Bug` ganhou relacao opcional futura com `QAItem`.
+- `User` ganhou `supabaseId` para ponte com Auth Supabase e policies RLS.
+
+### Fonte de verdade atualizada
+
+| Area | Antes | Agora |
+| --- | --- | --- |
+| QA Inbox | Zustand/localStorage | API `/qa-items` |
+| Daily QA Cockpit | Zustand/localStorage | API `/qa-items` |
+| Board QA | Zustand/localStorage | API `/qa-items` |
+| Kanban columns | Zustand/localStorage | Preferencia local |
+| Bugs | API Bugs + sync parcial | API Bugs, relacao futura `qaItemId` |
+| Reports | Misto | Misto, pendente |
+
+### Pendencias apos Phase 2
+
+| Area | Pendencia | Prioridade |
+| --- | --- | --- |
+| Local migration | Criar UI de migracao assistida localStorage -> API | Alta |
+| Reports | Remover dependencias de localStorage/stores | Alta |
+| Bugs | Criar fluxo explicito FAIL -> Bug | Alta |
+| Workspace | Criar entidade real para colaboracao | Media |
+| Stores legadas | Remover apos paridade e migracao | Media |
+
+### Validacao
+
+- `npm.cmd run db:generate`
+- `npm.cmd run type-check:api`
+- `npm.cmd run type-check:core`
+- `npm.cmd run build:api`
+- `npm.cmd run build:core`
+- `npm.cmd run test:e2e:core`
+- `npm.cmd run test:e2e:core -- tests/e2e/navigation.spec.ts --reporter=list`
+
+Resultado: type-checks e builds passaram. O build do Core manteve warnings preexistentes de lint fora do escopo desta fase. Playwright nao concluiu no ambiente local: a suite completa e um spec isolado de navegacao ficaram presos ate timeout de 3 minutos.

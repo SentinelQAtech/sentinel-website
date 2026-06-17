@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useMemo, useEffect } from 'react'
+import { useState, useMemo } from 'react'
 import Link from 'next/link'
 import { motion } from 'framer-motion'
 import {
@@ -9,7 +9,6 @@ import {
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { useDailyStore, DEFAULT_CLIENTS, PRIORITY_CONFIG, CLIENT_CONFIG, getTodayISO, type DailyPriority } from '@/store/daily'
-import { useQAImporterStore } from '@/store/qa-importer'
 import { useI18nStore } from '@/store/i18n'
 import { DailyOverview } from './daily-overview'
 import { ClientSection } from './client-section'
@@ -43,13 +42,6 @@ export function DailyClient() {
     copyOpenTasksToToday,
     generateTemplate,
   } = useDailyStore()
-
-  const qaItems = useQAImporterStore(s => s.items)
-  const syncWithQAImporter = useDailyStore(s => s.syncWithQAImporter)
-
-  useEffect(() => {
-    syncWithQAImporter(new Set(qaItems.map(i => i.id)))
-  }, [qaItems, syncWithQAImporter])
 
   const [addItem,     setAddItem]     = useState(false)
   const [addMeeting,  setAddMeeting]  = useState(false)

@@ -21,9 +21,9 @@ import type { Task, TaskStatus, Priority } from '@/types'
 import type { NewKanbanTask }        from './kanban-types'
 import { useKanbanStore }            from '@/store/kanban'
 import {
-  useQAImporterStore,
-  type QAItem, type QACategory, type QAPriority,
+  type QAItem, type QAPriority,
 } from '@/store/qa-importer'
+import { useImportQAItems, useQAItems, useUpdateQAItemWorkflowState, type QAWorkflowState } from '@/hooks/useQAItems'
 
 // ─── Converters ───────────────────────────────────────────
 
@@ -37,7 +37,7 @@ function qaItemToTask(item: QAItem): Task {
     id:          item.id,
     title:       item.issueKey ? `[${item.issueKey}] ${item.title}` : item.title,
     description: item.notes || item.description || undefined,
-    status:      item.qaCategory as unknown as TaskStatus,
+    status:      (item.workflowState ?? 'inbox') as unknown as TaskStatus,
     priority:    mapPriority(item.priority),
     tags:        [item.client, item.sprint, item.type].filter(Boolean) as string[],
     storyPoints: mapPoints(item.priority),
@@ -78,13 +78,13 @@ function mapPriorityToQA(p: Priority): QAPriority {
 export function KanbanClient() {
   const columns     = useKanbanStore(s => s.columns)
   const setColumns  = useKanbanStore(s => s.setColumns)
-  const qaItems     = useQAImporterStore(s => s.items)
-  const updateItem  = useQAImporterStore(s => s.updateItem)
-  const importItems = useQAImporterStore(s => s.importItems)
+  const { data: qaItems = [] } = useQAItems()
+  const importQAItems = useImportQAItems()
+  const updateWorkflowState = useUpdateQAItemWorkflowState()
 
   const [selectedTask,       setSelectedTask]       = useState<Task | null>(null)
   const [taskDialogOpen,     setTaskDialogOpen]     = useState(false)
-  const [taskDialogStatus,   setTaskDialogStatus]   = useState<string>('Ready for QA')
+  const [taskDialogStatus,   setTaskDialogStatus]   = useState<string>('inbox')
   const [settingsDialogOpen, setSettingsDialogOpen] = useState(false)
   const [previewDialogOpen,  setPreviewDialogOpen]  = useState(false)
 
@@ -100,7 +100,7 @@ export function KanbanClient() {
 
   // ── Handlers ─────────────────────────────────────────────
 
-  const openAddTask = (status: string = 'Ready for QA') => {
+  const openAddTask = (status: string = 'inbox') => {
     setTaskDialogStatus(status)
     setTaskDialogOpen(true)
   }
@@ -111,21 +111,17 @@ export function KanbanClient() {
   }
 
   const handleAddTask = (data: NewKanbanTask) => {
-    importItems([{
-      issueKey:   '',
+    importQAItems.mutate({ items: [{
       title:      data.title,
-      client:     (data.tags?.[0] as string) || '',
-      project:    '',
-      status:     data.status,
+      clientName: (data.tags?.[0] as string) || '',
+      status:     'Ready for QA',
       priority:   mapPriorityToQA(data.priority),
-      sprint:     data.tags?.[1] as string || '',
-      assignee:   '',
-      type:       '',
-      link:       '',
       notes:      '',
       source:     'manual',
-      qaCategory: data.status as QACategory,
-    }], 'manual')
+      category:   'Ready for QA',
+      workflowState: data.status as QAWorkflowState,
+      metadata: { sprintName: data.tags?.[1] as string || '' },
+    }] })
   }
 
   const handleAddColumn = () => {
@@ -153,10 +149,8 @@ export function KanbanClient() {
       if (!confirmed) return
     }
     const remaining = columns.filter(col => col.id !== columnId)
-    const fallback  = remaining[0]?.id as QACategory
-    if (fallback) {
-      columnTasks.forEach(t => updateItem(t.id, { qaCategory: fallback }))
-    }
+    const fallback  = remaining[0]?.id
+    if (fallback) columnTasks.forEach(t => updateWorkflowState.mutate({ id: t.id, workflowState: fallback as QAWorkflowState }))
     setColumns(remaining)
   }
 
@@ -173,7 +167,7 @@ export function KanbanClient() {
     if (overColumn) {
       const activeTask = tasks.find(t => t.id === activeId)
       if (activeTask && activeTask.status !== overColumn.id) {
-        updateItem(activeId, { qaCategory: overColumn.id as QACategory })
+        updateWorkflowState.mutate({ id: activeId, workflowState: overColumn.id as QAWorkflowState })
       }
       return
     }
@@ -183,7 +177,7 @@ export function KanbanClient() {
     if (overTask) {
       const activeTask = tasks.find(t => t.id === activeId)
       if (activeTask && activeTask.status !== overTask.status) {
-        updateItem(activeId, { qaCategory: overTask.status as unknown as QACategory })
+        updateWorkflowState.mutate({ id: activeId, workflowState: overTask.status as unknown as QAWorkflowState })
       }
     }
   }
@@ -198,7 +192,7 @@ export function KanbanClient() {
     const target     = overColumn?.id ?? overTask?.status
 
     if (target) {
-      updateItem(activeId, { qaCategory: target as QACategory })
+      updateWorkflowState.mutate({ id: activeId, workflowState: target as QAWorkflowState })
     }
   }
 
@@ -235,7 +229,7 @@ export function KanbanClient() {
             variant="glow"
             size="sm"
             leftIcon={<Plus className="w-3.5 h-3.5" />}
-            onClick={() => openAddTask('Ready for QA')}
+            onClick={() => openAddTask('inbox')}
           >
             Nova task
           </Button>
