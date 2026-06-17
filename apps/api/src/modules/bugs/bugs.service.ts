@@ -39,7 +39,9 @@ export class BugsService {
   }
 
   async findAll(filters: BugFilters) {
-    const { projectId, severity, priority, status, assigneeId, sprintId, search, page = 1, limit = 20 } = filters
+    const { projectId, severity, priority, status, assigneeId, sprintId, search } = filters
+    const page = Math.max(Number(filters.page ?? 1) || 1, 1)
+    const limit = Math.min(Math.max(Number(filters.limit ?? 20) || 20, 1), 100)
     const skip = (page - 1) * limit
 
     const where = {

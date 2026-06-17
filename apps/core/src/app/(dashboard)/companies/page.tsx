@@ -3,10 +3,19 @@
 import { useMemo, useState } from 'react'
 import { BriefcaseBusiness, Bug, Building2, Check, CheckSquare, Edit3, Globe2, Map as MapIcon, Plus, Search, Trash2, X, XCircle } from 'lucide-react'
 import { cn } from '@/lib/utils'
-import { useCompaniesStore, type Company, type CompanyStatus } from '@/store/companies'
 import { useQAImporterStore } from '@/store/qa-importer'
 import { WORLD_COUNTRY_PATHS } from '@/data/world-map-paths'
 import { useI18nStore } from '@/store/i18n'
+import {
+  useClients,
+  useCreateClient,
+  useUpdateClient,
+  useFinishClient,
+  useDeleteClient,
+  type Client as Company,
+  type ClientInput,
+  type ClientStatus as CompanyStatus,
+} from '@/hooks/useClients'
 
 const STATUS_LABEL: Record<CompanyStatus, string> = {
   active: 'Ativa',
@@ -20,7 +29,7 @@ const STATUS_CLASS: Record<CompanyStatus, string> = {
   finished: 'border-slate-500/25 bg-slate-500/10 text-slate-300',
 }
 
-const EMPTY_FORM: Omit<Company, 'id'> = {
+const EMPTY_FORM: ClientInput = {
   name: '',
   shortName: '',
   status: 'active',
@@ -34,7 +43,11 @@ const EMPTY_FORM: Omit<Company, 'id'> = {
 }
 
 export default function CompaniesPage() {
-  const { companies, addCompany, updateCompany, deleteCompany, finishCompany } = useCompaniesStore()
+  const { data: companies = [], isLoading, isError } = useClients()
+  const createClient = useCreateClient()
+  const updateClient = useUpdateClient()
+  const finishClient = useFinishClient()
+  const deleteClient = useDeleteClient()
   useI18nStore(s => s.locale)
   const t = useI18nStore(s => s.t)
   const qaItems = useQAImporterStore(s => s.items)
@@ -68,7 +81,7 @@ export default function CompaniesPage() {
     return map
   }, [qaItems])
   const [editingId, setEditingId] = useState<string | null>(null)
-  const [form, setForm] = useState<Omit<Company, 'id'>>(EMPTY_FORM)
+  const [form, setForm] = useState<ClientInput>(EMPTY_FORM)
   const [mapOpen, setMapOpen] = useState(false)
   const [formOpen, setFormOpen] = useState(false)
 
@@ -83,8 +96,19 @@ export default function CompaniesPage() {
 
   const startEdit = (company: Company) => {
     setEditingId(company.id)
-    const { id: _id, ...rest } = company
-    setForm(rest)
+    setForm({
+      name: company.name,
+      shortName: company.shortName,
+      status: company.status,
+      startedAt: company.startedAt,
+      finishedAt: company.finishedAt,
+      country: company.country,
+      contactName: company.contactName,
+      contactEmail: company.contactEmail,
+      jiraUrl: company.jiraUrl,
+      notes: company.notes,
+      color: company.color,
+    })
     setFormOpen(true)
   }
 
@@ -96,15 +120,17 @@ export default function CompaniesPage() {
 
   const saveCompany = (e: React.FormEvent) => {
     e.preventDefault()
-    if (!form.name.trim()) return
-    const payload = {
+    if (!form.name?.trim()) return
+    const payload: ClientInput = {
       ...form,
       name: form.name.trim(),
-      shortName: form.shortName.trim() || form.name.slice(0, 3).toUpperCase(),
+      shortName: form.shortName?.trim() || form.name.slice(0, 3).toUpperCase(),
     }
-    if (editingId) updateCompany(editingId, payload)
-    else addCompany(payload)
-    resetForm()
+    if (editingId) {
+      updateClient.mutate({ id: editingId, updates: payload }, { onSuccess: resetForm })
+    } else {
+      createClient.mutate(payload, { onSuccess: resetForm })
+    }
   }
 
   return (
@@ -149,6 +175,16 @@ export default function CompaniesPage() {
         </div>
       </div>
 
+      {isLoading && (
+        <div className="glass-card p-8 text-center text-sm text-white/40">Carregando clientes reais...</div>
+      )}
+
+      {isError && (
+        <div className="glass-card border border-red-500/20 p-8 text-center text-sm text-red-300">
+          Nao foi possivel carregar clientes agora.
+        </div>
+      )}
+
       <div className="grid grid-cols-1 gap-3 lg:grid-cols-2 xl:grid-cols-3">
           {filtered.map(company => (
             <div key={company.id} className="glass-card p-4">
@@ -167,12 +203,12 @@ export default function CompaniesPage() {
                   <button onClick={() => startEdit(company)} className="rounded-lg p-1.5 text-white/30 hover:bg-white/[0.06] hover:text-white/70">
                     <Edit3 className="h-3.5 w-3.5" />
                   </button>
-                  <button onClick={() => finishCompany(company.id)} className="rounded-lg p-1.5 text-white/30 hover:bg-emerald-500/10 hover:text-emerald-300">
+                  <button onClick={() => finishClient.mutate(company.id)} className="rounded-lg p-1.5 text-white/30 hover:bg-emerald-500/10 hover:text-emerald-300">
                     <Check className="h-3.5 w-3.5" />
                   </button>
                   <button
                     onClick={() => {
-                      if (window.confirm(`Excluir ${company.name}? Esta acao remove o cliente da lista.`)) deleteCompany(company.id)
+                      if (window.confirm(`Excluir ${company.name}? Esta acao remove o cliente da lista.`)) deleteClient.mutate(company.id)
                     }}
                     className="rounded-lg p-1.5 text-white/30 hover:bg-red-500/10 hover:text-red-300"
                   >
@@ -209,6 +245,7 @@ export default function CompaniesPage() {
           setForm={setForm}
           onClose={resetForm}
           onSubmit={saveCompany}
+          isSaving={createClient.isPending || updateClient.isPending}
         />
       )}
 
@@ -240,12 +277,14 @@ function CompanyFormModal({
   setForm,
   onClose,
   onSubmit,
+  isSaving,
 }: {
   editingId: string | null
-  form: Omit<Company, 'id'>
-  setForm: (form: Omit<Company, 'id'>) => void
+  form: ClientInput
+  setForm: (form: ClientInput) => void
   onClose: () => void
   onSubmit: (event: React.FormEvent) => void
+  isSaving?: boolean
 }) {
   return (
     <div className="fixed inset-0 z-50 grid place-items-center p-4">
@@ -259,16 +298,16 @@ function CompanyFormModal({
         </div>
 
         <div className="max-h-[calc(100vh-10rem)] space-y-3 overflow-y-auto p-5">
-          <Field label="Nome" value={form.name} onChange={v => setForm({ ...form, name: v })} required />
+          <Field label="Nome" value={form.name ?? ''} onChange={v => setForm({ ...form, name: v })} required />
           <div className="grid grid-cols-2 gap-3">
-            <Field label="Sigla" value={form.shortName} onChange={v => setForm({ ...form, shortName: v })} />
-            <Field label="Inicio" type="date" value={form.startedAt} onChange={v => setForm({ ...form, startedAt: v })} />
+            <Field label="Sigla" value={form.shortName ?? ''} onChange={v => setForm({ ...form, shortName: v })} />
+            <Field label="Inicio" type="date" value={form.startedAt ?? ''} onChange={v => setForm({ ...form, startedAt: v })} />
           </div>
           <div className="grid grid-cols-2 gap-3">
             <label className="space-y-1">
               <span className="text-[10px] font-semibold uppercase tracking-wider text-white/30">Status</span>
               <select
-                value={form.status}
+                value={form.status ?? 'active'}
                 onChange={e => setForm({ ...form, status: e.target.value as CompanyStatus })}
                 className="h-10 w-full rounded-lg border border-white/[0.08] bg-white/[0.04] px-3 text-sm text-white outline-none"
               >
@@ -281,7 +320,7 @@ function CompanyFormModal({
               <span className="text-[10px] font-semibold uppercase tracking-wider text-white/30">Cor</span>
               <input
                 type="color"
-                value={form.color}
+                value={form.color ?? '#6366f1'}
                 onChange={e => setForm({ ...form, color: e.target.value })}
                 className="h-10 w-full rounded-lg border border-white/[0.08] bg-white/[0.04] p-1"
               />
@@ -307,9 +346,9 @@ function CompanyFormModal({
           <button type="button" onClick={onClose} className="rounded-xl border border-white/[0.10] px-4 py-2 text-sm font-semibold text-white/70 hover:bg-white/[0.06]">
             Cancelar
           </button>
-          <button type="submit" className="flex items-center justify-center gap-2 rounded-xl bg-primary px-4 py-2 text-sm font-semibold text-white hover:bg-primary-600">
+          <button type="submit" disabled={isSaving} className="flex items-center justify-center gap-2 rounded-xl bg-primary px-4 py-2 text-sm font-semibold text-white hover:bg-primary-600 disabled:cursor-not-allowed disabled:opacity-60">
             <Plus className="h-4 w-4" />
-            {editingId ? 'Salvar alteracoes' : 'Adicionar cliente'}
+            {isSaving ? 'Salvando...' : editingId ? 'Salvar alteracoes' : 'Adicionar cliente'}
           </button>
         </div>
       </form>

@@ -11,13 +11,21 @@ const PROJECT_INCLUDE = {
   _count: { select: { tasks: true, bugs: true, sprints: true } },
 }
 
+function projectDates<T extends { startDate?: string | Date; endDate?: string | Date }>(dto: T) {
+  return {
+    ...dto,
+    ...(dto.startDate && { startDate: new Date(dto.startDate) }),
+    ...(dto.endDate && { endDate: new Date(dto.endDate) }),
+  }
+}
+
 @Injectable()
 export class ProjectsService {
   constructor(private readonly prisma: PrismaService) {}
 
   async create(dto: CreateProjectDto, ownerId: string) {
     return this.prisma.project.create({
-      data: { ...dto, ownerId },
+      data: { ...projectDates(dto), ownerId },
       include: PROJECT_INCLUDE,
     })
   }
@@ -44,7 +52,7 @@ export class ProjectsService {
   async update(id: string, dto: UpdateProjectDto, userId: string) {
     const project = await this.findOne(id)
     if (project.ownerId !== userId) throw new ForbiddenException('Only the project owner can update it')
-    return this.prisma.project.update({ where: { id }, data: dto, include: PROJECT_INCLUDE })
+    return this.prisma.project.update({ where: { id }, data: projectDates(dto), include: PROJECT_INCLUDE })
   }
 
   async remove(id: string, userId: string) {

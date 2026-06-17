@@ -1,20 +1,21 @@
 'use client'
 
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { X, Plus, ChevronDown } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import {
-  useDailyStore,
   DEFAULT_CLIENTS, TASK_TYPES, PRIORITIES, STATUSES,
   type DailyType, type DailyPriority, type DailyStatus,
 } from '@/store/daily'
-import { useCompaniesStore } from '@/store/companies'
 import { Button } from '@/components/ui/button'
+import { useClientOptions } from '@/hooks/useClients'
+import { useCreateQAItem, type BackendDailyStatus, type QAWorkflowState } from '@/hooks/useQAItems'
 
 interface AddItemModalProps {
   open:    boolean
   onClose: () => void
+  selectedDate: string
 }
 
 const inputCls = cn(
@@ -23,13 +24,27 @@ const inputCls = cn(
   'focus:border-white/20 focus:bg-white/[0.06] transition-all duration-150'
 )
 
-export function AddItemModal({ open, onClose }: AddItemModalProps) {
-  const addTask = useDailyStore(s => s.addTask)
-  const companies = useCompaniesStore(s => s.companies)
+function workflowFromDailyStatus(status: DailyStatus): QAWorkflowState {
+  if (status === 'in_progress') return 'in_testing'
+  if (status === 'blocked') return 'blocked'
+  if (status === 'done') return 'done'
+  return 'planned'
+}
+
+function backendDailyStatus(status: DailyStatus): BackendDailyStatus {
+  if (status === 'in_progress') return 'doing'
+  if (status === 'blocked') return 'blocked'
+  if (status === 'done') return 'done'
+  return 'todo'
+}
+
+export function AddItemModal({ open, onClose, selectedDate }: AddItemModalProps) {
+  const createQAItem = useCreateQAItem()
+  const { options: clientOptions } = useClientOptions()
   const companyOptions = useMemo(() => {
-    const activeCompanies = companies.filter(c => c.status !== 'finished').map(c => c.name)
+    const activeCompanies = clientOptions.map(c => c.value)
     return activeCompanies.length > 0 ? activeCompanies : DEFAULT_CLIENTS
-  }, [companies])
+  }, [clientOptions])
 
   const [client,  setClient]  = useState(DEFAULT_CLIENTS[0])
   const [custom,  setCustom]  = useState('')
@@ -42,6 +57,10 @@ export function AddItemModal({ open, onClose }: AddItemModalProps) {
 
   const effectiveClient = custom.trim() || client
 
+  useEffect(() => {
+    if (companyOptions.length > 0 && !companyOptions.includes(client)) setClient(companyOptions[0])
+  }, [client, companyOptions])
+
   const reset = () => {
     setClient(DEFAULT_CLIENTS[0]); setCustom(''); setTitle('')
     setType('Daily'); setPriority('Medium'); setStatus('todo')
@@ -51,9 +70,33 @@ export function AddItemModal({ open, onClose }: AddItemModalProps) {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
     if (!title.trim()) return
-    addTask({ client: effectiveClient, title: title.trim(), type, priority, status, notes: notes.trim() || undefined, responsible: resp.trim() || undefined })
-    reset()
-    onClose()
+    createQAItem.mutate(
+      {
+        title: title.trim(),
+        clientName: effectiveClient === '__custom' ? custom.trim() : effectiveClient,
+        source: 'manual',
+        priority,
+        category: type,
+        status: 'Ready for QA',
+        itemType: type,
+        notes: notes.trim() || undefined,
+        assigneeId: undefined,
+        sentToDaily: true,
+        dailyDate: selectedDate,
+        dailyStatus: backendDailyStatus(status),
+        workflowState: workflowFromDailyStatus(status),
+        metadata: {
+          responsible: resp.trim() || undefined,
+          createdFrom: 'daily',
+        },
+      },
+      {
+        onSuccess: () => {
+          reset()
+          onClose()
+        },
+      }
+    )
   }
 
   return (
@@ -159,8 +202,8 @@ export function AddItemModal({ open, onClose }: AddItemModalProps) {
                     className="px-4 py-2 rounded-lg text-sm text-white/40 hover:text-white/60 hover:bg-white/[0.05] transition-all">
                     Cancelar
                   </button>
-                  <Button type="submit" size="sm" variant="glow">
-                    Adicionar Tarefa
+                  <Button type="submit" size="sm" variant="glow" loading={createQAItem.isPending}>
+                    {createQAItem.isPending ? 'Salvando...' : 'Adicionar ao QA do Dia'}
                   </Button>
                 </div>
               </form>

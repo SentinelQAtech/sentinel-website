@@ -104,8 +104,35 @@ model User {
   sprintMembers    SprintMember[]
   createdQAItems   QAItem[]            @relation("QAItemCreator")
   assignedQAItems  QAItem[]            @relation("QAItemAssignee")
+  clients          Client[]
 
   @@map("users")
+}
+
+model Client {
+  id           String   @id @default(cuid())
+  name         String
+  shortName    String
+  status       String   @default("active")
+  startedAt    DateTime @default(now())
+  finishedAt   DateTime?
+  country      String?
+  contactName  String?
+  contactEmail String?
+  jiraUrl      String?
+  notes        String?
+  color        String   @default("#6366f1")
+
+  ownerId String
+  owner   User   @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([ownerId, name])
+  @@index([ownerId])
+  @@index([status])
+  @@map("clients")
 }
 
 model Project {

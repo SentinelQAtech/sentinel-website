@@ -12,24 +12,24 @@ export interface WidgetConfig {
 }
 
 const DEFAULT_WIDGETS: WidgetConfig[] = [
-  { id: 'sentinel-ai',      visible: true },
   { id: 'metrics',          visible: true },
-  { id: 'daily-progress',   visible: true,  size: 'md', height: '3' },
-  { id: 'daily-tasks',      visible: true,  size: 'md', height: '3' },
-  { id: 'daily-meetings',   visible: true,  size: 'md', height: '3' },
-  { id: 'qa-quick-action',  visible: true,  size: 'sm', height: '4' },
-  { id: 'qa-today',         visible: true,  size: 'sm', height: '4' },
-  { id: 'critical-bugs',    visible: true,  size: 'sm', height: '4' },
-  { id: 'recent-activity',  visible: true,  size: 'sm', height: '4' },
-  { id: 'calendar',         visible: true,  size: 'sm', height: '4' },
-  { id: 'team-presence',    visible: true,  size: 'sm', height: '4' },
-  { id: 'sprint',           visible: true,  size: 'sm', height: '4' },
-  { id: 'active-projects',  visible: true,  size: 'sm', height: '4' },
-  { id: 'burndown',         visible: true,  size: 'sm', height: '2' },
-  { id: 'qa-donut',         visible: true,  size: 'sm', height: '2' },
-  { id: 'bug-trend',        visible: true,  size: 'sm', height: '2' },
-  { id: 'activity-heatmap', visible: true,  size: 'sm', height: '2' },
-  { id: 'daily',            visible: false },
+  { id: 'daily',            visible: true },
+  { id: 'qa-today',         visible: true,  size: 'md', height: '3' },
+  { id: 'critical-bugs',    visible: true,  size: 'md', height: '3' },
+  { id: 'active-projects',  visible: true,  size: 'md', height: '3' },
+  { id: 'sprint',           visible: true,  size: 'md', height: '3' },
+  { id: 'daily-progress',   visible: false, size: 'md', height: '3' },
+  { id: 'daily-tasks',      visible: false, size: 'md', height: '3' },
+  { id: 'daily-meetings',   visible: false, size: 'md', height: '3' },
+  { id: 'qa-quick-action',  visible: false, size: 'sm', height: '4' },
+  { id: 'recent-activity',  visible: false, size: 'sm', height: '4' },
+  { id: 'calendar',         visible: false, size: 'sm', height: '4' },
+  { id: 'team-presence',    visible: false, size: 'sm', height: '4' },
+  { id: 'burndown',         visible: false, size: 'sm', height: '2' },
+  { id: 'qa-donut',         visible: false, size: 'sm', height: '2' },
+  { id: 'bug-trend',        visible: false, size: 'sm', height: '2' },
+  { id: 'activity-heatmap', visible: false, size: 'sm', height: '2' },
+  { id: 'sentinel-ai',      visible: false },
 ]
 
 interface DashboardLayoutState {
@@ -116,7 +116,8 @@ export const useDashboardLayoutStore = create<DashboardLayoutState>()(
     }),
     {
       name: 'sentinel-core-dashboard-layout',
-      version: 5,
+      version: 6,
+      migrate: () => ({ layouts: {} }),
     }
   )
 )

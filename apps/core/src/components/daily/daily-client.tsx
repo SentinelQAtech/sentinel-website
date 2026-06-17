@@ -432,7 +432,7 @@ export function DailyClient() {
       </motion.div>
 
       {/* Modals */}
-      <AddItemModal    open={addItem}    onClose={() => setAddItem(false)}    />
+      <AddItemModal    open={addItem}    onClose={() => setAddItem(false)} selectedDate={selectedDate} />
       <AddMeetingModal open={addMeeting} onClose={() => setAddMeeting(false)} />
     </>
   )

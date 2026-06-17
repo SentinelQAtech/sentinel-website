@@ -4,7 +4,7 @@ import { useState, useCallback, useEffect } from 'react'
 import { FileText, Table2, Upload, Zap, Eye, EyeOff, RefreshCw, Puzzle, CheckCircle2, ChevronDown, ChevronUp, ExternalLink, Building2, Plus, Trash2, Settings2 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { parseTextInput, parseCsvInput, isQARelated, type ParsedQAItem } from '@/lib/qa-parser'
-import { useCompaniesStore } from '@/store/companies'
+import { useActiveClients } from '@/hooks/useClients'
 import { useQAImporterStore } from '@/store/qa-importer'
 
 type TabType = 'text' | 'csv' | 'extension'
@@ -57,7 +57,7 @@ function applyClient(
 // ─── ImportPanel ─────────────────────────────────────────────
 
 export function ImportPanel({ qaFilterEnabled, onQaFilterChange, onImport, onSuccess }: Props) {
-  const companies  = useCompaniesStore(s => s.companies).filter(c => c.status !== 'finished')
+  const { data: companies = [] } = useActiveClients()
   const prefixMap  = useQAImporterStore(s => s.prefixMap)
   const setPrefixMap = useQAImporterStore(s => s.setPrefixMap)
 

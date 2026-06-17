@@ -162,16 +162,18 @@ function NewSprintModal({ projectId, onClose }: { projectId: string; onClose: ()
 
   const create = () => {
     if (!name.trim() || !startDate || !endDate) return
-    createSprint.mutate({
-      name: name.trim(),
-      goal: goal.trim() || undefined,
-      status,
-      startDate,
-      endDate,
-      capacity: capacity ? Number(capacity) : undefined,
-      projectId,
-    })
-    onClose()
+    createSprint.mutate(
+      {
+        name: name.trim(),
+        goal: goal.trim() || undefined,
+        status,
+        startDate,
+        endDate,
+        capacity: capacity ? Number(capacity) : undefined,
+        projectId,
+      },
+      { onSuccess: onClose }
+    )
   }
 
   return (
@@ -255,10 +257,10 @@ function NewSprintModal({ projectId, onClose }: { projectId: string; onClose: ()
             <Button
               variant="glow"
               onClick={create}
-              disabled={!name.trim() || !startDate || !endDate}
+              disabled={!name.trim() || !startDate || !endDate || createSprint.isPending}
               leftIcon={<Plus className="w-4 h-4" />}
             >
-              Criar Sprint
+              {createSprint.isPending ? 'Criando...' : 'Criar Sprint'}
             </Button>
           </div>
         </div>

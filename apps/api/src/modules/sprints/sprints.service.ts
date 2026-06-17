@@ -7,12 +7,20 @@ const SPRINT_INCLUDE = {
   _count: { select: { tasks: true, bugs: true, members: true } },
 }
 
+function sprintDates<T extends { startDate?: string | Date; endDate?: string | Date }>(dto: T) {
+  return {
+    ...dto,
+    ...(dto.startDate && { startDate: new Date(dto.startDate) }),
+    ...(dto.endDate && { endDate: new Date(dto.endDate) }),
+  }
+}
+
 @Injectable()
 export class SprintsService {
   constructor(private readonly prisma: PrismaService) {}
 
   async create(dto: CreateSprintDto) {
-    return this.prisma.sprint.create({ data: dto, include: SPRINT_INCLUDE })
+    return this.prisma.sprint.create({ data: sprintDates(dto), include: SPRINT_INCLUDE })
   }
 
   async findByProject(projectId: string) {
@@ -52,7 +60,7 @@ export class SprintsService {
       if (activeSprints > 0) throw new BadRequestException('A sprint is already active for this project')
     }
 
-    return this.prisma.sprint.update({ where: { id }, data: dto, include: SPRINT_INCLUDE })
+    return this.prisma.sprint.update({ where: { id }, data: sprintDates(dto), include: SPRINT_INCLUDE })
   }
 
   async getBurndown(id: string) {

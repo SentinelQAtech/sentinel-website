@@ -2,21 +2,35 @@
 
 import { useState, useRef, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { X, FolderKanban, Bug, Zap, CheckSquare, ChevronDown } from 'lucide-react'
+import { X, FolderKanban, CheckSquare, ChevronDown } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
+import { useClientOptions } from '@/hooks/useClients'
+import { useCreateProject } from '@/hooks/useProjects'
+import { useCreateQAItem } from '@/hooks/useQAItems'
 
-type EntityType = 'task' | 'bug' | 'project' | 'sprint'
+type EntityType = 'task' | 'project'
 
 const ENTITY_TYPES: { id: EntityType; label: string; icon: React.ReactNode; color: string }[] = [
   { id: 'task',    label: 'Tarefa',   icon: <CheckSquare className="w-4 h-4" />,  color: '#6366f1' },
-  { id: 'bug',     label: 'Bug',      icon: <Bug className="w-4 h-4" />,           color: '#ef4444' },
   { id: 'project', label: 'Projeto',  icon: <FolderKanban className="w-4 h-4" />, color: '#3b82f6' },
-  { id: 'sprint',  label: 'Sprint',   icon: <Zap className="w-4 h-4" />,          color: '#8b5cf6' },
 ]
 
 const PRIORITIES = ['Crítico', 'Alto', 'Médio', 'Baixo']
-const COMPANIES  = ['Concept-USA 🇺🇸', 'ABinBev-IND 🇮🇳', 'ScrumLaunch-UKR 🇺🇦']
+
+function mapPriority(value: string) {
+  if (value === 'Crítico') return 'Critical'
+  if (value === 'Alto') return 'High'
+  if (value === 'Baixo') return 'Low'
+  return 'Medium'
+}
+
+function mapProjectPriority(value: string) {
+  if (value === 'Crítico') return 'CRITICAL'
+  if (value === 'Alto') return 'HIGH'
+  if (value === 'Baixo') return 'LOW'
+  return 'MEDIUM'
+}
 
 // Custom dark-themed select to avoid browser native white dropdown
 function SelectField({
@@ -94,27 +108,59 @@ interface QuickCreateModalProps {
 }
 
 export function QuickCreateModal({ open, onClose }: QuickCreateModalProps) {
+  const { options: clientOptions } = useClientOptions()
+  const createProject = useCreateProject()
+  const createQAItem = useCreateQAItem()
   const [type, setType]           = useState<EntityType>('task')
   const [title, setTitle]         = useState('')
   const [priority, setPriority]   = useState('Médio')
-  const [company, setCompany]     = useState(COMPANIES[0])
+  const [company, setCompany]     = useState('')
   const [description, setDescription] = useState('')
-  const [submitted, setSubmitted] = useState(false)
 
   const selected = ENTITY_TYPES.find(e => e.id === type)!
+  const selectedClient = clientOptions.find(client => client.value === company) ?? clientOptions[0]
+  const isPending = createProject.isPending || createQAItem.isPending
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
     if (!title.trim()) return
-    setSubmitted(true)
-    setTimeout(() => {
-      setSubmitted(false)
-      setTitle('')
-      setDescription('')
-      setPriority('Médio')
-      setType('task')
-      onClose()
-    }, 1200)
+    if (type === 'project') {
+      createProject.mutate(
+        {
+          name: title.trim(),
+          description: description.trim() || 'Projeto criado pelo Quick Create.',
+          priority: mapProjectPriority(priority),
+          clientName: selectedClient?.value,
+          coverColor: selectedClient?.color ?? '#6366f1',
+          tags: ['quick-create'],
+        },
+        { onSuccess: resetAndClose }
+      )
+      return
+    }
+
+    createQAItem.mutate(
+      {
+        title: title.trim(),
+        description: description.trim() || undefined,
+        source: 'manual',
+        clientName: selectedClient?.value,
+        priority: mapPriority(priority),
+        category: 'Other',
+        status: 'Ready for QA',
+        workflowState: 'inbox',
+        metadata: { createdFrom: 'quick-create' },
+      },
+      { onSuccess: resetAndClose }
+    )
+  }
+
+  const resetAndClose = () => {
+    setTitle('')
+    setDescription('')
+    setPriority('Médio')
+    setType('task')
+    onClose()
   }
 
   return (
@@ -187,7 +233,7 @@ export function QuickCreateModal({ open, onClose }: QuickCreateModalProps) {
                   autoFocus
                   value={title}
                   onChange={e => setTitle(e.target.value)}
-                  placeholder={`Título ${type === 'bug' ? 'do bug' : type === 'project' ? 'do projeto' : type === 'sprint' ? 'do sprint' : 'da tarefa'}...`}
+                  placeholder={`Título ${type === 'project' ? 'do projeto' : 'da tarefa'}...`}
                   className="w-full bg-white/[0.04] border border-white/[0.08] rounded-lg px-3.5 py-2.5 text-sm text-white placeholder:text-white/25 outline-none focus:border-white/20 focus:bg-white/[0.06] transition-all duration-150"
                   required
                 />
@@ -211,8 +257,8 @@ export function QuickCreateModal({ open, onClose }: QuickCreateModalProps) {
                   />
                   <SelectField
                     label="Empresa"
-                    value={company}
-                    options={COMPANIES}
+                    value={selectedClient?.value ?? ''}
+                    options={clientOptions.map(client => client.value)}
                     onChange={setCompany}
                   />
                 </div>
@@ -226,8 +272,8 @@ export function QuickCreateModal({ open, onClose }: QuickCreateModalProps) {
                   >
                     Cancelar
                   </button>
-                  <Button type="submit" size="sm" variant="glow" loading={submitted}>
-                    {submitted ? 'Criando...' : `Criar ${selected.label}`}
+                  <Button type="submit" size="sm" variant="glow" loading={isPending} disabled={isPending || clientOptions.length === 0}>
+                    {isPending ? 'Criando...' : `Criar ${selected.label}`}
                   </Button>
                 </div>
               </form>

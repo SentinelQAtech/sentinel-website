@@ -12,7 +12,7 @@ import { Avatar } from '@/components/ui/avatar'
 import { Button } from '@/components/ui/button'
 import { cn, formatDate } from '@/lib/utils'
 import { TEAM, TEAM_STORAGE_KEY, type TeamMember } from '@/lib/team-data'
-import { useCompaniesStore } from '@/store/companies'
+import { useActiveClients, type Client } from '@/hooks/useClients'
 import { useI18nStore } from '@/store/i18n'
 import type { Role } from '@/types'
 
@@ -66,7 +66,7 @@ export default function TeamPage() {
   const [formOpen, setFormOpen] = useState(false)
   const [editing, setEditing] = useState<TeamMember | null>(null)
   const [offboarding, setOffboarding] = useState<TeamMember | null>(null)
-  const companies = useCompaniesStore(s => s.companies)
+  const { data: activeCompanies = [] } = useActiveClients()
 
   useEffect(() => {
     try {
@@ -103,11 +103,6 @@ export default function TeamPage() {
       member.skills.some(skill => skill.toLowerCase().includes(query))
     )
   }, [activeMembers, search])
-
-  const activeCompanies = useMemo(
-    () => companies.filter(company => company.status !== 'finished'),
-    [companies]
-  )
 
   const skillCount = useMemo(
     () => new Set(activeMembers.flatMap(member => member.skills)).size,
@@ -378,12 +373,7 @@ export default function TeamPage() {
           </Link>
         </div>
         <div className="flex flex-wrap gap-3">
-          {activeCompanies.map(client => (
-            <div key={client.name} className="flex items-center gap-2.5 px-4 py-2.5 rounded-xl border" style={{ backgroundColor: client.color + '10', borderColor: client.color + '30' }}>
-              <span className="text-xs font-bold text-white/45">{client.shortName}</span>
-              <span className="text-sm font-medium" style={{ color: client.color }}>{client.name}</span>
-            </div>
-          ))}
+          {activeCompanies.map(client => <ClientPill key={client.id} client={client} />)}
           {activeCompanies.length === 0 && (
             <p className="text-sm text-white/35">Nenhum cliente ativo cadastrado.</p>
           )}
@@ -406,6 +396,23 @@ export default function TeamPage() {
           onConfirm={offboardMember}
         />
       )}
+    </div>
+  )
+}
+
+function ClientPill({ client }: { client: Client }) {
+  const color = client.color || '#6366f1'
+  const shortName = (client.shortName || client.name.slice(0, 3)).toUpperCase()
+
+  return (
+    <div
+      className="flex items-center gap-2.5 rounded-xl border px-4 py-2.5"
+      style={{ backgroundColor: `${color}10`, borderColor: `${color}35` }}
+    >
+      <span className="flex h-7 min-w-7 items-center justify-center rounded-lg border border-white/10 bg-black/15 px-1.5 text-xs font-bold text-white/65">
+        {shortName}
+      </span>
+      <span className="text-sm font-semibold" style={{ color }}>{client.name}</span>
     </div>
   )
 }

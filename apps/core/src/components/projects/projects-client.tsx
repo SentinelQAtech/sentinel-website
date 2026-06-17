@@ -7,14 +7,14 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { ProjectCard } from './project-card'
 import { cn } from '@/lib/utils'
-import { COMPANIES, type CompanyKey } from '@/lib/companies'
 import { useI18nStore } from '@/store/i18n'
 import { useProjects, useCreateProject, useDeleteProject } from '@/hooks/useProjects'
+import { useClientOptions } from '@/hooks/useClients'
 import type { Priority, Project } from '@/types'
 
 type ViewMode = 'grid' | 'list'
 type FilterStatus = 'ALL' | 'ACTIVE' | 'PAUSED' | 'COMPLETED' | 'ARCHIVED'
-type FilterCompany = 'ALL' | CompanyKey
+type FilterCompany = 'ALL' | string
 type FilterPriority = 'ALL' | Priority
 
 export function ProjectsClient() {
@@ -26,7 +26,7 @@ export function ProjectsClient() {
   const [company, setCompany]     = useState<FilterCompany>('ALL')
   const [priority, setPriority]   = useState<FilterPriority>('ALL')
   const { data: projects = [] } = useProjects()
-  const createProject = useCreateProject()
+  const { options: clientOptions } = useClientOptions()
   const deleteProjectMutation = useDeleteProject()
   const [filtersOpen, setFiltersOpen] = useState(false)
   const [newOpen, setNewOpen]     = useState(false)
@@ -80,23 +80,22 @@ export function ProjectsClient() {
         </button>
 
         {/* Per company */}
-        {(Object.keys(COMPANIES) as CompanyKey[]).map(key => {
-          const c = COMPANIES[key]
-          const isActive = company === key
-          const count = projects.filter(p => p.clientName === key).length
+        {clientOptions.map(c => {
+          const isActive = company === c.value
+          const count = projects.filter(p => p.clientName === c.value).length
           return (
             <button
-              key={key}
-              onClick={() => setCompany(isActive ? 'ALL' : key)}
+              key={c.id}
+              onClick={() => setCompany(isActive ? 'ALL' : c.value)}
               className={cn(
                 'flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-semibold border transition-all duration-150',
                 isActive
-                  ? cn(c.bg, c.text, c.border, 'shadow-sm')
+                  ? 'bg-white/10 border-white/20 text-white shadow-sm'
                   : 'bg-white/[0.03] border-white/[0.08] text-white/45 hover:text-white/70 hover:bg-white/[0.06]'
               )}
               style={isActive ? { boxShadow: `0 0 10px ${c.color}30` } : {}}
             >
-              <span className="text-sm leading-none">{c.flag}</span>
+              <span className="h-2 w-2 rounded-full" style={{ backgroundColor: c.color }} />
               <span>{c.label}</span>
               <span className={cn(
                 'ml-0.5 px-1.5 py-0.5 rounded-full text-[10px] font-bold',
@@ -209,7 +208,7 @@ export function ProjectsClient() {
         {filtered.length === 0 && (
           <div className="col-span-full flex flex-col items-center justify-center py-20 text-center">
             <div className="w-16 h-16 rounded-2xl bg-white/[0.04] flex items-center justify-center mb-4 text-3xl">
-              {company !== 'ALL' ? COMPANIES[company as CompanyKey].flag : '🔍'}
+              {company !== 'ALL' ? clientOptions.find(c => c.value === company)?.shortName ?? 'CLI' : 'Busca'}
             </div>
             <p className="text-white/50 font-medium">{t('noProjectsFound')}</p>
             <p className="text-white/30 text-sm mt-1">{t('adjustFilters')}</p>
@@ -264,21 +263,22 @@ function NewProjectModal({ onClose }: { onClose: () => void }) {
   const t = useI18nStore(s => s.t)
   const [name, setName] = useState('')
   const [description, setDescription] = useState('')
-  const [clientName, setClientName] = useState<CompanyKey>('Concept-USA')
+  const { options: clientOptions, isLoading: clientsLoading } = useClientOptions()
+  const [clientName, setClientName] = useState('')
   const [projectPriority, setProjectPriority] = useState<Priority>('MEDIUM')
   const [endDate, setEndDate] = useState('')
   const createProject = useCreateProject()
 
   const create = () => {
     if (!name.trim()) return
-    const company = COMPANIES[clientName]
+    const selectedClient = clientOptions.find(c => c.value === clientName) ?? clientOptions[0]
     createProject.mutate(
       {
         name: name.trim(),
         description: description.trim() || 'Novo projeto criado pela tela Projects.',
         priority: projectPriority,
-        clientName,
-        coverColor: company.color,
+        clientName: selectedClient?.value,
+        coverColor: selectedClient?.color ?? '#6366f1',
         tags: ['novo'],
         endDate: endDate || undefined,
       },
@@ -302,8 +302,8 @@ function NewProjectModal({ onClose }: { onClose: () => void }) {
           <input value={name} onChange={e => setName(e.target.value)} className={inputCls} placeholder={t('projectName')} autoFocus />
           <textarea value={description} onChange={e => setDescription(e.target.value)} className={cn(inputCls, 'resize-none')} rows={3} placeholder={t('description')} />
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-            <select value={clientName} onChange={e => setClientName(e.target.value as CompanyKey)} className={inputCls}>
-              {(Object.keys(COMPANIES) as CompanyKey[]).map(key => <option key={key} value={key}>{COMPANIES[key].label}</option>)}
+            <select value={clientName || clientOptions[0]?.value || ''} onChange={e => setClientName(e.target.value)} className={inputCls} disabled={clientsLoading || clientOptions.length === 0}>
+              {clientOptions.map(client => <option key={client.id} value={client.value}>{client.label}</option>)}
             </select>
             <select value={projectPriority} onChange={e => setProjectPriority(e.target.value as Priority)} className={inputCls}>
               {(['LOW', 'MEDIUM', 'HIGH', 'CRITICAL'] as Priority[]).map(p => <option key={p} value={p}>{p}</option>)}
@@ -312,7 +312,9 @@ function NewProjectModal({ onClose }: { onClose: () => void }) {
           </div>
           <div className="flex justify-end gap-3 pt-1">
             <Button variant="outline" onClick={onClose}>{t('cancel')}</Button>
-            <Button variant="glow" onClick={create} disabled={!name.trim()} leftIcon={<Plus className="w-4 h-4" />}>{t('createProject')}</Button>
+            <Button variant="glow" onClick={create} disabled={!name.trim() || createProject.isPending || clientOptions.length === 0} leftIcon={<Plus className="w-4 h-4" />}>
+              {createProject.isPending ? 'Criando...' : t('createProject')}
+            </Button>
           </div>
         </div>
       </div>

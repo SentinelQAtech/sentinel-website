@@ -9,6 +9,7 @@ import { BugsModule }    from './modules/bugs/bugs.module'
 import { SprintsModule } from './modules/sprints/sprints.module'
 import { TasksModule }   from './modules/tasks/tasks.module'
 import { QAItemsModule } from './modules/qa-items/qa-items.module'
+import { ClientsModule } from './modules/clients/clients.module'
 import { NotificationsModule } from './modules/notifications/notifications.module'
 import { ReportsModule } from './modules/reports/reports.module'
 import { PrismaModule }  from './prisma/prisma.module'
@@ -25,6 +26,7 @@ import { PrismaModule }  from './prisma/prisma.module'
     SprintsModule,
     TasksModule,
     QAItemsModule,
+    ClientsModule,
     NotificationsModule,
     ReportsModule,
   ],
