@@ -2,5 +2,12 @@
   "installCommand": "npm install --workspaces=false --package-lock=false",
   "buildCommand": "npm run build",
   "framework": "nextjs",
-  "outputDirectory": ".next"
+  "outputDirectory": ".next",
+  "redirects": [
+    {
+      "source": "/",
+      "destination": "/core/dashboard",
+      "permanent": false
+    }
+  ]
 }
