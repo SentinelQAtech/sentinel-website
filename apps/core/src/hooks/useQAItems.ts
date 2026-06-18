@@ -2,10 +2,14 @@
 
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { api } from '@/lib/api'
+import {
+  normalizeQACategory,
+  normalizeQAPriority,
+  normalizeQAItemSource,
+} from '@/lib/qa-item-contract'
 import type {
   QAItem,
   QAItemSource,
-  QACategory,
   QADailyStatus,
   QAResolution,
   QAResolutionResult,
@@ -143,13 +147,13 @@ export function mapApiQAItem(apiItem: ApiQAItem): QAItem {
   const metadata = apiItem.metadata
   return {
     id: apiItem.id,
-    source: (apiItem.source || 'manual') as QAItemSource,
+    source: normalizeQAItemSource(apiItem.source),
     issueKey: apiItem.externalKey ?? '',
     title: apiItem.title,
     client: apiItem.clientName ?? '',
     project: apiItem.project?.name ?? apiItem.projectId ?? '',
     status: apiItem.status,
-    priority: (apiItem.priority || 'Unknown') as QAItem['priority'],
+    priority: normalizeQAPriority(apiItem.priority),
     sprint: apiItem.sprint?.name ?? String(metadata?.sprintName ?? apiItem.sprintId ?? ''),
     assignee: String(metadata?.assignee ?? ''),
     type: apiItem.itemType ?? '',
@@ -165,7 +169,7 @@ export function mapApiQAItem(apiItem: ApiQAItem): QAItem {
     deepImportError: String(metadata?.deepImportError ?? ''),
     importedAt: apiItem.importedAt,
     sentToDaily: apiItem.sentToDaily,
-    qaCategory: (apiItem.category || 'Other') as QACategory,
+    qaCategory: normalizeQACategory(apiItem.category),
     workflowState: apiItem.workflowState,
     resolution: mapResolution(apiItem.resolution, apiItem.resolutionDetails),
     dailyStatus: apiItem.dailyStatus as QADailyStatus | undefined,

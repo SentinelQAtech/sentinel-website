@@ -16,8 +16,8 @@ export function QACardPreviewDialog({ item, onClose }: Props) {
   if (!item) return null
 
   const rank = rankItem(item)
-  const cat  = QA_CATEGORY_CONFIG[item.qaCategory]
-  const prio = PRIORITY_CONFIG[item.priority]
+  const cat  = QA_CATEGORY_CONFIG[item.qaCategory] ?? QA_CATEGORY_CONFIG.Other
+  const prio = PRIORITY_CONFIG[item.priority] ?? PRIORITY_CONFIG.Unknown
 
   return (
     <Dialog.Root open={!!item} onOpenChange={open => !open && onClose()}>

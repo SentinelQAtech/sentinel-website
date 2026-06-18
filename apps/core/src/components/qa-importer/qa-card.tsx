@@ -26,8 +26,8 @@ function relTime(iso: string) {
 }
 
 export function QACard({ item, selected, onToggleSelect, onSendToDaily, onMarkDone, onMarkBlocked, onRemove, onOpen }: Props) {
-  const cat = QA_CATEGORY_CONFIG[item.qaCategory]
-  const prio = PRIORITY_CONFIG[item.priority]
+  const cat = QA_CATEGORY_CONFIG[item.qaCategory] ?? QA_CATEGORY_CONFIG.Other
+  const prio = PRIORITY_CONFIG[item.priority] ?? PRIORITY_CONFIG.Unknown
   const isDone = item.qaCategory === 'Done'
   const isBlocked = item.qaCategory === 'Blocked'
   const commentsCount = item.comments?.length ?? 0
