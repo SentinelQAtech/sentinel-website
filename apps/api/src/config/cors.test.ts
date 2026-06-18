@@ -4,7 +4,8 @@ import { isAllowedCorsOrigin } from './cors'
 
 const configuredOrigins = [
   'http://localhost:3000',
-  'https://sentinel-core-iota.vercel.app'
+  'https://sentinel-core-iota.vercel.app',
+  'https://sentinelqa.tech'
 ]
 
 test('allows requests without Origin and exact configured origins', () => {
@@ -14,6 +15,10 @@ test('allows requests without Origin and exact configured origins', () => {
       'https://sentinel-core-iota.vercel.app',
       configuredOrigins
     ),
+    true
+  )
+  assert.equal(
+    isAllowedCorsOrigin('https://sentinelqa.tech', configuredOrigins),
     true
   )
 })

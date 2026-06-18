@@ -1,4 +1,5 @@
 import type { NextConfig } from 'next'
+import { normalizeApiUrl } from './src/lib/api-url'
 
 const isDev = process.env.NODE_ENV === 'development'
 const basePath = process.env.NEXT_PUBLIC_BASE_PATH?.trim() || undefined
@@ -8,7 +9,7 @@ if (!configuredApiUrl && !isDev) {
   throw new Error('NEXT_PUBLIC_API_URL must be configured outside local development')
 }
 
-const apiUrl = configuredApiUrl || 'http://localhost:3001'
+const apiUrl = normalizeApiUrl(configuredApiUrl || 'http://localhost:3001')
 const apiOrigin = new URL(apiUrl).origin
 
 const securityHeaders = [

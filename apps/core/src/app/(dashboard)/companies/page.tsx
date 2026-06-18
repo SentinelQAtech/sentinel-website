@@ -3,6 +3,7 @@
 import { useMemo, useState } from 'react'
 import { BriefcaseBusiness, Bug, Building2, Check, CheckSquare, Edit3, Globe2, Map as MapIcon, Plus, Search, Trash2, X, XCircle } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import { getApiErrorMessage } from '@/lib/api-error'
 import { useQAImporterStore } from '@/store/qa-importer'
 import { WORLD_COUNTRY_PATHS } from '@/data/world-map-paths'
 import { useI18nStore } from '@/store/i18n'
@@ -246,6 +247,11 @@ export default function CompaniesPage() {
           onClose={resetForm}
           onSubmit={saveCompany}
           isSaving={createClient.isPending || updateClient.isPending}
+          errorMessage={
+            createClient.error || updateClient.error
+              ? getApiErrorMessage(createClient.error ?? updateClient.error)
+              : undefined
+          }
         />
       )}
 
@@ -278,6 +284,7 @@ function CompanyFormModal({
   onClose,
   onSubmit,
   isSaving,
+  errorMessage,
 }: {
   editingId: string | null
   form: ClientInput
@@ -285,6 +292,7 @@ function CompanyFormModal({
   onClose: () => void
   onSubmit: (event: React.FormEvent) => void
   isSaving?: boolean
+  errorMessage?: string
 }) {
   return (
     <div className="fixed inset-0 z-50 grid place-items-center p-4">
@@ -340,6 +348,11 @@ function CompanyFormModal({
               placeholder="Contexto, contrato, observacoes..."
             />
           </label>
+          {errorMessage && (
+            <p className="rounded-lg border border-red-500/20 bg-red-500/10 px-3 py-2 text-xs text-red-300">
+              {errorMessage}
+            </p>
+          )}
         </div>
 
         <div className="flex justify-end gap-3 border-t border-white/[0.08] px-5 py-4">

@@ -1,15 +1,19 @@
 import axios from 'axios'
 import { withCoreBasePath } from './routes'
+import { getApiV1Url, normalizeApiUrl } from './api-url'
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:3001'
+const API_URL = normalizeApiUrl(
+  process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:3001'
+)
+const API_V1_URL = getApiV1Url(API_URL)
 
 export const api = axios.create({
-  baseURL: `${API_URL}/api/v1`,
+  baseURL: API_V1_URL,
   headers: { 'Content-Type': 'application/json' },
 })
 
 export async function exchangeSupabaseSession(accessToken: string) {
-  const { data } = await axios.post(`${API_URL}/api/v1/auth/supabase`, { accessToken })
+  const { data } = await axios.post(`${API_V1_URL}/auth/supabase`, { accessToken })
   return data as { accessToken: string; refreshToken: string }
 }
 
@@ -34,7 +38,7 @@ api.interceptors.response.use(
 
       if (refreshToken && userId) {
         try {
-          const { data } = await axios.post(`${API_URL}/api/v1/auth/refresh`, { userId, refreshToken })
+          const { data } = await axios.post(`${API_V1_URL}/auth/refresh`, { userId, refreshToken })
           localStorage.setItem('accessToken', data.accessToken)
           localStorage.setItem('refreshToken', data.refreshToken)
           original.headers.Authorization = `Bearer ${data.accessToken}`

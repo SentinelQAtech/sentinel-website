@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { ProjectCard } from './project-card'
 import { cn } from '@/lib/utils'
+import { getApiErrorMessage } from '@/lib/api-error'
 import { useI18nStore } from '@/store/i18n'
 import { useProjects, useCreateProject, useDeleteProject } from '@/hooks/useProjects'
 import { useClientOptions } from '@/hooks/useClients'
@@ -310,6 +311,11 @@ function NewProjectModal({ onClose }: { onClose: () => void }) {
             </select>
             <input type="date" value={endDate} onChange={e => setEndDate(e.target.value)} className={cn(inputCls, '[color-scheme:dark]')} />
           </div>
+          {createProject.error && (
+            <p className="rounded-lg border border-red-500/20 bg-red-500/10 px-3 py-2 text-xs text-red-300">
+              {getApiErrorMessage(createProject.error, 'Nao foi possivel criar o projeto.')}
+            </p>
+          )}
           <div className="flex justify-end gap-3 pt-1">
             <Button variant="outline" onClick={onClose}>{t('cancel')}</Button>
             <Button variant="glow" onClick={create} disabled={!name.trim() || createProject.isPending || clientOptions.length === 0} leftIcon={<Plus className="w-4 h-4" />}>

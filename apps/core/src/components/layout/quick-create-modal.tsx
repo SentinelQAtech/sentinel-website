@@ -5,6 +5,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { X, FolderKanban, CheckSquare, ChevronDown } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
+import { getApiErrorMessage } from '@/lib/api-error'
 import { useClientOptions } from '@/hooks/useClients'
 import { useCreateProject } from '@/hooks/useProjects'
 import { useCreateQAItem } from '@/hooks/useQAItems'
@@ -120,6 +121,7 @@ export function QuickCreateModal({ open, onClose }: QuickCreateModalProps) {
   const selected = ENTITY_TYPES.find(e => e.id === type)!
   const selectedClient = clientOptions.find(client => client.value === company) ?? clientOptions[0]
   const isPending = createProject.isPending || createQAItem.isPending
+  const mutationError = createProject.error ?? createQAItem.error
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
@@ -262,6 +264,12 @@ export function QuickCreateModal({ open, onClose }: QuickCreateModalProps) {
                     onChange={setCompany}
                   />
                 </div>
+
+                {mutationError && (
+                  <p className="rounded-lg border border-red-500/20 bg-red-500/10 px-3 py-2 text-xs text-red-300">
+                    {getApiErrorMessage(mutationError)}
+                  </p>
+                )}
 
                 {/* Actions */}
                 <div className="flex items-center justify-end gap-2 pt-1">
