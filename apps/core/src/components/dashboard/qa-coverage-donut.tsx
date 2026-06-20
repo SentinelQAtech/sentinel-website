@@ -2,7 +2,8 @@
 
 import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer } from 'recharts'
 import { PieChart as PieIcon } from 'lucide-react'
-import { useQAImporterStore, QA_CATEGORY_CONFIG } from '@/store/qa-importer'
+import { QA_CATEGORY_CONFIG } from '@/store/qa-importer'
+import { useQAItems } from '@/hooks/useQAItems'
 import type { QACategory } from '@/store/qa-importer'
 
 const SHOWN_CATEGORIES: QACategory[] = [
@@ -24,7 +25,7 @@ const CustomTooltip = ({ active, payload }: any) => {
 }
 
 export function QACoverageDonut() {
-  const items = useQAImporterStore(s => s.items)
+  const { data: items = [] } = useQAItems()
   const total = items.length
 
   // Count per shown category

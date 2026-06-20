@@ -1,64 +1,43 @@
 'use client'
 
-import { useEffect, useMemo, useState } from 'react'
+import { useMemo } from 'react'
 import {
-  BarChart2, Bell, BriefcaseBusiness, Bug, CheckCircle2,
-  ClipboardCheck, FileText, Users,
+  BarChart2, Bell, BriefcaseBusiness, Bug, ClipboardCheck, FileText, Users,
 } from 'lucide-react'
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card'
-import { useCompaniesStore } from '@/store/companies'
+import { useClients } from '@/hooks/useClients'
 import { useNotifications } from '@/hooks/useNotifications'
-import { useQAImporterStore } from '@/store/qa-importer'
+import { useQAItems } from '@/hooks/useQAItems'
 import { useProjects } from '@/hooks/useProjects'
 import { useDashboardStats } from '@/hooks/useReports'
-
-import { TEAM, TEAM_STORAGE_KEY, type TeamMember } from '@/lib/team-data'
 import { cn } from '@/lib/utils'
 
-function useRealTeam() {
-  const [members, setMembers] = useState<TeamMember[]>(TEAM)
-
-  useEffect(() => {
-    try {
-      const saved = window.localStorage.getItem(TEAM_STORAGE_KEY)
-      if (saved) setMembers(JSON.parse(saved) as TeamMember[])
-    } catch {
-      setMembers(TEAM)
-    }
-  }, [])
-
-  return members
-}
-
 export function ReportsClient() {
-  const companies = useCompaniesStore(s => s.companies)
-  const qaItems = useQAImporterStore(s => s.items)
-  const imports = useQAImporterStore(s => s.history)
+  const { data: clients = [] } = useClients()
+  const { data: qaItems = [] } = useQAItems()
   const { data: notificationsData } = useNotifications()
   const notifications = notificationsData ?? []
   const { data: stats } = useDashboardStats()
   const { data: projects = [] } = useProjects()
-  const tasks = useQAImporterStore(s => s.items)
-  const members = useRealTeam()
 
-  const activeCompanies = companies.filter(company => company.status !== 'finished')
-  const activeMembers = members.filter(member => member.user.isActive)
-  const pendingQA = qaItems.filter(item => !item.sentToDaily)
+  const activeClients = clients.filter(client => client.status !== 'finished')
+  const pendingQA = qaItems.filter(item => !item.sentToDaily && item.qaCategory !== 'Done')
   const sentQA = qaItems.filter(item => item.sentToDaily)
   const unreadNotifications = notifications.filter(notification => !notification.read)
+  const teamMembers = stats?.teamMembers ?? 0
 
   const readiness = useMemo(() => [
-    { label: 'Clientes ativos', value: activeCompanies.length, icon: BriefcaseBusiness, color: 'text-cyan-300', href: '/companies' },
-    { label: 'Time ativo', value: activeMembers.length, icon: Users, color: 'text-indigo-300', href: '/team' },
-    { label: 'QA pendente', value: pendingQA.length, icon: ClipboardCheck, color: 'text-amber-300', href: '/qa-inbox' },
-    { label: 'Notificacoes abertas', value: unreadNotifications.length, icon: Bell, color: 'text-violet-300', href: '/notifications' },
-  ], [activeCompanies.length, activeMembers.length, pendingQA.length, unreadNotifications.length])
+    { label: 'Clientes ativos', value: activeClients.length, icon: BriefcaseBusiness, color: 'text-cyan-300' },
+    { label: 'Time ativo', value: teamMembers, icon: Users, color: 'text-indigo-300' },
+    { label: 'QA pendente', value: pendingQA.length, icon: ClipboardCheck, color: 'text-amber-300' },
+    { label: 'Notificacoes abertas', value: unreadNotifications.length, icon: Bell, color: 'text-violet-300' },
+  ], [activeClients.length, teamMembers, pendingQA.length, unreadNotifications.length])
 
   const operationalRows = [
-    { label: 'Projetos ativos', value: projects.filter(project => project.status === 'ACTIVE').length, note: 'Projetos cadastrados manualmente' },
-    { label: 'QA Items no board', value: tasks.length, note: 'Inclui cards importados do QA Inbox' },
+    { label: 'Projetos ativos', value: projects.filter(project => project.status === 'ACTIVE').length, note: 'Projetos cadastrados na API' },
+    { label: 'QA Items no board', value: qaItems.length, note: 'Itens QA importados/criados' },
     { label: 'Bugs abertos', value: stats?.openBugs ?? 0, note: 'Bugs registrados na API' },
-    { label: 'Itens QA importados', value: qaItems.length, note: `${pendingQA.length} pendentes, ${sentQA.length} enviados ao Daily` },
+    { label: 'QA enviados ao Daily', value: sentQA.length, note: `${pendingQA.length} pendentes na inbox` },
   ]
 
   const hasOperationalData = operationalRows.some(row => row.value > 0)
@@ -70,11 +49,11 @@ export function ReportsClient() {
           <h1 className="text-2xl font-bold text-white flex items-center gap-2">
             <BarChart2 className="w-6 h-6 text-cyan-400" /> Relatorios
           </h1>
-          <p className="text-sm text-white/40 mt-0.5">Leitura operacional baseada apenas nos dados cadastrados no sistema.</p>
+          <p className="text-sm text-white/40 mt-0.5">Leitura operacional baseada nos dados da API do workspace.</p>
         </div>
         <div className="hidden sm:flex items-center gap-2 rounded-xl border border-white/[0.08] bg-white/[0.03] px-3 py-2 text-xs text-white/40">
           <FileText className="w-3.5 h-3.5" />
-          Dados reais
+          Dados da API
         </div>
       </div>
 
@@ -86,7 +65,7 @@ export function ReportsClient() {
               <Icon className={cn('w-4 h-4', color)} />
             </div>
             <p className="mt-3 text-3xl font-bold text-white tabular-nums">{value}</p>
-            <p className="mt-1 text-xs text-white/30">Atualizado em tempo real local</p>
+            <p className="mt-1 text-xs text-white/30">Sincronizado com a API</p>
           </div>
         ))}
       </div>
@@ -95,7 +74,7 @@ export function ReportsClient() {
         <Card>
           <CardHeader>
             <CardTitle>Resumo operacional</CardTitle>
-            <span className="text-xs text-white/40">Projetos, board, bugs e importacoes</span>
+            <span className="text-xs text-white/40">Projetos, board e bugs</span>
           </CardHeader>
           <CardContent className="pt-4">
             <div className="space-y-3">
@@ -103,9 +82,8 @@ export function ReportsClient() {
                 <div key={row.label} className="flex items-center gap-4 rounded-xl border border-white/[0.06] bg-white/[0.025] p-4">
                   <div className="flex h-10 w-10 items-center justify-center rounded-xl border border-white/[0.08] bg-white/[0.04]">
                     {row.label.includes('Bug') ? <Bug className="h-4 w-4 text-red-300" /> :
-                      row.label.includes('Tasks') ? <CheckCircle2 className="h-4 w-4 text-emerald-300" /> :
-                        row.label.includes('QA') ? <ClipboardCheck className="h-4 w-4 text-amber-300" /> :
-                          <BriefcaseBusiness className="h-4 w-4 text-cyan-300" />}
+                      row.label.includes('QA') ? <ClipboardCheck className="h-4 w-4 text-amber-300" /> :
+                        <BriefcaseBusiness className="h-4 w-4 text-cyan-300" />}
                   </div>
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center justify-between gap-3">
@@ -126,26 +104,10 @@ export function ReportsClient() {
             <span className="text-xs text-white/40">Pronto para uso real</span>
           </CardHeader>
           <CardContent className="pt-4 space-y-4">
-            <StatusLine label="Base demo removida" ok />
-            <StatusLine label="Clientes cadastrados" ok={activeCompanies.length > 0} />
-            <StatusLine label="Time cadastrado" ok={activeMembers.length > 0} />
+            <StatusLine label="Clientes cadastrados" ok={activeClients.length > 0} />
+            <StatusLine label="Time cadastrado" ok={teamMembers > 0} />
+            <StatusLine label="Projetos ativos" ok={projects.some(p => p.status === 'ACTIVE')} />
             <StatusLine label="Dados operacionais reais" ok={hasOperationalData} muted />
-
-            <div className="rounded-xl border border-white/[0.06] bg-white/[0.025] p-4">
-              <p className="text-xs font-semibold uppercase tracking-wider text-white/35">Ultimas importacoes</p>
-              {imports.length === 0 ? (
-                <p className="mt-3 text-sm text-white/35">Nenhuma importacao realizada ainda.</p>
-              ) : (
-                <div className="mt-3 space-y-2">
-                  {imports.slice(0, 4).map(item => (
-                    <div key={item.id} className="flex items-center justify-between text-xs">
-                      <span className="text-white/45">{item.source}</span>
-                      <span className="font-semibold text-white/70">{item.qaCount}</span>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
           </CardContent>
         </Card>
       </div>

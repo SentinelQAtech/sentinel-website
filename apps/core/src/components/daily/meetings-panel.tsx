@@ -2,7 +2,8 @@
 
 import { Clock, Trash2, Video } from 'lucide-react'
 import { cn } from '@/lib/utils'
-import { useDailyStore, REGION_CONFIG, type DailyMeeting } from '@/store/daily'
+import { REGION_CONFIG, type DailyMeeting } from '@/store/daily'
+import { useDailyMeetings, useDeleteDailyMeeting } from '@/hooks/useDaily'
 
 function upcomingClass(time: string) {
   const [h, m] = time.split(':').map(Number)
@@ -30,10 +31,10 @@ interface RegionGroupProps {
   region:   string
   meetings: DailyMeeting[]
   all:      DailyMeeting[]
+  onRemove: (id: string) => void
 }
 
-function RegionGroup({ region, meetings, all }: RegionGroupProps) {
-  const { removeMeeting } = useDailyStore()
+function RegionGroup({ region, meetings, all, onRemove }: RegionGroupProps) {
   const cfg = REGION_CONFIG[region] ?? { flag: '🌐', color: '#6366f1' }
 
   return (
@@ -85,7 +86,7 @@ function RegionGroup({ region, meetings, all }: RegionGroupProps) {
               )}
 
               <button
-                onClick={() => removeMeeting(m.id)}
+                onClick={() => onRemove(m.id)}
                 className="opacity-0 group-hover:opacity-100 p-0.5 rounded text-white/20 hover:text-red-400 transition-all duration-150"
               >
                 <Trash2 className="w-3 h-3" />
@@ -98,8 +99,9 @@ function RegionGroup({ region, meetings, all }: RegionGroupProps) {
   )
 }
 
-export function MeetingsPanel() {
-  const meetings = useDailyStore(s => s.meetings)
+export function MeetingsPanel({ date }: { date: string }) {
+  const { data: meetings = [] } = useDailyMeetings(date)
+  const deleteMeeting = useDeleteDailyMeeting()
 
   const regions = Object.keys(REGION_CONFIG).filter(r =>
     meetings.some(m => m.region === r)
@@ -111,7 +113,7 @@ export function MeetingsPanel() {
     return (
       <div className="flex flex-col items-center justify-center py-8 text-center">
         <Video className="w-8 h-8 text-white/15 mb-2" />
-        <p className="text-sm text-white/30">Nenhuma reunião hoje</p>
+        <p className="text-sm text-white/30">Nenhuma reunião nesta data</p>
       </div>
     )
   }
@@ -127,6 +129,7 @@ export function MeetingsPanel() {
             region={region}
             meetings={regionMeetings}
             all={meetings}
+            onRemove={(id) => deleteMeeting.mutate(id)}
           />
         )
       })}

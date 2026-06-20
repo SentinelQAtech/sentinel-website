@@ -3,15 +3,15 @@
 import Link from 'next/link'
 import { Video, Clock, CalendarDays } from 'lucide-react'
 import { cn } from '@/lib/utils'
-import { useDailyStore, REGION_CONFIG, getTodayISO } from '@/store/daily'
+import { REGION_CONFIG, getTodayISO } from '@/store/daily'
+import { useDailyMeetings } from '@/hooks/useDaily'
 import { useI18nStore } from '@/store/i18n'
 
 export function DailyMeetingsWidget() {
   useI18nStore(s => s.locale)
   const t = useI18nStore(s => s.t)
-  const allMeetings = useDailyStore(s => s.allMeetings)
   const todayISO = getTodayISO()
-  const meetings = allMeetings.filter(m => (m.date ?? todayISO) === todayISO)
+  const { data: meetings = [] } = useDailyMeetings(todayISO)
 
   const now    = new Date()
   const nowMin = now.getHours() * 60 + now.getMinutes()

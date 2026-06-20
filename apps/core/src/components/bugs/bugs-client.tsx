@@ -9,9 +9,12 @@ import { BugTable } from './bug-table'
 import { BugStats } from './bug-stats'
 import { cn } from '@/lib/utils'
 import { useI18nStore } from '@/store/i18n'
-import { useBugs, useCreateBug, useBulkSyncBugs } from '@/hooks/useBugs'
+import Link from 'next/link'
+import toast from 'react-hot-toast'
+import { useBugs, useCreateBug, useBulkSyncBugs, type CreateBugInput } from '@/hooks/useBugs'
 import { useQAImporterStore } from '@/store/qa-importer'
-import { defaultReporter, defaultProject } from '@/store/bugs'
+import { useProjects } from '@/hooks/useProjects'
+import { getApiErrorMessage } from '@/lib/api-error'
 import { getBugsLoadErrorMessage } from '@/lib/bugs-contract'
 import type { Bug as BugType, BugSeverity, BugStatus, Priority } from '@/types'
 
@@ -38,6 +41,8 @@ export function BugsClient() {
   } = useBugs()
   const bugs = paginated?.data ?? []
   const createBug = useCreateBug()
+  const { data: projects = [] } = useProjects()
+  const [createError, setCreateError] = useState<string | null>(null)
 
   // Compute stats from the latest data
   const stats = {
@@ -72,19 +77,18 @@ export function BugsClient() {
     }
   }
 
-  const addBug = (bug: BugType) => {
-    createBug.mutate({
-      title: bug.title,
-      description: bug.description,
-      severity: bug.severity,
-      priority: bug.priority,
-      projectId: bug.projectId,
-      environment: bug.environment,
-      tags: bug.tags,
-    }, {
+  const addBug = (input: CreateBugInput) => {
+    setCreateError(null)
+    createBug.mutate(input, {
       onSuccess: () => {
         setReportOpen(false)
+        setCreateError(null)
         applyQuickFilter('total')
+        toast.success('Bug criado com sucesso')
+      },
+      onError: (err) => {
+        setCreateError(getApiErrorMessage(err, 'Nao foi possivel criar o bug.'))
+        toast.error('Falha ao criar o bug')
       },
     })
   }
@@ -169,10 +173,11 @@ export function BugsClient() {
 
       {reportOpen && (
         <ReportBugModal
-          onClose={() => setReportOpen(false)}
+          projects={projects}
+          onClose={() => { setReportOpen(false); setCreateError(null) }}
           onCreate={addBug}
-          nextNumber={bugs.length + 1}
           isPending={createBug.isPending}
+          errorMessage={createError}
         />
       )}
       {selectedBug && (
@@ -187,7 +192,13 @@ export function BugsClient() {
   )
 }
 
-function ReportBugModal({ onClose, onCreate, nextNumber, isPending }: { onClose: () => void; onCreate: (bug: BugType) => void; nextNumber: number; isPending?: boolean }) {
+function ReportBugModal({ projects, onClose, onCreate, isPending, errorMessage }: {
+  projects: { id: string; name: string }[]
+  onClose: () => void
+  onCreate: (input: CreateBugInput) => void
+  isPending?: boolean
+  errorMessage?: string | null
+}) {
   useI18nStore(s => s.locale)
   const t = useI18nStore(s => s.t)
   const [title, setTitle] = useState('')
@@ -195,31 +206,23 @@ function ReportBugModal({ onClose, onCreate, nextNumber, isPending }: { onClose:
   const [severity, setSeverity] = useState<BugSeverity>('MEDIUM')
   const [priority, setPriority] = useState<Priority>('MEDIUM')
   const [environment, setEnvironment] = useState('')
+  const [projectId, setProjectId] = useState(projects[0]?.id ?? '')
 
   const inputCls = 'w-full px-3 py-2.5 rounded-lg text-sm bg-white/[0.04] border border-white/[0.08] text-white placeholder-white/25 outline-none focus:border-primary/50'
 
+  const noProjects = projects.length === 0
+  const canSubmit = !!title.trim() && !!description.trim() && !!projectId && !isPending
+
   const create = () => {
-    if (!title.trim() || !description.trim()) return
-    const now = new Date().toISOString()
+    if (!title.trim() || !description.trim() || !projectId) return
     onCreate({
-      id: String(Date.now()),
-      bugId: `BUG-${String(nextNumber).padStart(3, '0')}`,
       title: title.trim(),
       description: description.trim(),
       severity,
       priority,
-      status: 'OPEN',
-      environment,
+      projectId,
+      environment: environment.trim() || undefined,
       tags: ['manual'],
-      projectId: defaultProject.id,
-      reporterId: defaultReporter.id,
-      reporter: defaultReporter,
-      project: defaultProject,
-      createdAt: now,
-      updatedAt: now,
-      resolvedAt: undefined,
-      assignee: undefined,
-      assigneeId: undefined,
     })
   }
 
@@ -234,6 +237,24 @@ function ReportBugModal({ onClose, onCreate, nextNumber, isPending }: { onClose:
           </button>
         </div>
         <div className="p-5 space-y-4">
+          {noProjects ? (
+            <div className="rounded-lg border border-amber-500/20 bg-amber-500/10 px-3 py-3 text-sm text-amber-200">
+              <p className="font-medium">Nenhum projeto cadastrado.</p>
+              <p className="mt-1 text-xs text-amber-200/80">
+                Bugs precisam pertencer a um projeto. Crie um projeto primeiro.
+              </p>
+              <Link href="/projects" onClick={onClose} className="mt-2 inline-block text-xs font-semibold text-amber-200 underline">
+                Ir para Projetos
+              </Link>
+            </div>
+          ) : (
+            <div>
+              <label className="text-[10px] font-semibold uppercase tracking-wider text-white/30 mb-1 block">Projeto *</label>
+              <select value={projectId} onChange={e => setProjectId(e.target.value)} className={inputCls}>
+                {projects.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
+              </select>
+            </div>
+          )}
           <input value={title} onChange={e => setTitle(e.target.value)} className={inputCls} placeholder={t('bugTitle')} autoFocus />
           <textarea value={description} onChange={e => setDescription(e.target.value)} className={cn(inputCls, 'resize-none')} rows={4} placeholder={t('impactDescription')} />
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
@@ -245,15 +266,20 @@ function ReportBugModal({ onClose, onCreate, nextNumber, isPending }: { onClose:
             </select>
             <input value={environment} onChange={e => setEnvironment(e.target.value)} className={inputCls} placeholder={t('environment')} />
           </div>
+          {errorMessage && (
+            <p className="rounded-lg border border-red-500/20 bg-red-500/10 px-3 py-2 text-xs text-red-300">
+              {errorMessage}
+            </p>
+          )}
           <div className="flex justify-end gap-3">
             <Button variant="outline" onClick={onClose}>{t('cancel')}</Button>
             <Button
               variant="glow"
               onClick={create}
-              disabled={!title.trim() || !description.trim() || isPending}
+              disabled={!canSubmit || noProjects}
               leftIcon={isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : <Plus className="w-4 h-4" />}
             >
-              {isPending ? t('creating') ?? 'Criando...' : t('createBug')}
+              {isPending ? (t('creating') ?? 'Criando...') : t('createBug')}
             </Button>
           </div>
         </div>

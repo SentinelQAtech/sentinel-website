@@ -3,11 +3,11 @@
 import { motion } from 'framer-motion'
 import { CheckSquare, AlertTriangle, Video, Users, TrendingUp } from 'lucide-react'
 import { cn } from '@/lib/utils'
-import { useDailyStore } from '@/store/daily'
+import { useDailyTasks, useDailyMeetings } from '@/hooks/useDaily'
 
-export function DailyOverview() {
-  const tasks    = useDailyStore(s => s.tasks)
-  const meetings = useDailyStore(s => s.meetings)
+export function DailyOverview({ date }: { date: string }) {
+  const { tasks } = useDailyTasks(date)
+  const { data: meetings = [] } = useDailyMeetings(date)
 
   const total     = tasks.length
   const done      = tasks.filter(t => t.status === 'done').length

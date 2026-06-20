@@ -17,12 +17,13 @@ import {
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { useAIStore } from '@/store/ai'
-import { useDailyStore, getTodayISO } from '@/store/daily'
-import { useQAImporterStore } from '@/store/qa-importer'
+import { getTodayISO } from '@/store/daily'
+import { useAllDailyTasks } from '@/hooks/useDaily'
+import { useQAItems } from '@/hooks/useQAItems'
 
 function useInsights() {
-  const allTasks = useDailyStore(s => s.allTasks)
-  const qaItems = useQAImporterStore(s => s.items)
+  const { tasks: allTasks } = useAllDailyTasks()
+  const { data: qaItems = [] } = useQAItems()
   const todayISO = getTodayISO()
 
   return useMemo(() => {

@@ -3,10 +3,11 @@
 import Link from 'next/link'
 import { motion } from 'framer-motion'
 import { AlertTriangle, ArrowRight, Ban, CheckCircle2, Clock3, History, Sun } from 'lucide-react'
-import { useDailyStore, getTodayISO } from '@/store/daily'
+import { getTodayISO } from '@/store/daily'
+import { useAllDailyTasks } from '@/hooks/useDaily'
 
 export function DailyProgressWidget() {
-  const allTasks = useDailyStore(s => s.allTasks)
+  const { tasks: allTasks } = useAllDailyTasks()
   const today = getTodayISO()
   const tasks = allTasks.filter(t => (t.date ?? today) === today)
 

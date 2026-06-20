@@ -4,12 +4,14 @@ import { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { X, Video, ChevronDown } from 'lucide-react'
 import { cn } from '@/lib/utils'
-import { useDailyStore, DEFAULT_REGIONS } from '@/store/daily'
+import { DEFAULT_REGIONS } from '@/store/daily'
+import { useCreateDailyMeeting } from '@/hooks/useDaily'
 import { Button } from '@/components/ui/button'
 
 interface AddMeetingModalProps {
   open:    boolean
   onClose: () => void
+  selectedDate: string
 }
 
 const inputCls = cn(
@@ -18,8 +20,8 @@ const inputCls = cn(
   'focus:border-white/20 focus:bg-white/[0.06] transition-all duration-150'
 )
 
-export function AddMeetingModal({ open, onClose }: AddMeetingModalProps) {
-  const addMeeting = useDailyStore(s => s.addMeeting)
+export function AddMeetingModal({ open, onClose, selectedDate }: AddMeetingModalProps) {
+  const createMeeting = useCreateDailyMeeting()
 
   const [region,  setRegion]  = useState(DEFAULT_REGIONS[0])
   const [custom,  setCustom]  = useState('')
@@ -38,15 +40,22 @@ export function AddMeetingModal({ open, onClose }: AddMeetingModalProps) {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
     if (!time) return
-    addMeeting({
-      region:       effectiveRegion,
-      time,
-      title:        title.trim() || undefined,
-      participants: parts.trim() || undefined,
-      notes:        notes.trim() || undefined,
-    })
-    reset()
-    onClose()
+    createMeeting.mutate(
+      {
+        date:         selectedDate,
+        region:       effectiveRegion,
+        time,
+        title:        title.trim() || undefined,
+        participants: parts.trim() || undefined,
+        notes:        notes.trim() || undefined,
+      },
+      {
+        onSuccess: () => {
+          reset()
+          onClose()
+        },
+      },
+    )
   }
 
   return (

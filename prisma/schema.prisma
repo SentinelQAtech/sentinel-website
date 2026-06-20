@@ -105,6 +105,7 @@ model User {
   createdQAItems   QAItem[]            @relation("QAItemCreator")
   assignedQAItems  QAItem[]            @relation("QAItemAssignee")
   clients          Client[]
+  dailyMeetings    DailyMeeting[]      @relation("DailyMeetingCreator")
 
   @@map("users")
 }
@@ -415,4 +416,27 @@ model QAItem {
   @@index([createdByAuthId])
   @@index([deletedAt])
   @@map("qa_items")
+}
+
+model DailyMeeting {
+  id              String   @id @default(cuid())
+  workspaceId     String
+  date            DateTime
+  region          String   @default("")
+  time            String   @default("09:00")
+  title           String?
+  participants    String?
+  notes           String?
+  createdById     String
+  createdByAuthId String?  @db.Uuid
+
+  createdBy User @relation("DailyMeetingCreator", fields: [createdById], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([workspaceId])
+  @@index([date])
+  @@index([createdById])
+  @@map("daily_meetings")
 }

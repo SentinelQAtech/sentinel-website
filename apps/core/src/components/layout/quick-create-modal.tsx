@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useRef, useEffect } from 'react'
+import Link from 'next/link'
 import { motion, AnimatePresence } from 'framer-motion'
 import { X, FolderKanban, CheckSquare, ChevronDown } from 'lucide-react'
 import { cn } from '@/lib/utils'
@@ -259,11 +260,19 @@ export function QuickCreateModal({ open, onClose }: QuickCreateModalProps) {
                   />
                   <SelectField
                     label="Empresa"
-                    value={selectedClient?.value ?? ''}
-                    options={clientOptions.map(client => client.value)}
+                    value={selectedClient?.value ?? '—'}
+                    options={clientOptions.length > 0 ? clientOptions.map(client => client.value) : ['—']}
                     onChange={setCompany}
                   />
                 </div>
+
+                {clientOptions.length === 0 && (
+                  <p className="text-[11px] text-white/35">
+                    Nenhum cliente cadastrado — opcional. Você pode{' '}
+                    <Link href="/companies" onClick={onClose} className="text-primary underline">cadastrar um cliente</Link>{' '}
+                    para organizar por empresa.
+                  </p>
+                )}
 
                 {mutationError && (
                   <p className="rounded-lg border border-red-500/20 bg-red-500/10 px-3 py-2 text-xs text-red-300">
@@ -280,7 +289,7 @@ export function QuickCreateModal({ open, onClose }: QuickCreateModalProps) {
                   >
                     Cancelar
                   </button>
-                  <Button type="submit" size="sm" variant="glow" loading={isPending} disabled={isPending || clientOptions.length === 0}>
+                  <Button type="submit" size="sm" variant="glow" loading={isPending} disabled={isPending}>
                     {isPending ? 'Criando...' : `Criar ${selected.label}`}
                   </Button>
                 </div>

@@ -1,5 +1,9 @@
-import { create } from 'zustand'
-import { persist } from 'zustand/middleware'
+// Daily domain types + presentation config.
+//
+// NOTE: Daily data is no longer stored in localStorage. Tasks live as QA items
+// (sentToDaily) via the API (see `@/hooks/useDaily` / `@/hooks/useQAItems`) and
+// meetings live in the `daily_meetings` table (see `@/hooks/useDaily`). This
+// module now only exports shared types and presentation constants.
 
 // ─── Types ────────────────────────────────────────────────────
 
@@ -17,12 +21,12 @@ export interface DailyTask {
   status:       DailyStatus
   responsible?: string
   notes?:       string
-  qaSourceId?:  string  // QA Importer item ID origin — tasks with this are removed when QA item is deleted
+  qaSourceId?:  string
 }
 
 export interface DailyMeeting {
   id:           string
-  date?:         string
+  date?:        string
   region:       string
   time:         string
   title?:       string
@@ -79,225 +83,10 @@ export const TASK_TYPES: DailyType[] = ['Daily', 'Card Work', 'Study', 'Testing'
 export const PRIORITIES: DailyPriority[] = ['Critical', 'High', 'Medium', 'Low']
 export const STATUSES: DailyStatus[] = ['todo', 'in_progress', 'done', 'blocked']
 
-// ─── Initial data ─────────────────────────────────────────────
-
-const INITIAL_TASKS: DailyTask[] = []
-
-const INITIAL_MEETINGS: DailyMeeting[] = []
+// ─── Helpers ──────────────────────────────────────────────────
 
 export function getTodayISO() {
   const now = new Date()
   const tzOffset = now.getTimezoneOffset() * 60000
   return new Date(now.getTime() - tzOffset).toISOString().slice(0, 10)
 }
-
-function withDate<T extends { date?: string }>(items: T[], date: string): T[] {
-  return items.map(item => ({ ...item, date: item.date ?? date }))
-}
-
-function copyOpenTasks(tasks: DailyTask[], targetDate: string): DailyTask[] {
-  return tasks
-    .filter(task => task.status !== 'done')
-    .map(task => ({
-      ...task,
-      id: `t${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
-      date: targetDate,
-      status: 'todo' as DailyStatus,
-      notes: task.notes ? `${task.notes}\nCopiada do Daily de ${task.date}.` : `Copiada do Daily de ${task.date}.`,
-    }))
-}
-
-// ─── Store ────────────────────────────────────────────────────
-
-interface DailyStore {
-  tasks:       DailyTask[]
-  meetings:    DailyMeeting[]
-  allTasks:    DailyTask[]
-  allMeetings: DailyMeeting[]
-  selectedDate: string
-
-  setSelectedDate: (date: string) => void
-  goToToday:       () => void
-  getTasksForDate:    (date: string) => DailyTask[]
-  getMeetingsForDate: (date: string) => DailyMeeting[]
-  getDailyDates:      () => string[]
-  copyOpenTasksToToday: (fromDate: string) => number
-
-  addTask:              (task: Omit<DailyTask, 'id'> & { id?: string }) => void
-  updateTask:           (id: string, updates: Partial<DailyTask>) => void
-  toggleTask:           (id: string) => void
-  removeTask:           (id: string) => void
-  syncWithQAImporter:   (activeQAIds: Set<string>) => void
-
-  addMeeting:     (m: Omit<DailyMeeting, 'id'>) => void
-  removeMeeting:  (id: string) => void
-
-  generateTemplate: () => void
-}
-
-export const useDailyStore = create<DailyStore>()(
-  persist(
-    (set, get) => {
-      const today = getTodayISO()
-      const initialTasks = withDate(INITIAL_TASKS, today)
-      const initialMeetings = withDate(INITIAL_MEETINGS, today)
-      const refreshSelected = (date = get().selectedDate) =>
-        set(s => ({
-          selectedDate: date,
-          tasks: s.allTasks.filter(t => (t.date ?? today) === date),
-          meetings: s.allMeetings.filter(m => (m.date ?? today) === date).sort((a, b) => a.time.localeCompare(b.time)),
-        }))
-
-      return {
-      tasks:    initialTasks,
-      meetings: initialMeetings,
-      allTasks: initialTasks,
-      allMeetings: initialMeetings,
-      selectedDate: today,
-
-      setSelectedDate: (date) => refreshSelected(date),
-
-      goToToday: () => refreshSelected(getTodayISO()),
-
-      getTasksForDate: (date) => get().allTasks.filter(t => (t.date ?? today) === date),
-
-      getMeetingsForDate: (date) => get().allMeetings.filter(m => (m.date ?? today) === date).sort((a, b) => a.time.localeCompare(b.time)),
-
-      getDailyDates: () => {
-        const dates = new Set<string>([getTodayISO()])
-        get().allTasks.forEach(t => dates.add(t.date ?? today))
-        get().allMeetings.forEach(m => dates.add(m.date ?? today))
-        return [...dates].sort((a, b) => b.localeCompare(a))
-      },
-
-      copyOpenTasksToToday: (fromDate) => {
-        const targetDate = getTodayISO()
-        const copies = copyOpenTasks(get().allTasks.filter(t => (t.date ?? today) === fromDate), targetDate)
-        if (copies.length === 0) return 0
-        set(s => ({ allTasks: [...s.allTasks, ...copies] }))
-        refreshSelected(get().selectedDate)
-        return copies.length
-      },
-
-      addTask: (task) =>
-        set(s => {
-          const id = task.id ?? `t${Date.now()}`
-          // Don't duplicate QA-sourced tasks on the same date
-          const taskDate = task.date ?? s.selectedDate
-          if (task.qaSourceId && s.allTasks.some(t => t.qaSourceId === task.qaSourceId && (t.date ?? s.selectedDate) === taskDate)) return s
-          const datedTask = { ...task, date: task.date ?? s.selectedDate, id }
-          const allTasks = [...s.allTasks, datedTask]
-          return {
-            allTasks,
-            tasks: allTasks.filter(t => (t.date ?? today) === s.selectedDate),
-          }
-        }),
-
-      updateTask: (id, updates) =>
-        set(s => {
-          const allTasks = s.allTasks.map(t => t.id === id ? { ...t, ...updates } : t)
-          return {
-            allTasks,
-            tasks: allTasks.filter(t => (t.date ?? today) === s.selectedDate),
-          }
-        }),
-
-      toggleTask: (id) =>
-        set(s => {
-          const allTasks = s.allTasks.map(t =>
-            t.id === id ? { ...t, status: (t.status === 'done' ? 'todo' : 'done') as DailyStatus } : t
-          )
-          return {
-            allTasks,
-            tasks: allTasks.filter(t => (t.date ?? today) === s.selectedDate),
-          }
-        }),
-
-      removeTask: (id) =>
-        set(s => {
-          const allTasks = s.allTasks.filter(t => t.id !== id)
-          return {
-            allTasks,
-            tasks: allTasks.filter(t => (t.date ?? today) === s.selectedDate),
-          }
-        }),
-
-      syncWithQAImporter: (activeQAIds) =>
-        set(s => {
-          // Remove tasks whose QA source item no longer exists in the importer
-          const allTasks = s.allTasks.filter(t => !t.qaSourceId || activeQAIds.has(t.qaSourceId))
-          return {
-            allTasks,
-            tasks: allTasks.filter(t => (t.date ?? today) === s.selectedDate),
-          }
-        }),
-
-      addMeeting: (m) =>
-        set(s => {
-          const datedMeeting = { ...m, date: m.date ?? s.selectedDate, id: `m${Date.now()}` }
-          const allMeetings = [...s.allMeetings, datedMeeting]
-          return {
-            allMeetings,
-            meetings: allMeetings
-              .filter(meeting => (meeting.date ?? today) === s.selectedDate)
-              .sort((a, b) => a.time.localeCompare(b.time)),
-          }
-        }),
-
-      removeMeeting: (id) =>
-        set(s => {
-          const allMeetings = s.allMeetings.filter(m => m.id !== id)
-          return {
-            allMeetings,
-            meetings: allMeetings
-              .filter(m => (m.date ?? today) === s.selectedDate)
-              .sort((a, b) => a.time.localeCompare(b.time)),
-          }
-        }),
-
-      generateTemplate: () =>
-        set(s => {
-          const date = s.selectedDate
-          const allTasks = [
-            ...s.allTasks.filter(t => (t.date ?? today) !== date),
-            ...INITIAL_TASKS.map(t => ({ ...t, id: `${t.id}-${date}`, date, status: 'todo' as DailyStatus })),
-          ]
-          const allMeetings = [
-            ...s.allMeetings.filter(m => (m.date ?? today) !== date),
-            ...INITIAL_MEETINGS.map(m => ({ ...m, id: `${m.id}-${date}`, date })),
-          ]
-          return {
-            allTasks,
-            allMeetings,
-            tasks: allTasks.filter(t => (t.date ?? today) === date),
-            meetings: allMeetings.filter(m => (m.date ?? today) === date),
-          }
-        }),
-      }
-    },
-    {
-      name: 'sentinel-core-daily',
-      version: 3,
-      migrate: (persistedState: unknown) => {
-        const state = persistedState as Partial<DailyStore> | undefined
-        const today = getTodayISO()
-        const sourceTasks = state?.allTasks ?? state?.tasks ?? INITIAL_TASKS
-        const sourceMeetings = state?.allMeetings ?? state?.meetings ?? INITIAL_MEETINGS
-        const selectedDate = state?.selectedDate ?? today
-
-        // v3: preserve all existing tasks. syncWithQAImporter handles cleanup of
-        // QA-sourced tasks reactively. Manual tasks (no qaSourceId) are never touched.
-        const allTasks = withDate(sourceTasks, today)
-        const allMeetings = withDate(sourceMeetings, today)
-        return {
-          ...state,
-          selectedDate,
-          allTasks,
-          allMeetings,
-          tasks: allTasks.filter(t => (t.date ?? today) === selectedDate),
-          meetings: allMeetings.filter(m => (m.date ?? today) === selectedDate),
-        }
-      },
-    }
-  )
-)

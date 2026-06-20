@@ -1,28 +1,21 @@
 'use client'
 
-import { useState, useMemo } from 'react'
+import { useMemo, useState } from 'react'
 import Link from 'next/link'
 import { motion } from 'framer-motion'
 import {
-  Plus, Video, RefreshCw, Sun, Filter, CalendarDays,
-  AlertTriangle, ChevronLeft, ChevronRight, History, Target, ArrowUpDown
+  Plus, Video, Sun, CalendarDays,
+  ChevronLeft, ChevronRight, History,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
-import { useDailyStore, DEFAULT_CLIENTS, PRIORITY_CONFIG, CLIENT_CONFIG, getTodayISO, type DailyPriority } from '@/store/daily'
+import { getTodayISO } from '@/store/daily'
 import { useI18nStore } from '@/store/i18n'
+import { useAllDailyTasks, useDailyMeetings } from '@/hooks/useDaily'
 import { DailyOverview } from './daily-overview'
-import { ClientSection } from './client-section'
 import { MeetingsPanel } from './meetings-panel'
 import { AddItemModal } from './add-item-modal'
 import { AddMeetingModal } from './add-meeting-modal'
 import { QADailyCockpit } from './qa-daily-cockpit'
-
-type ViewMode   = 'client' | 'priority'
-type SortMode   = 'priority' | 'newest' | 'oldest'
-type TypeFilter = 'all' | 'BE' | 'FE'
-
-const PRIORITY_ORDER: DailyPriority[] = ['Critical', 'High', 'Medium', 'Low']
-const PRIO_RANK: Record<DailyPriority, number> = { Critical: 0, High: 1, Medium: 2, Low: 3 }
 
 const fadeUp = {
   hidden: { opacity: 0, y: 12 },
@@ -32,55 +25,32 @@ const fadeUp = {
 export function DailyClient() {
   useI18nStore(s => s.locale)
   const t = useI18nStore(s => s.t)
-  const {
-    tasks,
-    meetings,
-    selectedDate,
-    setSelectedDate,
-    goToToday,
-    getDailyDates,
-    copyOpenTasksToToday,
-    generateTemplate,
-  } = useDailyStore()
 
+  const todayISO = getTodayISO()
+  const [selectedDate, setSelectedDate] = useState(todayISO)
   const [addItem,     setAddItem]     = useState(false)
   const [addMeeting,  setAddMeeting]  = useState(false)
-  const [view,        setView]        = useState<ViewMode>('client')
   const [historyOpen, setHistoryOpen] = useState(false)
-  const [sortBy,      setSortBy]      = useState<SortMode>('priority')
-  const [typeFilter,  setTypeFilter]  = useState<TypeFilter>('all')
 
-  const processedTasks = useMemo(() => {
-    let result = [...tasks]
-    if (typeFilter !== 'all')
-      result = result.filter(t => t.title.includes(`[${typeFilter}]`))
-    switch (sortBy) {
-      case 'priority': result.sort((a, b) => (PRIO_RANK[a.priority] ?? 4) - (PRIO_RANK[b.priority] ?? 4)); break
-      case 'newest':   result.sort((a, b) => b.id.localeCompare(a.id)); break
-      case 'oldest':   result.sort((a, b) => a.id.localeCompare(b.id)); break
-    }
-    return result
-  }, [tasks, sortBy, typeFilter])
+  const { tasks: allTasks } = useAllDailyTasks()
+  const { data: allMeetings = [] } = useDailyMeetings()
 
-  // Gather all unique clients (default + any custom)
-  const clientsWithTasks = [...new Set([...DEFAULT_CLIENTS, ...processedTasks.map(t => t.client)])]
-    .filter(c => processedTasks.some(t => t.client === c))
+  // Dates that actually have Daily activity (tasks or meetings) + today.
+  const dailyDates = useMemo(() => {
+    const dates = new Set<string>([todayISO])
+    allTasks.forEach(task => { if (task.date) dates.add(task.date) })
+    allMeetings.forEach(m => { if (m.date) dates.add(m.date) })
+    return [...dates].sort((a, b) => b.localeCompare(a))
+  }, [allTasks, allMeetings, todayISO])
+
   const selected = new Date(`${selectedDate}T12:00:00`)
-  const todayISO = getTodayISO()
   const isToday = selectedDate === todayISO
-  const dailyDates = getDailyDates()
-  const openTasks = processedTasks.filter(t => t.status !== 'done')
   const dateStr = selected.toLocaleDateString('pt-BR', { weekday: 'long', day: 'numeric', month: 'long' })
 
   const shiftDay = (delta: number) => {
     const next = new Date(`${selectedDate}T12:00:00`)
     next.setDate(next.getDate() + delta)
     setSelectedDate(next.toISOString().slice(0, 10))
-  }
-
-  const copyOpenToToday = () => {
-    const copied = copyOpenTasksToToday(selectedDate)
-    if (copied > 0) goToToday()
   }
 
   return (
@@ -108,32 +78,6 @@ export function DailyClient() {
         {/* Action buttons */}
         <div className="flex items-center gap-2 shrink-0">
           <button
-            onClick={generateTemplate}
-            title="Gerar template padrão do dia"
-            className={cn(
-              'flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-medium',
-              'bg-white/[0.04] border border-white/[0.08] text-white/50',
-              'hover:bg-white/[0.07] hover:text-white/70 transition-all duration-150'
-            )}
-          >
-            <RefreshCw className="w-3.5 h-3.5" />
-            <span className="hidden sm:block">{t('generateTemplate')}</span>
-          </button>
-          {!isToday && openTasks.length > 0 && (
-            <button
-              onClick={copyOpenToToday}
-              title="Copiar tarefas abertas desta data para o Daily atual"
-              className={cn(
-                'flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-medium',
-                'bg-emerald-500/10 border border-emerald-500/25 text-emerald-300',
-                'hover:bg-emerald-500/15 transition-all duration-150'
-              )}
-            >
-              <ChevronRight className="w-3.5 h-3.5" />
-              <span className="hidden sm:block">{t('sendOpenToToday')}</span>
-            </button>
-          )}
-          <button
             onClick={() => setAddMeeting(true)}
             className={cn(
               'flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-medium',
@@ -158,6 +102,7 @@ export function DailyClient() {
         </div>
       </motion.div>
 
+      {/* Date navigation */}
       <motion.div
         variants={fadeUp}
         initial="hidden"
@@ -178,7 +123,7 @@ export function DailyClient() {
               type="date"
               value={selectedDate}
               onChange={e => setSelectedDate(e.target.value)}
-              className="h-9 rounded-lg border border-white/[0.08] bg-white/[0.04] px-3 text-sm font-medium text-white outline-none"
+              className="h-9 rounded-lg border border-white/[0.08] bg-white/[0.04] px-3 text-sm font-medium text-white outline-none [color-scheme:dark]"
             />
             <button
               onClick={() => shiftDay(1)}
@@ -188,7 +133,7 @@ export function DailyClient() {
               <ChevronRight className="w-4 h-4" />
             </button>
             <button
-              onClick={goToToday}
+              onClick={() => setSelectedDate(todayISO)}
               className={cn(
                 'h-9 rounded-lg border px-3 text-xs font-semibold transition-colors',
                 isToday
@@ -241,199 +186,43 @@ export function DailyClient() {
         )}
       </motion.div>
 
-      {/* Overview + Progress */}
+      {/* Overview */}
       <motion.div variants={fadeUp} initial="hidden" animate="show" style={{ transitionDelay: '60ms' }}>
-        <DailyOverview />
+        <DailyOverview date={selectedDate} />
       </motion.div>
 
+      {/* Tasks for the day (single source: QA items sent to Daily) */}
       <motion.div variants={fadeUp} initial="hidden" animate="show" style={{ transitionDelay: '90ms' }}>
         <QADailyCockpit selectedDate={selectedDate} />
       </motion.div>
 
-      {/* View toggle */}
+      {/* Meetings */}
       <motion.div
         variants={fadeUp}
         initial="hidden"
         animate="show"
         style={{ transitionDelay: '120ms' }}
-        className="flex items-center gap-2"
+        className="glass-card border border-white/[0.07] p-4"
       >
-        <div className="flex items-center gap-1 p-1 rounded-lg bg-white/[0.04] border border-white/[0.08]">
-          {([
-            { id: 'client',   label: t('byClient'),   icon: <Filter className="w-3 h-3" /> },
-            { id: 'priority', label: t('byPriority'), icon: <Target className="w-3 h-3" /> },
-          ] as const).map(tab => (
-            <button
-              key={tab.id}
-              onClick={() => setView(tab.id)}
-              className={cn(
-                'flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium transition-all duration-150',
-                view === tab.id
-                  ? 'bg-white/[0.10] text-white border border-white/[0.12]'
-                  : 'text-white/40 hover:text-white/60'
-              )}
-            >
-              {tab.icon}
-              {tab.label}
-            </button>
-          ))}
-        </div>
-        <span className="text-xs text-white/25">{processedTasks.length} {t('tasks')} · {meetings.length} {t('meetings')}</span>
-      </motion.div>
-
-      {/* Sort + type filter bar */}
-      <motion.div
-        variants={fadeUp}
-        initial="hidden"
-        animate="show"
-        style={{ transitionDelay: '140ms' }}
-        className="flex flex-wrap items-center gap-2"
-      >
-        <div className="flex items-center gap-1.5">
-          <ArrowUpDown className="w-3.5 h-3.5 text-white/25" />
-          {([
-            { id: 'priority', label: 'Prioridade' },
-            { id: 'newest',   label: 'Mais novo'  },
-            { id: 'oldest',   label: 'Mais antigo'},
-          ] as const).map(s => (
-            <button
-              key={s.id}
-              onClick={() => setSortBy(s.id)}
-              className={cn(
-                'px-2 py-1 rounded text-[11px] font-medium transition-all duration-150',
-                sortBy === s.id ? 'bg-white/10 text-white/80' : 'text-white/30 hover:text-white/50'
-              )}
-            >
-              {s.label}
-            </button>
-          ))}
-        </div>
-        <div className="w-px h-4 bg-white/[0.08]" />
-        <div className="flex items-center gap-1.5">
-          {(['all', 'BE', 'FE'] as const).map(f => (
-            <button
-              key={f}
-              type="button"
-              onClick={() => setTypeFilter(f)}
-              className={cn(
-                'px-2 py-1 rounded text-[11px] font-medium transition-all duration-150',
-                typeFilter === f ? 'bg-white/10 text-white/80' : 'text-white/30 hover:text-white/50'
-              )}
-            >
-              {f === 'all' ? 'Todos' : f}
-            </button>
-          ))}
-        </div>
-      </motion.div>
-
-      {/* Main content */}
-      <motion.div
-        variants={fadeUp}
-        initial="hidden"
-        animate="show"
-        style={{ transitionDelay: '180ms' }}
-        className="grid grid-cols-1 lg:grid-cols-3 gap-5"
-      >
-        {/* Left: Tasks */}
-        <div className="lg:col-span-2 space-y-3">
-          {view === 'client' ? (
-            /* By client */
-            clientsWithTasks.map(client => (
-              <ClientSection
-                key={client}
-                client={client}
-                tasks={processedTasks.filter(t => t.client === client)}
-              />
-            ))
-          ) : (
-            /* By priority */
-            PRIORITY_ORDER.map(priority => {
-              const pTasks = processedTasks.filter(t => t.priority === priority && t.status !== 'done')
-              if (pTasks.length === 0) return null
-              const cfg = PRIORITY_CONFIG[priority]
-              return (
-                <div key={priority} className="rounded-xl border border-white/[0.07] overflow-hidden">
-                  <div
-                    className="flex items-center gap-2.5 px-4 py-3 border-b border-white/[0.07]"
-                    style={{ backgroundColor: cfg.color + '08' }}
-                  >
-                    <AlertTriangle className="w-3.5 h-3.5" style={{ color: cfg.color }} />
-                    <span className="text-sm font-semibold" style={{ color: cfg.color }}>{cfg.label}</span>
-                    <span className="text-xs text-white/30 ml-auto">{pTasks.length} tarefas</span>
-                  </div>
-                  <div className="p-3 space-y-1.5">
-                    {pTasks.map(task => {
-                      const clientCfg = CLIENT_CONFIG[task.client]
-                      return (
-                        <div key={task.id} className="relative">
-                          <div
-                            className="absolute left-0 top-0 bottom-0 w-0.5 rounded-r-full"
-                            style={{ backgroundColor: clientCfg?.color ?? '#6366f1' }}
-                          />
-                          <div className="pl-3">
-                            <div className="flex items-center gap-1.5 mb-0.5">
-                              <span className="text-[10px] font-semibold" style={{ color: clientCfg?.color ?? '#6366f1' }}>
-                                {task.client}
-                              </span>
-                              <ChevronRight className="w-2.5 h-2.5 text-white/20" />
-                            </div>
-                            {/* Reuse TaskCard inline */}
-                            <div className="text-sm text-white/75">{task.title}</div>
-                          </div>
-                        </div>
-                      )
-                    })}
-                  </div>
-                </div>
-              )
-            })
-          )}
-        </div>
-
-        {/* Right: Meetings + High Priority sidebar */}
-        <div className="space-y-4">
-          {/* Meetings */}
-          <div className="glass-card border border-white/[0.07] p-4">
-            <div className="flex items-center justify-between mb-4">
-              <div className="flex items-center gap-2">
-                <Video className="w-4 h-4 text-cyan-400" />
-                <h3 className="text-sm font-semibold text-white/80">{t('todayMeetings')}</h3>
-              </div>
-              <Link
-                href="/calendar"
-                className="flex items-center gap-1.5 rounded-lg border border-cyan-500/25 bg-cyan-500/10 px-2.5 py-1.5 text-xs font-medium text-cyan-300 hover:bg-cyan-500/15"
-              >
-                <CalendarDays className="w-3.5 h-3.5" />
-                {t('agenda')}
-              </Link>
-            </div>
-            <MeetingsPanel />
+        <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center gap-2">
+            <Video className="w-4 h-4 text-cyan-400" />
+            <h3 className="text-sm font-semibold text-white/80">{t('todayMeetings')}</h3>
           </div>
-
-          {/* Done summary */}
-          {tasks.filter(t => t.status === 'done').length > 0 && (
-            <div className="glass-card border border-emerald-500/15 p-4">
-              <div className="flex items-center gap-2 mb-3">
-                <div className="w-4 h-4 rounded-full bg-emerald-500 flex items-center justify-center">
-                  <span className="text-white text-[9px] font-bold">✓</span>
-                </div>
-                <h3 className="text-sm font-semibold text-emerald-400">
-                  Concluídas ({tasks.filter(t => t.status === 'done').length})
-                </h3>
-              </div>
-              <div className="space-y-1">
-                {tasks.filter(t => t.status === 'done').map(t => (
-                  <p key={t.id} className="text-xs text-white/30 line-through truncate">{t.title}</p>
-                ))}
-              </div>
-            </div>
-          )}
+          <Link
+            href="/calendar"
+            className="flex items-center gap-1.5 rounded-lg border border-cyan-500/25 bg-cyan-500/10 px-2.5 py-1.5 text-xs font-medium text-cyan-300 hover:bg-cyan-500/15"
+          >
+            <CalendarDays className="w-3.5 h-3.5" />
+            {t('agenda')}
+          </Link>
         </div>
+        <MeetingsPanel date={selectedDate} />
       </motion.div>
 
       {/* Modals */}
       <AddItemModal    open={addItem}    onClose={() => setAddItem(false)} selectedDate={selectedDate} />
-      <AddMeetingModal open={addMeeting} onClose={() => setAddMeeting(false)} />
+      <AddMeetingModal open={addMeeting} onClose={() => setAddMeeting(false)} selectedDate={selectedDate} />
     </>
   )
 }

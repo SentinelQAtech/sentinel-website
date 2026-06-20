@@ -7,7 +7,8 @@ import {
   AlertCircle, Minus, Video,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
-import { useDailyStore, PRIORITY_CONFIG, CLIENT_CONFIG, REGION_CONFIG, getTodayISO } from '@/store/daily'
+import { PRIORITY_CONFIG, CLIENT_CONFIG, REGION_CONFIG, getTodayISO } from '@/store/daily'
+import { useDailyTasks, useDailyMeetings, useToggleDailyTask } from '@/hooks/useDaily'
 import { useI18nStore } from '@/store/i18n'
 import type { DailyStatus } from '@/store/daily'
 
@@ -21,12 +22,10 @@ const STATUS_ICON: Record<DailyStatus, { icon: React.ElementType; cls: string }>
 export function TodayDailyWidget() {
   useI18nStore(s => s.locale)
   const t = useI18nStore(s => s.t)
-  const storeTasks = useDailyStore(s => s.allTasks)
-  const storeMeetings = useDailyStore(s => s.allMeetings)
-  const toggleTask = useDailyStore(s => s.toggleTask)
   const today = getTodayISO()
-  const tasks = storeTasks.filter(t => (t.date ?? today) === today)
-  const meetings = storeMeetings.filter(m => (m.date ?? today) === today)
+  const { tasks } = useDailyTasks(today)
+  const { data: meetings = [] } = useDailyMeetings(today)
+  const { toggle } = useToggleDailyTask()
 
   const total = tasks.length
   const done  = tasks.filter(t => t.status === 'done').length
@@ -112,7 +111,7 @@ export function TodayDailyWidget() {
               return (
                 <button
                   key={task.id}
-                  onClick={() => toggleTask(task.id)}
+                  onClick={() => toggle(task.id, task.status)}
                   title={isDone ? t('markPending') : t('markDone')}
                   className="w-full flex items-center gap-2 px-2 py-1.5 rounded-lg text-left hover:bg-white/[0.04] group transition-colors"
                 >

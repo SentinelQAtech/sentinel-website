@@ -4,11 +4,12 @@ import Link from 'next/link'
 import { useMemo } from 'react'
 import { ArrowRight, ShieldAlert, Zap, AlertCircle, FlaskConical, CheckCircle } from 'lucide-react'
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card'
-import { useQAImporterStore, PRIORITY_ORDER } from '@/store/qa-importer'
+import { PRIORITY_ORDER } from '@/store/qa-importer'
+import { useQAItems } from '@/hooks/useQAItems'
 import { cn } from '@/lib/utils'
 
 export function QATodayWidget() {
-  const items = useQAImporterStore(s => s.items)
+  const { data: items = [] } = useQAItems()
 
   const stats = useMemo(() => {
     const active = items.filter(i => i.qaCategory !== 'Done')

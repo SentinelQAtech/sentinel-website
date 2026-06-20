@@ -31,10 +31,6 @@ export function TeamPresence() {
       <CardHeader>
         <div className="flex items-center gap-2">
           <CardTitle>{t('team')}</CardTitle>
-          <span className="flex items-center gap-1.5 text-xs text-emerald-400">
-            <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
-            {members.length} online
-          </span>
         </div>
         <span className="text-xs text-white/40">{members.length} {t('activeMembers').toLowerCase()}</span>
       </CardHeader>
@@ -46,7 +42,7 @@ export function TeamPresence() {
             key={member.user.id}
             className="flex items-center gap-3 p-2.5 rounded-lg hover:bg-white/[0.04] transition-colors duration-150"
           >
-            <Avatar user={member.user} size="sm" showStatus isOnline />
+            <Avatar user={member.user} size="sm" />
             <div className="flex-1 min-w-0">
               <p className="text-sm font-medium text-white/85 truncate">{member.user.name}</p>
               <p className="text-xs truncate text-white/40">{member.title}</p>

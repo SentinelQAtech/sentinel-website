@@ -2,15 +2,17 @@
 
 import { useCallback, useMemo } from 'react'
 import { useAIStore } from '@/store/ai'
-import { useDailyStore } from '@/store/daily'
-import { useQAImporterStore } from '@/store/qa-importer'
+import { getTodayISO } from '@/store/daily'
+import { useDailyTasks, useDailyMeetings } from '@/hooks/useDaily'
+import { useQAItems } from '@/hooks/useQAItems'
 import { useCalendarStore } from '@/store/calendar'
 import { buildSentinelContext } from '@/lib/sentinelContextBuilder'
 
 export function useSentinelContext() {
-  const tasks    = useDailyStore(s => s.tasks)
-  const meetings = useDailyStore(s => s.meetings)
-  const qaItems  = useQAImporterStore(s => s.items)
+  const today    = getTodayISO()
+  const { tasks } = useDailyTasks(today)
+  const { data: meetings = [] } = useDailyMeetings(today)
+  const { data: qaItems = [] }  = useQAItems()
   const events   = useCalendarStore(s => s.events)
 
   return useMemo(

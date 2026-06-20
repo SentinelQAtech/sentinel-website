@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import Link from 'next/link'
 import { motion } from 'framer-motion'
 import { Plus, Search, Grid2X2, List, SlidersHorizontal, X, AlertTriangle, Trash2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
@@ -311,6 +312,13 @@ function NewProjectModal({ onClose }: { onClose: () => void }) {
             </select>
             <input type="date" value={endDate} onChange={e => setEndDate(e.target.value)} className={cn(inputCls, '[color-scheme:dark]')} />
           </div>
+          {clientOptions.length === 0 && (
+            <p className="text-[11px] text-white/35">
+              Nenhum cliente cadastrado — o projeto será criado sem cliente. Você pode{' '}
+              <Link href="/companies" onClick={onClose} className="text-primary underline">cadastrar um cliente</Link>{' '}
+              depois.
+            </p>
+          )}
           {createProject.error && (
             <p className="rounded-lg border border-red-500/20 bg-red-500/10 px-3 py-2 text-xs text-red-300">
               {getApiErrorMessage(createProject.error, 'Nao foi possivel criar o projeto.')}
@@ -318,7 +326,7 @@ function NewProjectModal({ onClose }: { onClose: () => void }) {
           )}
           <div className="flex justify-end gap-3 pt-1">
             <Button variant="outline" onClick={onClose}>{t('cancel')}</Button>
-            <Button variant="glow" onClick={create} disabled={!name.trim() || createProject.isPending || clientOptions.length === 0} leftIcon={<Plus className="w-4 h-4" />}>
+            <Button variant="glow" onClick={create} disabled={!name.trim() || createProject.isPending} leftIcon={<Plus className="w-4 h-4" />}>
               {createProject.isPending ? 'Criando...' : t('createProject')}
             </Button>
           </div>
