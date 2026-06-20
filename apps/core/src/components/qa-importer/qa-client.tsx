@@ -24,6 +24,8 @@ import { QACard }          from './qa-card'
 import { ImportPanel }     from './import-panel'
 import { ImportHistory }   from './import-history'
 import { FormattedText }   from './formatted-text'
+import toast from 'react-hot-toast'
+import { getApiErrorMessage } from '@/lib/api-error'
 
 function cleanJiraText(value: string) {
   return value
@@ -64,6 +66,7 @@ export function TasksClient() {
   const [importOpen,    setImportOpen]    = useState(false)
   const [groupBy,       setGroupBy]       = useState<'none' | 'client' | 'category' | 'priority'>('none')
   const [sentFeedback,  setSentFeedback]  = useState<string | null>(null)
+  const [sendingDailyIds, setSendingDailyIds] = useState<Set<string>>(new Set())
   const [detailItem,    setDetailItem]    = useState<QAItem | null>(null)
   const [confirmArchive, setConfirmArchive] = useState(false)
   const [expandedSession, setExpandedSession] = useState<string | null>(null)
@@ -139,21 +142,35 @@ export function TasksClient() {
     setSelected(prev => { const n = new Set(prev); n.has(id) ? n.delete(id) : n.add(id); return n })
   }, [])
 
-  const sendItemToDaily = useCallback((item: QAItem) => {
-    sendQAItemToDaily.mutate({ id: item.id, dailyDate: todayISO })
-    setSentFeedback(`"${item.title}" enviado para o Daily`)
-    setTimeout(() => setSentFeedback(null), 3000)
+  const sendItemToDaily = useCallback(async (item: QAItem) => {
+    setSendingDailyIds(current => new Set(current).add(item.id))
+    try {
+      await sendQAItemToDaily.mutateAsync({ id: item.id, dailyDate: todayISO })
+      const message = `"${item.title}" enviado para o Daily`
+      setSentFeedback(message)
+      toast.success(message)
+      setTimeout(() => setSentFeedback(null), 3000)
+    } catch (error) {
+      toast.error(getApiErrorMessage(error, 'Nao foi possivel adicionar o item ao QA do dia.'))
+    } finally {
+      setSendingDailyIds(current => {
+        const next = new Set(current)
+        next.delete(item.id)
+        return next
+      })
+    }
   }, [sendQAItemToDaily, todayISO])
 
   const isNotSentToday = useCallback((i: QAItem) => !i.sentToDaily || i.dailyDate !== todayISO, [todayISO])
 
-  const sendSelectedToDaily = useCallback(() => {
-    remoteItems.filter(i => selected.has(i.id) && isNotSentToday(i)).forEach(sendItemToDaily)
+  const sendSelectedToDaily = useCallback(async () => {
+    const items = remoteItems.filter(i => selected.has(i.id) && isNotSentToday(i))
+    await Promise.all(items.map(sendItemToDaily))
     setSelected(new Set())
   }, [selected, remoteItems, sendItemToDaily, isNotSentToday])
 
-  const sendAllToDaily = useCallback(() => {
-    remoteItems.filter(isNotSentToday).forEach(sendItemToDaily)
+  const sendAllToDaily = useCallback(async () => {
+    await Promise.all(remoteItems.filter(isNotSentToday).map(sendItemToDaily))
   }, [remoteItems, sendItemToDaily, isNotSentToday])
 
   const handleImport = useCallback(async (items: ParsedQAItem[], tabSource: 'text' | 'csv' | 'extension') => {
@@ -392,7 +409,7 @@ export function TasksClient() {
                   </h3>
                   <div className="grid grid-cols-1 gap-2.5 lg:grid-cols-2 2xl:grid-cols-3">
                     {groupItems.map(item => (
-                      <QACard key={item.id} item={item} selected={selected.has(item.id)}
+                      <QACard key={item.id} item={item} selected={selected.has(item.id)} sendingToDaily={sendingDailyIds.has(item.id)}
                         onToggleSelect={toggleSelect} onSendToDaily={sendItemToDaily}
                         onMarkDone={markDone} onMarkBlocked={markBlocked}
                         onRemove={(id) => archiveQAItem.mutate(id)} onOpen={setDetailItem} />
@@ -404,7 +421,7 @@ export function TasksClient() {
           ) : (
             <div className="grid grid-cols-1 gap-2.5 lg:grid-cols-2 2xl:grid-cols-3">
               {filtered.map(item => (
-                <QACard key={item.id} item={item} selected={selected.has(item.id)}
+                <QACard key={item.id} item={item} selected={selected.has(item.id)} sendingToDaily={sendingDailyIds.has(item.id)}
                   onToggleSelect={toggleSelect} onSendToDaily={sendItemToDaily}
                   onMarkDone={markDone} onMarkBlocked={markBlocked}
                   onRemove={(id) => archiveQAItem.mutate(id)} onOpen={setDetailItem} />

@@ -11,6 +11,8 @@ import {
 import { Button } from '@/components/ui/button'
 import { useClientOptions } from '@/hooks/useClients'
 import { useCreateQAItem, type BackendDailyStatus, type QAWorkflowState } from '@/hooks/useQAItems'
+import toast from 'react-hot-toast'
+import { getApiErrorMessage } from '@/lib/api-error'
 
 interface AddItemModalProps {
   open:    boolean
@@ -54,6 +56,7 @@ export function AddItemModal({ open, onClose, selectedDate }: AddItemModalProps)
   const [status,  setStatus]  = useState<DailyStatus>('todo')
   const [notes,   setNotes]   = useState('')
   const [resp,    setResp]    = useState('')
+  const [submitError, setSubmitError] = useState<string | null>(null)
 
   const effectiveClient = custom.trim() || client
 
@@ -70,6 +73,7 @@ export function AddItemModal({ open, onClose, selectedDate }: AddItemModalProps)
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
     if (!title.trim()) return
+    setSubmitError(null)
     createQAItem.mutate(
       {
         title: title.trim(),
@@ -92,8 +96,14 @@ export function AddItemModal({ open, onClose, selectedDate }: AddItemModalProps)
       },
       {
         onSuccess: () => {
+          toast.success('Item adicionado ao QA do dia.')
           reset()
           onClose()
+        },
+        onError: error => {
+          const message = getApiErrorMessage(error, 'Nao foi possivel adicionar o item ao QA do dia.')
+          setSubmitError(message)
+          toast.error(message)
         },
       }
     )
@@ -197,6 +207,11 @@ export function AddItemModal({ open, onClose, selectedDate }: AddItemModalProps)
                 </div>
 
                 {/* Actions */}
+                {submitError && (
+                  <p className="rounded-lg border border-red-500/25 bg-red-500/10 px-3 py-2 text-xs text-red-300">
+                    {submitError}
+                  </p>
+                )}
                 <div className="flex items-center justify-end gap-2 pt-1">
                   <button type="button" onClick={onClose}
                     className="px-4 py-2 rounded-lg text-sm text-white/40 hover:text-white/60 hover:bg-white/[0.05] transition-all">

@@ -9,6 +9,7 @@ import { CommandPalette } from '@/components/ai/command-palette'
 import { AuthGuard } from '@/components/auth-guard'
 import { cn } from '@/lib/utils'
 import { useSocketNotifications } from '@/hooks/useSocketNotifications'
+import { CalendarMeetingMigration } from '@/components/calendar/calendar-meeting-migration'
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   const [collapsed, setCollapsed] = useState(false)
@@ -16,6 +17,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
   return (
     <AuthGuard>
+    <CalendarMeetingMigration />
     <div className="flex h-screen overflow-hidden bg-surface-950">
       <div className="fixed inset-0 dot-grid opacity-30 pointer-events-none" />
       <div className="fixed inset-0 pointer-events-none">

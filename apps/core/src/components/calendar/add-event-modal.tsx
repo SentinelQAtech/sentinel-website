@@ -10,6 +10,10 @@ import {
   EVENT_TYPE_CONFIG, REGION_CONFIG,
 } from '@/store/calendar'
 import { useI18nStore } from '@/store/i18n'
+import { useCreateDailyMeeting } from '@/hooks/useDaily'
+import { calendarEventToDailyMeeting } from '@/lib/calendar-meeting-sync'
+import { getApiErrorMessage } from '@/lib/api-error'
+import toast from 'react-hot-toast'
 
 interface Props {
   open:         boolean
@@ -21,6 +25,7 @@ export function AddEventModal({ open, onClose, defaultDate = '' }: Props) {
   useI18nStore(s => s.locale)
   const t = useI18nStore(s => s.t)
   const { addEvent } = useCalendarStore()
+  const createMeeting = useCreateDailyMeeting()
 
   const [title,       setTitle]       = useState('')
   const [date,        setDate]        = useState(defaultDate)
@@ -42,10 +47,10 @@ export function AddEventModal({ open, onClose, defaultDate = '' }: Props) {
     }
   }, [open, defaultDate])
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!title.trim() || !date) return
-    addEvent({
+    const event = {
       title:       title.trim(),
       date,
       startTime,
@@ -53,7 +58,20 @@ export function AddEventModal({ open, onClose, defaultDate = '' }: Props) {
       type,
       region:      region || undefined,
       description: description.trim() || undefined,
-    })
+    }
+
+    if (type === 'meeting') {
+      try {
+        await createMeeting.mutateAsync(calendarEventToDailyMeeting({ ...event, id: 'new' }))
+        toast.success('Reuniao salva no Calendar e no Daily.')
+        onClose()
+      } catch (error) {
+        toast.error(getApiErrorMessage(error, 'Nao foi possivel salvar a reuniao.'))
+      }
+      return
+    }
+
+    addEvent(event)
     onClose()
   }
 
@@ -234,10 +252,10 @@ export function AddEventModal({ open, onClose, defaultDate = '' }: Props) {
                 </button>
                 <button
                   type="submit"
-                  disabled={!title.trim() || !date}
+                  disabled={!title.trim() || !date || createMeeting.isPending}
                   className="flex-1 py-2.5 rounded-lg text-sm font-medium bg-primary/20 border border-primary/30 text-primary hover:bg-primary/30 transition-all duration-200 disabled:opacity-40 disabled:cursor-not-allowed"
                 >
-                  {t('createEvent')}
+                  {createMeeting.isPending ? 'Salvando...' : t('createEvent')}
                 </button>
               </div>
             </form>

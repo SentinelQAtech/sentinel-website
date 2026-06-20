@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useMemo } from 'react'
+import { useMemo, useState } from 'react'
 import { ChevronLeft, ChevronRight, Plus, CalendarDays, Clock, X, History } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import {
@@ -10,6 +10,12 @@ import {
 } from '@/store/calendar'
 import { AddEventModal } from './add-event-modal'
 import { useI18nStore } from '@/store/i18n'
+import { useDailyMeetings, useDeleteDailyMeeting } from '@/hooks/useDaily'
+import {
+  dailyMeetingToCalendarEvent,
+} from '@/lib/calendar-meeting-sync'
+import { getApiErrorMessage } from '@/lib/api-error'
+import toast from 'react-hot-toast'
 
 const WEEKDAYS  = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb']
 const MONTHS_PT = [
@@ -61,17 +67,37 @@ export function CalendarClient() {
   const [showHistory,  setShowHistory]  = useState(false)
 
   const { events, removeEvent } = useCalendarStore()
+  const meetingsQuery = useDailyMeetings()
+  const deleteMeeting = useDeleteDailyMeeting()
+
+  const calendarEvents = useMemo(() => [
+    ...events.filter(event => event.type !== 'meeting'),
+    ...(meetingsQuery.data ?? []).map(dailyMeetingToCalendarEvent),
+  ], [events, meetingsQuery.data])
+
+  const handleRemoveEvent = async (event: CalendarEvent) => {
+    if (event.type !== 'meeting') {
+      removeEvent(event.id)
+      return
+    }
+    try {
+      await deleteMeeting.mutateAsync(event.id)
+      toast.success('Reuniao removida.')
+    } catch (error) {
+      toast.error(getApiErrorMessage(error, 'Nao foi possivel remover a reuniao.'))
+    }
+  }
 
   const cells = useMemo(() => buildGrid(year, month), [year, month])
 
   const eventsByDate = useMemo(() => {
     const map: Record<string, CalendarEvent[]> = {}
-    events.forEach(e => {
+    calendarEvents.forEach(e => {
       if (!map[e.date]) map[e.date] = []
       map[e.date].push(e)
     })
     return map
-  }, [events])
+  }, [calendarEvents])
 
   const selectedEvents = useMemo(
     () => (eventsByDate[selectedDate] ?? []).sort((a, b) => a.startTime.localeCompare(b.startTime)),
@@ -80,10 +106,10 @@ export function CalendarClient() {
 
   const historyEvents = useMemo(() => {
     const todayISO = toISO(today)
-    return events
+    return calendarEvents
       .filter(e => e.date < todayISO)
       .sort((a, b) => `${b.date}T${b.startTime}`.localeCompare(`${a.date}T${a.startTime}`))
-  }, [events, today])
+  }, [calendarEvents, today])
 
   const prevMonth = () => month === 0  ? (setMonth(11), setYear(y => y - 1)) : setMonth(m => m - 1)
   const nextMonth = () => month === 11 ? (setMonth(0),  setYear(y => y + 1)) : setMonth(m => m + 1)
@@ -311,7 +337,7 @@ export function CalendarClient() {
                       </div>
                     </div>
                     <button
-                      onClick={() => removeEvent(ev.id)}
+                      onClick={() => void handleRemoveEvent(ev)}
                       className="opacity-0 group-hover:opacity-100 mt-0.5 text-white/20 hover:text-red-400 transition-all duration-150 shrink-0"
                     >
                       <X className="w-3 h-3" />

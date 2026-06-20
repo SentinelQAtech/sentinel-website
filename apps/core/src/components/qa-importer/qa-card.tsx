@@ -7,6 +7,7 @@ import { type QAItem, QA_CATEGORY_CONFIG, PRIORITY_CONFIG, getLocalISODate } fro
 interface Props {
   item: QAItem
   selected: boolean
+  sendingToDaily?: boolean
   onToggleSelect: (id: string) => void
   onSendToDaily: (item: QAItem) => void
   onMarkDone: (id: string) => void
@@ -25,7 +26,7 @@ function relTime(iso: string) {
   return new Date(iso).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' })
 }
 
-export function QACard({ item, selected, onToggleSelect, onSendToDaily, onMarkDone, onMarkBlocked, onRemove, onOpen }: Props) {
+export function QACard({ item, selected, sendingToDaily = false, onToggleSelect, onSendToDaily, onMarkDone, onMarkBlocked, onRemove, onOpen }: Props) {
   const cat = QA_CATEGORY_CONFIG[item.qaCategory] ?? QA_CATEGORY_CONFIG.Other
   const prio = PRIORITY_CONFIG[item.priority] ?? PRIORITY_CONFIG.Unknown
   const isDone = item.qaCategory === 'Done'
@@ -208,11 +209,12 @@ export function QACard({ item, selected, onToggleSelect, onSendToDaily, onMarkDo
           {(!item.sentToDaily || item.dailyDate !== getLocalISODate()) && (
             <button
               onClick={() => onSendToDaily(item)}
+              disabled={sendingToDaily}
               title={item.sentToDaily ? 'Reenviar para o Daily de hoje' : 'Send to Daily'}
-              className="inline-flex h-7 items-center gap-1 rounded-lg px-2 text-[10px] font-semibold text-primary/80 transition-all duration-150 hover:bg-primary/10 hover:text-primary"
+              className="inline-flex h-7 items-center gap-1 rounded-lg px-2 text-[10px] font-semibold text-primary/80 transition-all duration-150 hover:bg-primary/10 hover:text-primary disabled:cursor-wait disabled:opacity-45"
             >
               <Send className="h-3 w-3" />
-              Daily
+              {sendingToDaily ? 'Enviando...' : 'Daily'}
             </button>
           )}
           {!isDone && (

@@ -2,6 +2,7 @@ import { api, exchangeSupabaseSession } from './api'
 import { createClient } from './supabase/client'
 import type { User, AuthTokens, Role } from '@/types'
 import type { User as SupabaseUser } from '@supabase/supabase-js'
+import { restoreInternalApiSession } from './auth-session'
 
 export interface AuthResult {
   user: User
@@ -51,8 +52,30 @@ export async function getCurrentUser(): Promise<User | null> {
 
   const supabase = createClient()
   const { data, error } = await supabase.auth.getUser()
-  if (error || !data.user) return null
-  return toAppUser(data.user)
+  if (error || !data.user) {
+    clearTokens()
+    return null
+  }
+
+  const { data: sessionData, error: sessionError } = await supabase.auth.getSession()
+  const accessToken = sessionData.session?.access_token
+  if (sessionError || !accessToken) {
+    clearTokens()
+    return null
+  }
+
+  try {
+    return await restoreInternalApiSession(accessToken, {
+      exchange: exchangeSupabaseSession,
+      storeTokens,
+      fetchCurrentUser: async () => (await api.get<User>('/auth/me')).data,
+      setUserId: userId => localStorage.setItem(USER_ID_KEY, userId),
+      clearTokens,
+    })
+  } catch (bridgeError) {
+    console.warn('Nao foi possivel restaurar a sessao interna da API.', bridgeError)
+    return null
+  }
 }
 
 function toAppUser(user: SupabaseUser): User {
