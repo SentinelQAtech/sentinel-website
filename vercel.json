@@ -1,7 +1,7 @@
 {
   "version": 2,
   "framework": null,
-  "installCommand": "npm install && npm run db:generate",
+  "installCommand": "npm install",
   "builds": [
     {
       "src": "apps/api/api/index.ts",
