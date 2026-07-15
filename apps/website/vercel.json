@@ -33,67 +33,6 @@
       ]
     }
   ],
-  "redirects": [
-    {
-      "source": "/Core",
-      "destination": "/core/dashboard",
-      "permanent": false
-    },
-    {
-      "source": "/Core/:path*",
-      "destination": "/core/:path*",
-      "permanent": false
-    },
-    {
-      "source": "/learning",
-      "destination": "https://learning.sentinelqa.tech/",
-      "permanent": true
-    },
-    {
-      "source": "/learning/",
-      "destination": "https://learning.sentinelqa.tech/",
-      "permanent": true
-    },
-    {
-      "source": "/learning/:path*",
-      "destination": "https://learning.sentinelqa.tech/:path*",
-      "permanent": true
-    },
-    {
-      "source": "/core",
-      "destination": "/core/dashboard",
-      "permanent": false
-    },
-    {
-      "source": "/core/",
-      "destination": "/core/dashboard",
-      "permanent": false
-    },
-    {
-      "source": "/",
-      "has": [
-        { "type": "host", "value": "app.sentinelqa.tech" }
-      ],
-      "destination": "https://sentinelqa.tech/core/dashboard",
-      "permanent": true
-    },
-    {
-      "source": "/:path*",
-      "has": [
-        { "type": "host", "value": "app.sentinelqa.tech" }
-      ],
-      "destination": "https://sentinelqa.tech/core/:path*",
-      "permanent": true
-    }
-  ],
-  "rewrites": [
-    {
-      "source": "/core",
-      "destination": "https://sentinel-core-iota.vercel.app/core"
-    },
-    {
-      "source": "/core/:path*",
-      "destination": "https://sentinel-core-iota.vercel.app/core/:path*"
-    }
-  ]
+  "redirects": [],
+  "rewrites": []
 }

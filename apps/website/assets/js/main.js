@@ -62,7 +62,7 @@
       htmlLang: "en",
       languageLabel: "Change language",
       languageExpanded: "Close language menu",
-      nav: ["Services", "Engagement", "Platform", "Process", "Contact", "Core"],
+      nav: ["Services", "Engagement", "Platform", "Process", "Contact"],
       hero: {
         eyebrow: "QA & Test Engineering",
         title: "Quality engineering that makes releases safer.",
@@ -82,7 +82,7 @@
       proof: [
         ["Risk-first QA", "Coverage is planned around business impact, critical flows, and release timing."],
         ["Clear execution", "Every test cycle produces actionable status, evidence, and next-step visibility."],
-        ["Operational maturity", "Sentinel Core keeps routines, bugs, dailies, reports, and QA imports connected."],
+        ["Operational maturity", "Private QA operations keep routines, bugs, dailies, reports, and QA imports connected."],
       ],
       services: {
         eyebrow: "Services",
@@ -109,12 +109,12 @@
       },
       platform: {
         eyebrow: "Internal platform",
-        title: "Sentinel Core keeps our QA operations connected.",
+        title: "A private QA platform keeps our operations connected.",
         text: "A private operational layer for projects, bugs, dailies, QA evidence, and team knowledge. Clients see the result: cleaner execution and steadier releases.",
-        button: "Open Sentinel Core",
+        button: "Talk about QA operations",
         cards: [
-          ["Core", "Internal QA Operations", "Projects, boards, bugs, clients, daily routines, reports, and notifications."],
-          ["Learning", "Team enablement", "Internal standards, QA references, and onboarding knowledge."],
+          ["Operations", "Internal QA Operations", "Projects, boards, bugs, clients, daily routines, reports, and notifications."],
+          ["Enablement", "Team enablement", "Internal standards, QA references, and onboarding knowledge."],
           ["Extension", "QA data capture", "Fast import flow for cards, test notes, and operational QA context."],
         ],
       },
@@ -158,7 +158,7 @@
       htmlLang: "pt-BR",
       languageLabel: "Alterar idioma",
       languageExpanded: "Fechar menu de idioma",
-      nav: ["Serviços", "Atuação", "Plataforma", "Processo", "Contato", "Core"],
+      nav: ["Serviços", "Atuação", "Plataforma", "Processo", "Contato"],
       hero: {
         eyebrow: "QA & Engenharia de Testes",
         title: "Engenharia de qualidade que torna releases mais seguros.",
@@ -178,7 +178,7 @@
       proof: [
         ["QA orientado a risco", "A cobertura é planejada com base em impacto de negócio, fluxos críticos e timing de release."],
         ["Execução clara", "Cada ciclo de testes gera status acionável, evidências e visibilidade dos próximos passos."],
-        ["Maturidade operacional", "O Sentinel Core mantém rotinas, bugs, dailies, relatórios e importações de QA conectados."],
+        ["Maturidade operacional", "Operações privadas de QA mantêm rotinas, bugs, dailies, relatórios e importações de QA conectados."],
       ],
       services: {
         eyebrow: "Serviços",
@@ -205,12 +205,12 @@
       },
       platform: {
         eyebrow: "Plataforma interna",
-        title: "O Sentinel Core mantém nossa operação de QA conectada.",
+        title: "Uma plataforma privada de QA mantém nossa operação conectada.",
         text: "Uma camada operacional privada para projetos, bugs, dailies, evidências de QA e conhecimento do time. O cliente vê o resultado: execução mais limpa e releases mais estáveis.",
-        button: "Abrir Sentinel Core",
+        button: "Falar sobre operações de QA",
         cards: [
-          ["Core", "Operações internas de QA", "Projetos, boards, bugs, clientes, rotinas diárias, relatórios e notificações."],
-          ["Learning", "Capacitação do time", "Padrões internos, referências de QA e conhecimento de onboarding."],
+          ["Operações", "Operações internas de QA", "Projetos, boards, bugs, clientes, rotinas diárias, relatórios e notificações."],
+          ["Capacitação", "Capacitação do time", "Padrões internos, referências de QA e conhecimento de onboarding."],
           ["Extension", "Captura de dados de QA", "Fluxo rápido de importação para cards, notas de teste e contexto operacional de QA."],
         ],
       },
@@ -254,7 +254,7 @@
       htmlLang: "es",
       languageLabel: "Cambiar idioma",
       languageExpanded: "Cerrar menú de idioma",
-      nav: ["Servicios", "Modelo", "Plataforma", "Proceso", "Contacto", "Core"],
+      nav: ["Servicios", "Modelo", "Plataforma", "Proceso", "Contacto"],
       hero: {
         eyebrow: "QA & Ingeniería de Pruebas",
         title: "Ingeniería de calidad que hace los releases más seguros.",
@@ -274,7 +274,7 @@
       proof: [
         ["QA basado en riesgo", "La cobertura se planifica según impacto de negocio, flujos críticos y timing de release."],
         ["Ejecución clara", "Cada ciclo de pruebas genera estado accionable, evidencias y visibilidad de próximos pasos."],
-        ["Madurez operativa", "Sentinel Core mantiene rutinas, bugs, dailies, reportes e importaciones de QA conectados."],
+        ["Madurez operativa", "Las operaciones privadas de QA mantienen rutinas, bugs, dailies, reportes e importaciones de QA conectados."],
       ],
       services: {
         eyebrow: "Servicios",
@@ -301,12 +301,12 @@
       },
       platform: {
         eyebrow: "Plataforma interna",
-        title: "Sentinel Core mantiene conectada nuestra operación de QA.",
+        title: "Una plataforma privada de QA mantiene conectada nuestra operación.",
         text: "Una capa operativa privada para proyectos, bugs, dailies, evidencias de QA y conocimiento del equipo. El cliente ve el resultado: ejecución más limpia y releases más estables.",
-        button: "Abrir Sentinel Core",
+        button: "Hablar sobre operaciones de QA",
         cards: [
-          ["Core", "Operaciones internas de QA", "Proyectos, boards, bugs, clientes, rutinas diarias, reportes y notificaciones."],
-          ["Learning", "Habilitación del equipo", "Estándares internos, referencias de QA y conocimiento de onboarding."],
+          ["Operaciones", "Operaciones internas de QA", "Proyectos, boards, bugs, clientes, rutinas diarias, reportes y notificaciones."],
+          ["Habilitación", "Habilitación del equipo", "Estándares internos, referencias de QA y conocimiento de onboarding."],
           ["Extension", "Captura de datos de QA", "Flujo rápido de importación para cards, notas de prueba y contexto operativo de QA."],
         ],
       },

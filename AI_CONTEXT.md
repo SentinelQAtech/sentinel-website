@@ -38,13 +38,12 @@ prisma/            Schema de dados
 
 ```text
 https://sentinelqa.tech                    Site publico
-https://sentinelqa.tech/core               Redirect para /core/dashboard
-https://sentinelqa.tech/core/dashboard     Sentinel Core
-https://learning.sentinelqa.tech/          Sentinel Learning atual
-https://sentinelqa.tech/learning/          Redirect legado para learning.sentinelqa.tech
 https://sentinelqa.tech/extension/         Pagina publica da extensao
-https://app.sentinelqa.tech                Redirect para Sentinel Core
 ```
+
+Core e Learning sao acessos internos. O site publico nao deve exibir links,
+redirects ou rewrites para `/core`, `/learning`, `app.sentinelqa.tech` ou
+`learning.sentinelqa.tech`.
 
 ## Regras Para IAs
 
@@ -56,7 +55,7 @@ https://app.sentinelqa.tech                Redirect para Sentinel Core
 6. Nao commite `.env`, `.vercel`, `.next`, `dist`, `node_modules`, `test-results` ou secrets.
 7. Antes de apagar dados, pedir confirmacao.
 8. Preferir mudancas pequenas, rastreaveis e documentadas.
-9. Tratar `sentinelqa.tech/learning` como rota legada que deve redirecionar para `learning.sentinelqa.tech`.
+9. Nao expor Core/Learning no site publico: sem links, redirects ou rewrites para `/core` ou `/learning`.
 10. Atualizar docs quando mudar rota, deploy, nome, stack ou arquitetura.
 
 ## Comandos Uteis

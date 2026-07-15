@@ -139,7 +139,7 @@ Responsabilidade:
 - Comunicar servicos;
 - Explicar processo;
 - Direcionar contato;
-- Mostrar a existencia do Sentinel Core;
+- Comunicar maturidade operacional sem expor acessos internos;
 - Servir como porta de entrada institucional.
 
 Codigo:
@@ -161,16 +161,16 @@ O site publico e intencionalmente simples e leve. Ele nao precisa ser Next.js ne
 
 ### 5.2 Sentinel Core
 
-URL:
+Uso:
 
 ```text
-https://sentinelqa.tech/core/dashboard
+Sistema interno. Nao deve ser linkado, redirecionado ou reescrito pelo site publico.
 ```
 
-Alias:
+Base path interno:
 
 ```text
-https://app.sentinelqa.tech
+NEXT_PUBLIC_BASE_PATH=/core
 ```
 
 Responsabilidade:
@@ -211,12 +211,6 @@ Stack:
 - Radix UI;
 - Lucide Icons.
 
-Base path:
-
-```text
-NEXT_PUBLIC_BASE_PATH=/core
-```
-
 ### 5.3 API
 
 Codigo:
@@ -252,17 +246,16 @@ A API existe estruturalmente e deve ser evoluida como fonte real de dados. O Cor
 
 ### 5.4 Sentinel Learning
 
-URL publica atual:
+Uso:
 
 ```text
-https://learning.sentinelqa.tech/
+Area interna/de apoio. Nao deve ser linkada, redirecionada ou promovida pelo site publico.
 ```
 
 Codigo:
 
 ```text
 Projeto Vercel: sentinel-learning
-Rota legada: sentinelqa.tech/learning -> learning.sentinelqa.tech
 ```
 
 Objetivo:
@@ -378,16 +371,23 @@ npm run db:studio
 
 ## 7. Rotas e Dominios
 
-Rotas atuais:
+Rotas publicas do site institucional:
 
 ```text
 sentinelqa.tech              Site publico Sentinel Tech - QA
-sentinelqa.tech/core         Redireciona para /core/dashboard
-sentinelqa.tech/core/dashboard Sentinel Core
-learning.sentinelqa.tech     Sentinel Learning
-sentinelqa.tech/learning     Redirect legado para learning.sentinelqa.tech
 sentinelqa.tech/extension    Sentinel Extension
-app.sentinelqa.tech          Redireciona para sentinelqa.tech/core/dashboard
+sentinelqa.tech/privacy      Politica de privacidade
+```
+
+Rotas internas que nao devem ser expostas pelo site publico:
+
+```text
+sentinelqa.tech/core
+sentinelqa.tech/core/*
+sentinelqa.tech/learning
+sentinelqa.tech/learning/*
+app.sentinelqa.tech
+learning.sentinelqa.tech
 ```
 
 DNS:
@@ -401,8 +401,8 @@ Deploy:
 
 - Vercel para site publico;
 - Vercel para Sentinel Core;
-- Rewrites do site publico apontam `/core` para o projeto do Core;
-- `app.sentinelqa.tech` funciona como alias/redirecionamento para o Core.
+- O site publico nao deve ter redirects ou rewrites para Core/Learning;
+- Acesso interno a Core/Learning deve ser tratado fora da superficie publica institucional.
 
 ---
 
@@ -419,8 +419,8 @@ O projeto ja possui:
 - Marca definida;
 - Dominio proprio;
 - Site publico online;
-- Sentinel Core online;
-- Learning online;
+- Sentinel Core existente como app interno;
+- Learning existente como area interna/de apoio;
 - Extension online;
 - Monorepo;
 - Deploy Vercel;
@@ -596,7 +596,7 @@ Ao trabalhar neste projeto:
 5. Nao remover Next.js, React, NestJS ou Turborepo.
 6. Manter `Sentinel Tech - QA` como empresa/marca publica.
 7. Manter `Sentinel Core` como plataforma interna.
-8. Manter as rotas sob `sentinelqa.tech`.
+8. Nao expor rotas internas no site publico.
 9. Preservar `/core` como base path do Core.
 10. Evitar refactors gigantes sem necessidade.
 11. Priorizar estabilidade, dados reais e operacao diaria.
